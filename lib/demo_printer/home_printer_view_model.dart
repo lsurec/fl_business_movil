@@ -4,6 +4,7 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:fl_business/demo_printer/pdf_utils.dart';
 import 'package:fl_business/demo_printer/ticket_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:pdf/pdf.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -11,9 +12,66 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 
+//Modelo simulando datos de reporte
+class EstadoCuenta {
+  final String fecha;
+  final String detalle;
+  final double debito;
+  final double credito;
+  final double saldo;
+  final String documento;
+  final String tipo;
+  final String referencia;
+
+  EstadoCuenta({
+    required this.fecha,
+    required this.detalle,
+    required this.debito,
+    required this.credito,
+    required this.saldo,
+    required this.documento,
+    required this.tipo,
+    required this.referencia,
+  });
+}
+
 class HomePrinterViewModel extends ChangeNotifier {
   PdfPageFormat? formatoSeleccionado; // Guarda el formato actual de la página
 
+  final List<EstadoCuenta> movimientos = [
+    EstadoCuenta(
+      fecha: '2025-09-01',
+      detalle: 'Depósito inicial',
+      debito: 0,
+      credito: 1000,
+      saldo: 1000,
+      documento: 'DOC001',
+      tipo: 'Ingreso',
+      referencia: 'REF001',
+    ),
+    EstadoCuenta(
+      fecha: '2025-09-03',
+      detalle: 'Pago proveedor',
+      debito: 200,
+      credito: 0,
+      saldo: 800,
+      documento: 'DOC002',
+      tipo: 'Egreso',
+      referencia: 'REF002',
+    ),
+    EstadoCuenta(
+      fecha: '2025-09-05',
+      detalle: 'Cobro cliente',
+      debito: 0,
+      credito: 500,
+      saldo: 1300,
+      documento: 'DOC003',
+      tipo: 'Ingreso',
+      referencia: 'REF003',
+    ),
+  ];
+
+  /// Método estático para imprimir directamente en ticket
   Future<void> imprimirTicket({required BuildContext context}) async {
     final TicketUtils ticketUtils = TicketUtils();
     final bluetooth = ticketUtils.bluetooth;
@@ -56,20 +114,20 @@ class HomePrinterViewModel extends ChangeNotifier {
     bluetooth.printNewLine();
 
     // Imprimir cada movimiento
-    await ticketUtils.imprimirTexto('Fecha: 1.0.0');
-    await ticketUtils.imprimirTexto(
-      'Detalle: Eiusmod occaecat cillum id voluptate.',
-    );
-    await ticketUtils.imprimirTexto('Débito: 10.00  Crédito: 15.00');
-    await ticketUtils.imprimirTexto('Saldo: 1110.00');
-    await ticketUtils.imprimirTexto('Documento: 1  Tipo: PDF');
-    await ticketUtils.imprimirTexto('Referencia: 51515');
-    bluetooth.printNewLine();
-    await ticketUtils.imprimirTexto(
-      'Generado por: DEMOSOFT',
-      size: 0,
-      align: 1,
-    );
+    for (final m in movimientos) {
+      await ticketUtils.imprimirTexto('Fecha: ${m.fecha}');
+      await ticketUtils.imprimirTexto('Detalle: ${m.detalle}');
+      await ticketUtils.imprimirTexto(
+        'Débito: ${m.debito.toStringAsFixed(2)}  Crédito: ${m.credito.toStringAsFixed(2)}',
+      );
+      await ticketUtils.imprimirTexto('Saldo: ${m.saldo.toStringAsFixed(2)}');
+      await ticketUtils.imprimirTexto(
+        'Documento: ${m.documento}  Tipo: ${m.tipo}',
+      );
+      await ticketUtils.imprimirTexto('Referencia: ${m.referencia}');
+      bluetooth.printNewLine();
+    }
+    await ticketUtils.imprimirTexto('Generado por: ', size: 0, align: 1);
     await ticketUtils.imprimirTexto('1.0.0', size: 0, align: 1);
 
     // Línea final y desconexión
