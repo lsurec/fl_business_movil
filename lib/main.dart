@@ -1,22 +1,8 @@
-import 'package:fl_business/demo_printer/home_printer_view.dart';
-import 'package:fl_business/demo_printer/home_printer_view_model.dart';
+import 'package:fl_business/widgets/tabla_demo.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
-void main() => runApp(const AppState());
-
-class AppState extends StatelessWidget {
-  const AppState({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => HomePrinterViewModel()),
-      ],
-      child: MyApp(),
-    );
-  }
+void main() {
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,6 +10,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Material App', home: HomePrinterView());
+    // Método build que construye la UI
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Demo Tabla',
+      theme: ThemeData(
+        primarySwatch: Colors.blue, // Color primario de la app
+      ),
+      home: TablaDemoPage(), // Página inicial de la app: tabla demo
+    );
   }
 }

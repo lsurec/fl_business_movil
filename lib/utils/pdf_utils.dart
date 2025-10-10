@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:fl_business/utils/utils.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
@@ -84,7 +85,7 @@ class PdfUtils {
       padding: const pw.EdgeInsets.only(top: 8.0),
       child: pw.Center(
         child: pw.Text(
-          "Generado por: ds.demosoft | Versión: 1.0.0",
+          "Generado por: ${UtilitiesService.nombreEmpresa} | Versión: ${UtilitiesService.version}",
           style: pw.TextStyle(fontSize: fontSize, font: font),
           textAlign: pw.TextAlign.center,
         ),
