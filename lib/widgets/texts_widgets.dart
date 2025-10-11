@@ -1,0 +1,24 @@
+import 'package:flutter/material.dart';
+import 'package:fl_business/themes/themes.dart';
+
+class TextsWidget extends StatelessWidget {
+  const TextsWidget({super.key, required this.title, required this.text});
+
+  final String title;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: StyleApp.normal.copyWith(
+          color: Theme.of(context).textTheme.bodyLarge!.color,
+        ),
+        children: [
+          TextSpan(text: title, style: StyleApp.normalBold),
+          TextSpan(text: text, style: StyleApp.normal),
+        ],
+      ),
+    );
+  }
+}

@@ -1,0 +1,59 @@
+import 'dart:convert';
+
+import 'package:fl_business/fel/models/models.dart';
+import 'package:fl_business/models/models.dart';
+import 'package:fl_business/providers/providers.dart';
+import 'package:http/http.dart' as http;
+
+class TokenService {
+  //url de lserivdor
+
+  final String _baseUrl = ApiProvider().baseUrl;
+
+  //obtner series
+  Future<ApiResModel> getToken(
+    int apiToken,
+    int certificador,
+    String user,
+    String conStr,
+  ) async {
+    Uri url = Uri.parse("${_baseUrl}Tokens/$certificador/1/$user");
+    try {
+      //url completa
+
+      //Configuracion del api
+      final response = await http.get(
+        url,
+        headers: {"connectionStr": conStr, "apiToken": "$apiToken"},
+      );
+
+      if (response.statusCode != 200) {
+        return ApiResModel(
+          url: url.toString(),
+          succes: false,
+          response: response.body,
+          storeProcedure: null,
+        );
+      }
+
+      // Asignar respuesta del Api ResLogin
+      ResStatusModel res = ResStatusModel.fromMap(jsonDecode(response.body));
+
+      //respuesta corecta
+      return ApiResModel(
+        url: url.toString(),
+        succes: true,
+        response: res,
+        storeProcedure: null,
+      );
+    } catch (e) {
+      //respuesta incorrecta
+      return ApiResModel(
+        url: url.toString(),
+        succes: false,
+        response: e.toString(),
+        storeProcedure: null,
+      );
+    }
+  }
+}

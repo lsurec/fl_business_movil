@@ -1,0 +1,41 @@
+// ignore_for_file: deprecated_member_use
+
+import 'package:flutter/material.dart';
+import 'package:fl_business/themes/themes.dart';
+
+class DarkTheme {
+  // Colores del tema claro
+  static const Color primary = Color(0xff134895);
+
+  static final ThemeData darkTheme = ThemeData.dark().copyWith(
+    primaryColor: primary,
+    scaffoldBackgroundColor: AppTheme.darkBackroundColor,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppTheme.darkBackroundColor,
+      titleTextStyle: TextStyle(fontSize: 20),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: primary,
+      foregroundColor: AppTheme.white,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primary,
+        elevation: 0,
+        shape: const StadiumBorder(),
+      ),
+    ),
+    cardTheme: const CardThemeData(color: AppTheme.backroundDarkSecondary),
+    dividerColor: AppTheme.dividerDark,
+    dividerTheme: const DividerThemeData(color: AppTheme.dividerDark),
+    tabBarTheme: const TabBarThemeData(labelColor: Colors.white),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all<TextStyle>(
+          const TextStyle(color: primary, fontSize: 17),
+        ),
+        foregroundColor: MaterialStateProperty.all<Color>(primary),
+      ),
+    ),
+  );
+}

@@ -1,0 +1,242 @@
+import 'package:fl_business/services/picture_service.dart';
+import 'package:fl_business/services/services.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
+import 'package:fl_business/themes/themes.dart';
+import 'package:fl_business/utilities/translate_block_utilities.dart';
+import 'package:fl_business/view_models/view_models.dart';
+import 'package:fl_business/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class LoginView extends StatefulWidget {
+  const LoginView({Key? key}) : super(key: key);
+
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+  @override
+  void initState() {
+    super.initState();
+    Provider.of<PictureService>(
+      context,
+      listen: false,
+    ).loadSavedImage(Preferences.logo);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<LoginViewModel>(context);
+
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            actions: [
+              IconButton(
+                onPressed: () => vm.navigateConfigApi(context),
+                icon: const Icon(Icons.vpn_lock_outlined),
+              ),
+              IconButton(
+                onPressed: () => vm.showCustomDialog(context),
+                icon: const Icon(Icons.info_outline_rounded),
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  Consumer<PictureService>(
+                    builder: (context, imageProvider, child) {
+                      if (imageProvider.isDownloading) {
+                        return Column(
+                          children: [
+                            const CircularProgressIndicator(),
+                            Text("Descargando... ${imageProvider.progress}%"),
+                          ],
+                        );
+                      } else if (imageProvider.errorMessage != null) {
+                        return Text("Error: ${imageProvider.errorMessage}");
+                      } else if (imageProvider.imageFile != null) {
+                        return Center(
+                          child: Image.file(
+                            imageProvider.imageFile!,
+                            height: 125,
+                          ),
+                        );
+                      } else {
+                        return Container();
+                      }
+                    },
+                  ),
+                  // const Center(
+                  //   child: Image(
+                  //     height: 125,
+                  //     image: AssetImage("assets/empresa.png"),
+                  //   ),
+                  // ),
+                  const SizedBox(height: 20),
+                  CardWidget(
+                    width: double.infinity,
+                    raidus: 18,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          Form(
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            key: vm.formKey,
+                            child: Column(
+                              children: [
+                                InputWidget(
+                                  formProperty: 'user',
+                                  formValues: vm.formValues,
+                                  maxLines: 1,
+                                  initialValue: '',
+                                  hintText: AppLocalizations.of(context)!
+                                      .translate(
+                                        BlockTranslate.general,
+                                        "usuario",
+                                      ),
+                                  labelText: AppLocalizations.of(context)!
+                                      .translate(
+                                        BlockTranslate.general,
+                                        "usuario",
+                                      ),
+                                  suffixIcon: Icons.person,
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 15,
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      TextFormField(
+                                        decoration: InputDecoration(
+                                          hintText:
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.translate(
+                                                BlockTranslate.login,
+                                                "contrasena",
+                                              ),
+                                          labelText:
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.translate(
+                                                BlockTranslate.login,
+                                                "contrasena",
+                                              ),
+                                          suffixIcon: const Icon(
+                                            Icons.lock_outlined,
+                                          ),
+                                          suffixIconColor: AppTheme.grey,
+                                          // suffixIcon: IconButton(
+                                          //   onPressed: vm.toggle,
+                                          //   icon: Icon(
+                                          //     vm.obscureText
+                                          //         ? Icons.visibility
+                                          //         : Icons.visibility_off,
+                                          //     color: AppTheme.grey,
+                                          //   ),
+                                          // ),
+                                        ),
+                                        onChanged: (value) => {
+                                          vm.formValues['pass'] = value,
+                                        },
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return AppLocalizations.of(
+                                              context,
+                                            )!.translate(
+                                              BlockTranslate.notificacion,
+                                              "requerido",
+                                            );
+                                          }
+                                          return null;
+                                        },
+                                        obscureText: vm.obscureText,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SwitchListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 0,
+                              horizontal: 0,
+                            ),
+                            activeColor: AppTheme.hexToColor(
+                              Preferences.valueColor,
+                            ),
+                            title: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.translate(BlockTranslate.login, "recordar"),
+                              style: StyleApp.greyText,
+                              textAlign: TextAlign.right,
+                            ),
+                            value: vm.isSliderDisabledSession,
+                            onChanged: (value) => vm.disableSession(value),
+                          ),
+                          const SizedBox(height: 5),
+                          ElevatedButton(
+                            onPressed: () => vm.login(context),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Center(
+                                child: Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  )!.translate(BlockTranslate.login, "iniciar"),
+                                  style: StyleApp.whiteBold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        "${AppLocalizations.of(context)!.translate(BlockTranslate.url, "version")}: ${SplashViewModel.versionLocal}",
+                        style: StyleApp.greyText,
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  const Center(
+                    child: Image(
+                      height: 120,
+                      image: AssetImage("assets/logo_demosoft.png"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (vm.isLoading)
+          ModalBarrier(
+            dismissible: false,
+            // color: Colors.black.withOpacity(0.3),
+            color: AppTheme.isDark()
+                ? AppTheme.darkBackroundColor
+                : AppTheme.backroundColor,
+          ),
+        if (vm.isLoading) const LoadWidget(),
+      ],
+    );
+  }
+}

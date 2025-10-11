@@ -1,0 +1,153 @@
+// ignore_for_file: constant_identifier_names
+
+import 'package:fl_business/displays/calendario/views/views.dart';
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/views/views.dart';
+import 'package:fl_business/displays/prc_documento_3/views/referencia_view.dart';
+import 'package:fl_business/displays/prc_documento_3/views/views.dart';
+import 'package:fl_business/displays/report/views/views.dart';
+import 'package:fl_business/displays/restaurant/views/views.dart';
+import 'package:fl_business/displays/shr_local_config/views/views.dart';
+import 'package:fl_business/displays/tablero_kanban/views/tablero_view.dart';
+import 'package:fl_business/displays/tareas/views/ea_tareas_view.dart';
+import 'package:fl_business/displays/tareas/views/views.dart';
+import 'package:fl_business/views/error_infor_view.dart';
+import 'package:fl_business/views/views.dart';
+import 'package:flutter/material.dart';
+
+//rutas de navegacion
+class AppRoutes {
+  //rutas
+  static const login = 'login';
+  static const home = 'home';
+  static const api = 'api';
+  static const product = 'product';
+  static const selectProduct = 'selectProduct';
+  static const cargoDescuento = 'cargoDescuento';
+  static const amount = 'amount';
+  static const confirm = 'confirm';
+  static const selectClient = 'selectClient';
+  static const withoutPayment = 'withoutPayment';
+  static const withPayment = 'withPayment';
+  static const shrLocalConfig = 'shrLocalConfig';
+  static const printer = 'printer';
+  static const settings = 'settings';
+  static const error = 'error';
+  static const recent = 'recent';
+  static const detailsDoc = 'detailsDoc';
+  static const addClient = 'addClient';
+  static const help = 'help';
+  static const updateClient = 'updateClient';
+  static const Listado_Documento_Pendiente_Convertir =
+      'Listado_Documento_Pendiente_Convertir';
+  static const destionationDocs = 'destionationDocs';
+  static const pendingDocs = 'pendingDocs';
+  static const convertDocs = 'convertDocs';
+  static const detailsDestinationDoc = 'detailsDestinationDoc';
+  static const detailsTask = 'detailsTask';
+  static const viewComments = 'viewComments';
+  static const createTask = 'createTask';
+  static const selectReferenceId = 'selectReferenceId';
+  static const selectResponsibleUser = 'selectResponsibleUser';
+  static const tareas = 'prcTarea';
+  static const calendario = 'prcTareaCalendario';
+  static const detailsTaskCalendar = 'detailsTaskCalendar';
+  static const lang = 'lang';
+  static const theme = 'theme';
+  static const classification = 'classification';
+  static const locations = 'locations';
+  static const tables = 'tables';
+  static const pin = 'pin';
+  static const productsClass = 'productsClass';
+  static const detailsRestaurant = 'detailsRestaurant';
+  static const homeRestaurant = 'homeRestaurant';
+  static const garnish = 'garnish';
+  static const order = 'order';
+  static const permisions = 'permisions';
+  static const selectTable = 'selectTable';
+  static const selectLocation = 'selectLocation';
+  static const selectAccount = 'selectAccount';
+  static const transferSummary = 'transferSummary';
+  static const searchTask = 'searchTask';
+  static const terms = 'terms';
+  static const appearance = 'appearance';
+  static const colors = 'colors';
+  static const report = 'prcPos';
+  static const ref = 'ref';
+  static const elementoAsignado = 'elementoAsignado';
+  static const errorInfo = 'errorInfo';
+  static const eaTareas = "eaTareas";
+  static const tablero = "PrcTareaTableroCanva";
+
+  //otras rutas
+  static Map<String, Widget Function(BuildContext)> routes = {
+    login: (BuildContext context) => const LoginView(),
+    home: (BuildContext context) => const HomeView(),
+    api: (BuildContext context) => const ApiView(),
+    product: (BuildContext context) => const ProductView(),
+    selectProduct: (BuildContext context) => const SelectProductView(),
+    cargoDescuento: (BuildContext context) => const CargoDescuentoView(),
+    amount: (BuildContext context) => const AmountView(),
+    confirm: (BuildContext context) => const ConfirmDocView(),
+    selectClient: (BuildContext context) => const SelectClientView(),
+    //Display documento pos (factura)
+    withoutPayment: (BuildContext context) => const Tabs2View(),
+    withPayment: (BuildContext context) => const Tabs3View(),
+    //Display configuracion local
+    shrLocalConfig: (BuildContext context) => const LocalSettingsView(),
+    printer: (BuildContext context) => const PrintView(),
+    settings: (BuildContext context) => const SettingsView(),
+    error: (BuildContext context) => const ErrorView(),
+    recent: (BuildContext context) => const RecentView(),
+    detailsDoc: (BuildContext context) => const DetailsDocView(),
+    addClient: (BuildContext context) => const AddClientView(),
+    help: (BuildContext context) => const HelpView(),
+    updateClient: (BuildContext context) => const UpdateClientView(),
+    Listado_Documento_Pendiente_Convertir: (BuildContext context) =>
+        const TypesDocView(),
+    destionationDocs: (BuildContext context) => const DestinationDocView(),
+    pendingDocs: (BuildContext context) => const PendingDocsView(),
+    convertDocs: (BuildContext context) => const ConvertDocView(),
+    detailsDestinationDoc: (BuildContext context) =>
+        const DetailsDestinationDocView(),
+    //Rutas Display Tareas
+    tareas: (BuildContext context) => const TareasFiltroView(),
+    detailsTask: (BuildContext context) => const DetalleTareaView(),
+    viewComments: (BuildContext context) => const ComentariosView(),
+    createTask: (BuildContext context) => const CrearTareaView(),
+    selectReferenceId: (BuildContext context) => const IdReferenciaView(),
+    selectResponsibleUser: (BuildContext context) => const UsuariosView(),
+    calendario: (BuildContext context) => const CalendarioView(),
+    detailsTaskCalendar: (BuildContext context) =>
+        const DetalleTareaCalendariaView(),
+    lang: (BuildContext context) => const LangView(),
+    theme: (BuildContext context) => const ThemeView(),
+    classification: (BuildContext context) => const ClassificationView(),
+    locations: (BuildContext context) => const LocationsView(),
+    tables: (BuildContext context) => const TablesView(),
+    pin: (BuildContext context) => const PinView(),
+    productsClass: (BuildContext context) => const ProductClassView(),
+    detailsRestaurant: (BuildContext context) => const DetailsRestaurantView(),
+    homeRestaurant: (BuildContext context) => const HomeRestaurantView(),
+    order: (BuildContext context) => const OrderView(),
+    permisions: (BuildContext context) => const PermisionsView(),
+    selectTable: (BuildContext context) => const SelectTableView(),
+    selectLocation: (BuildContext context) => const SelectLocationView(),
+    selectAccount: (BuildContext context) => const SelectAccountView(),
+    transferSummary: (BuildContext context) => const TransferSummaryView(),
+    searchTask: (BuildContext context) => const BuscarTareasView(),
+    terms: (BuildContext context) => const TermsConditionsView(),
+    appearance: (BuildContext context) => const AppearenceView(),
+    colors: (BuildContext context) => const TemasColoresView(),
+    report: (BuildContext context) => const ReportView(),
+    ref: (BuildContext context) => const ReferenciaView(),
+    errorInfo: (BuildContext context) => const ErrorInfoView(),
+    elementoAsignado: (BuildContext context) => const ElementoAsignadoView(),
+    eaTareas: (BuildContext context) => const EATareasView(),
+    tablero: (BuildContext context) => const PrincipalView(),
+  };
+
+  //en caso de ruta incorrecta
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    return MaterialPageRoute(builder: (context) => const NotFoundView());
+  }
+}

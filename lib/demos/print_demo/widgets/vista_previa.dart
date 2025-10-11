@@ -4,7 +4,6 @@ import 'package:fl_business/demos/print_demo/utils/utils.dart';
 import 'package:fl_business/demos/print_demo/widgets/tabla_demo.dart';
 import 'package:flutter/material.dart'; // Librería principal de Flutter para UI
 import 'package:pdf/pdf.dart'; // Librería PDF
-import 'package:pdf/widgets.dart' as pw; // Widgets PDF
 import 'package:printing/printing.dart'; // Para mostrar y exportar PDF
 import 'package:intl/intl.dart'; // Para formateo de fechas
 

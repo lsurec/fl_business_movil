@@ -1,0 +1,10 @@
+export 'package:fl_business/displays/prc_documento_3/services/tipo_accion_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/tipo_referenci_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/fel_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/parametro_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/tipo_transaccion_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/cuenta_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/document_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/pago_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/product_service.dart';
+export 'package:fl_business/displays/prc_documento_3/services/serie_service.dart';

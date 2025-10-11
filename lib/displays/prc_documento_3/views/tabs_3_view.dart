@@ -1,0 +1,231 @@
+// ignore_for_file: deprecated_member_use
+
+import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
+import 'package:fl_business/displays/prc_documento_3/services/services.dart';
+import 'package:fl_business/services/services.dart';
+import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
+import 'package:fl_business/themes/themes.dart';
+import 'package:fl_business/utilities/translate_block_utilities.dart';
+import 'package:fl_business/view_models/view_models.dart';
+import 'package:fl_business/displays/prc_documento_3/views/views.dart';
+import 'package:fl_business/widgets/widgets.dart';
+import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
+
+class Tabs3View extends StatefulWidget {
+  const Tabs3View({Key? key}) : super(key: key);
+
+  @override
+  State<Tabs3View> createState() => _Tabs3ViewState();
+}
+
+class _Tabs3ViewState extends State<Tabs3View>
+    with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+    final vm = Provider.of<DocumentoViewModel>(context, listen: false);
+
+    vm.tabController = TabController(length: 3, vsync: this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => loadData(context));
+  }
+
+  loadData(BuildContext context) {
+    final vmConfirm = Provider.of<ConfirmDocViewModel>(context, listen: false);
+    vmConfirm.setIdDocumentoRef();
+    //cargar documento guardado en el dispositivo
+    DocumentService documentService = DocumentService();
+    documentService.loadDocumentSave(context);
+  }
+
+  // @override
+  // void dispose() {
+  //   final vm = Provider.of<DocumentoViewModel>(context, listen: false);
+
+  //   vm.tabController.dispose();
+  //   super.dispose();
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<DocumentoViewModel>(context);
+    final vmMenu = Provider.of<MenuViewModel>(context);
+    final vmDoc = Provider.of<DocumentViewModel>(context);
+    final vmDetalle = Provider.of<DetailsViewModel>(context);
+    final LocationService locationVM = Provider.of<LocationService>(context);
+
+    return WillPopScope(
+      onWillPop: () => vm.back(context),
+      child: Stack(
+        children: [
+          DefaultTabController(
+            length: 3, // Número de pestañas
+            child: Scaffold(
+              key: vmDetalle.scaffoldKey,
+              appBar: AppBar(
+                title: Text(
+                  vmMenu.name,
+                  style: StyleApp.title,
+                ),
+                actions: [
+                  IconButton(
+                    tooltip: AppLocalizations.of(context)!.translate(
+                      BlockTranslate.factura,
+                      'docRecientes',
+                    ),
+                    onPressed: () => Navigator.pushNamed(context, "recent"),
+                    icon: const Icon(Icons.schedule),
+                  ),
+                  IconButton(
+                    tooltip: AppLocalizations.of(context)!.translate(
+                      BlockTranslate.botones,
+                      'nuevoDoc',
+                    ),
+                    onPressed: () => vm.newDocument(context),
+                    icon: const Icon(Icons.note_add_outlined),
+                  ),
+                  if (vmDoc.monitorPrint())
+                    IconButton(
+                      onPressed: () => vm.sendDocumnet(
+                        context,
+                        2,
+                      ),
+                      icon: const Icon(
+                        Icons.desktop_windows_outlined,
+                      ),
+                    ),
+                  IconButton(
+                    tooltip: AppLocalizations.of(context)!.translate(
+                      BlockTranslate.botones,
+                      'imprimir',
+                    ),
+                    onPressed: () => vm.sendDocumnet(
+                      context,
+                      1,
+                    ),
+                    icon: const Icon(Icons.print_outlined),
+                  ),
+                  UserWidget(
+                    child: Column(
+                      children: [
+                        if (vmMenu.documento != null)
+                          ListTile(
+                            title: Text(
+                              AppLocalizations.of(context)!.translate(
+                                BlockTranslate.factura,
+                                'tipoDoc',
+                              ),
+                              style: StyleApp.normalBold,
+                            ),
+                            subtitle: Text(
+                              "${vmMenu.documentoName} (${vmMenu.documento})",
+                              style: StyleApp.normal,
+                            ),
+                          ),
+                        if (vmDoc.serieSelect != null)
+                          ListTile(
+                            title: Text(
+                              AppLocalizations.of(context)!.translate(
+                                BlockTranslate.general,
+                                'serie',
+                              ),
+                              style: StyleApp.normalBold,
+                            ),
+                            subtitle: Text(
+                              "${vmDoc.serieSelect!.descripcion} (${vmDoc.serieSelect!.serieDocumento})",
+                              style: StyleApp.normal,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+                bottom: TabBar(
+                  controller: vm.tabController,
+                  indicatorColor: AppTheme.hexToColor(
+                    Preferences.valueColor,
+                  ),
+                  tabs: [
+                    Tab(
+                      text: AppLocalizations.of(context)!.translate(
+                        BlockTranslate.general,
+                        'documento',
+                      ),
+                    ),
+                    Tab(
+                      text: AppLocalizations.of(context)!.translate(
+                        BlockTranslate.general,
+                        'detalle',
+                      ),
+                    ),
+                    Tab(
+                      text: AppLocalizations.of(context)!.translate(
+                        BlockTranslate.general,
+                        'pago',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              body: TabBarView(
+                controller: vm.tabController,
+                children: const [
+                  // Contenido de la primera pestaña
+                  DocumentView(),
+                  // Contenido de la segunda pestaña
+                  DetailsView(),
+                  // Contenido de la tercera pestaña
+                  PaymentView(),
+                ],
+              ),
+            ),
+          ),
+          if (vm.isLoading || (!locationVM.isLocation && vmDoc.valueParametro(318)))
+            ModalBarrier(
+              dismissible: false,
+              // color: Colors.black.withOpacity(0.3),
+              color: AppTheme.isDark()
+                  ? AppTheme.darkBackroundColor
+                  : AppTheme.backroundColor,
+            ),
+          if (vm.isLoading) const LoadWidget(),
+          if (!locationVM.isLocation && vmDoc.valueParametro(318) && !vm.isLoading ) 
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.location_off, size: 80, color: Colors.red),
+                  const SizedBox(height: 10),
+                  Text(
+                    locationVM.mensaje,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Centra horizontalmente
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => Geolocator.openAppSettings(),
+                        child: const Text("Configuraciones"),
+                      ),
+                      const SizedBox(
+                          width: 16), // Espacio horizontal entre botones
+                      ElevatedButton(
+                        onPressed: () => locationVM.getLocation(context),
+                        child: const Text("Reintentar"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}

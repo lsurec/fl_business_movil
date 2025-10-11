@@ -1,0 +1,116 @@
+import 'package:flutter/material.dart';
+import 'package:fl_business/displays/tareas/models/id_referencia_model.dart';
+import 'package:fl_business/services/services.dart';
+import 'package:fl_business/themes/app_theme.dart';
+import 'package:fl_business/themes/styles.dart';
+import 'package:fl_business/utilities/translate_block_utilities.dart';
+import 'package:fl_business/view_models/referencia_view_model.dart';
+import 'package:fl_business/widgets/widgets.dart';
+import 'package:provider/provider.dart';
+
+class ReferenciaView extends StatelessWidget {
+  const ReferenciaView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final ReferenciaViewModel vm = Provider.of<ReferenciaViewModel>(context);
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: Text(
+              AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.tareas, 'buscarIdRef'),
+              style: StyleApp.title,
+            ),
+          ),
+          body: ListView(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: vm.buscarIdReferencia,
+                      onFieldSubmitted: (criterio) =>
+                          vm.buscarIdRefencia(context),
+                      decoration: InputDecoration(
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: AppTheme.grey),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        labelText: AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.tareas, 'buscar'),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: AppTheme.grey),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search, color: AppTheme.grey),
+                          onPressed: () => vm.buscarIdRefencia(context),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          "${AppLocalizations.of(context)!.translate(BlockTranslate.general, 'registro')} (${vm.referencias.length})",
+                          style: StyleApp.normalBold,
+                        ),
+                      ],
+                    ),
+                    const Divider(),
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: vm.referencias.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final IdReferenciaModel ref = vm.referencias[index];
+
+                        return CardWidget(
+                          raidus: 5,
+                          borderColor: Colors.grey,
+                          elevation: 0,
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 0,
+                            vertical: 2.5,
+                          ),
+                          child: ListTile(
+                            onTap: () => vm.selectRef(context, ref, true),
+                            title: Text(
+                              "${ref.descripcion} (${ref.referenciaId})",
+                              style: StyleApp.normal,
+                            ),
+                            trailing: Text(
+                              ref.fDesEstadoObjeto,
+                              style: StyleApp.normal,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        //importarte para mostrar la pantalla de carga
+        if (vm.isLoading)
+          ModalBarrier(
+            dismissible: false,
+            // color: Colors.black.withOpacity(0.3),
+            color: AppTheme.isDark()
+                ? AppTheme.darkBackroundColor
+                : AppTheme.backroundColor,
+          ),
+        if (vm.isLoading) const LoadWidget(),
+      ],
+    );
+  }
+}

@@ -1,0 +1,319 @@
+import 'dart:io';
+
+import 'package:fl_business/displays/calendario/view_models/view_models.dart';
+import 'package:fl_business/services/services.dart';
+import 'package:fl_business/themes/themes.dart';
+import 'package:fl_business/utilities/translate_block_utilities.dart';
+import 'package:fl_business/utilities/utilities.dart';
+import 'package:fl_business/displays/tareas/models/models.dart';
+import 'package:fl_business/displays/tareas/view_models/view_models.dart';
+import 'package:flutter/material.dart';
+import 'package:fl_business/widgets/widgets.dart';
+import 'package:provider/provider.dart';
+
+class ComentariosView extends StatelessWidget {
+  const ComentariosView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<ComentariosViewModel>(context);
+    final vmTarea = Provider.of<DetalleTareaViewModel>(context);
+    final vmTareaCalendario = Provider.of<DetalleTareaCalendarioViewModel>(
+      context,
+    );
+
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            title: Text(
+              vm.vistaTarea == 1
+                  ? '${AppLocalizations.of(context)!.translate(BlockTranslate.tareas, 'comentariosTarea')}: ${vmTarea.tarea!.iDTarea}'
+                  : '${AppLocalizations.of(context)!.translate(BlockTranslate.tareas, 'comentariosTarea')}: ${vmTareaCalendario.tarea!.tarea}',
+              style: StyleApp.title,
+            ),
+          ),
+          body: RefreshIndicator(
+            onRefresh: () => vm.loadData(context),
+            child: ListView(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.general, 'observacion'),
+                        style: StyleApp.normalBold,
+                      ),
+                      GestureDetector(
+                        onLongPress: () => Utilities.copyToClipboard(
+                          context,
+                          vm.vistaTarea == 1
+                              ? vmTarea.tarea!.tareaObservacion1 ?? ''
+                              : vmTareaCalendario.tarea!.texto,
+                        ),
+                        child: Text(
+                          vm.vistaTarea == 1
+                              ? vmTarea.tarea!.tareaObservacion1 ??
+                                    AppLocalizations.of(context)!.translate(
+                                      BlockTranslate.general,
+                                      'noDisponible',
+                                    )
+                              : vmTareaCalendario.tarea!.observacion1,
+                          style: StyleApp.normal,
+                          textAlign: TextAlign.justify,
+                        ),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Text(
+                            "${AppLocalizations.of(context)!.translate(BlockTranslate.tareas, 'comentarios')} (${vm.comentarioDetalle.length})",
+                            style: StyleApp.normalBold,
+                          ),
+                        ],
+                      ),
+                      const Divider(),
+                      const SizedBox(height: 10),
+                      ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: vm.comentarioDetalle.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final ComentarioDetalleModel comentario =
+                              vm.comentarioDetalle[index];
+                          return _Comentario(
+                            comentario: comentario,
+                            index: index,
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 25),
+                      const _NuevoComentario(),
+                      const SizedBox(height: 15),
+                      if (vm.files.isNotEmpty)
+                        Text(
+                          "${AppLocalizations.of(context)!.translate(BlockTranslate.tareas, 'archivosSelec')} (${vm.files.length})",
+                          style: StyleApp.normalBold,
+                        ),
+                      const SizedBox(height: 5),
+                      if (vm.files.isNotEmpty) const Divider(),
+                      ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        itemCount: vm.files.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final File archivo = vm.files[index];
+                          return Column(
+                            children: [
+                              ListTile(
+                                title: Text(
+                                  Utilities.nombreArchivo(archivo),
+                                  style: StyleApp.normal,
+                                ),
+                                leading: const Icon(Icons.attachment),
+                                trailing: GestureDetector(
+                                  child: const Icon(Icons.close),
+                                  onTap: () => vm.eliminarArchivos(index),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                ),
+                              ),
+                              const Divider(),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        //importarte para mostrar la pantalla de carga
+        if (vm.isLoading)
+          ModalBarrier(
+            dismissible: false,
+            // color: Colors.black.withOpacity(0.3),
+            color: AppTheme.isDark()
+                ? AppTheme.darkBackroundColor
+                : AppTheme.backroundColor,
+          ),
+        if (vm.isLoading) const LoadWidget(),
+      ],
+    );
+  }
+}
+
+class _NuevoComentario extends StatelessWidget {
+  const _NuevoComentario();
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<ComentariosViewModel>(context);
+
+    return Form(
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      key: vm.formKeyComment,
+      child: TextFormField(
+        controller: vm.comentarioController,
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return AppLocalizations.of(
+              context,
+            )!.translate(BlockTranslate.notificacion, 'requerido');
+          }
+          return null;
+        },
+        maxLines: 3,
+        textInputAction: TextInputAction.send,
+        onFieldSubmitted: (value) => vm.comentar(context),
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(borderSide: BorderSide(width: 1)),
+          enabledBorder: OutlineInputBorder(
+            borderSide: const BorderSide(color: AppTheme.border),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          labelText: AppLocalizations.of(
+            context,
+          )!.translate(BlockTranslate.tareas, 'nuevoComentario'),
+          suffixIcon: SizedBox(
+            width: 100,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.translate(BlockTranslate.botones, 'adjuntarArchivos'),
+                  onPressed: () => vm.selectFiles(),
+                  icon: const Icon(Icons.attach_file_outlined),
+                ),
+                IconButton(
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.translate(BlockTranslate.botones, 'enviarComentario'),
+                  onPressed: () => vm.comentar(context),
+                  icon: const Icon(Icons.send),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Comentario extends StatelessWidget {
+  const _Comentario({required this.comentario, required this.index});
+
+  final ComentarioDetalleModel comentario;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final vm = Provider.of<ComentariosViewModel>(context);
+    List<ObjetoComentarioModel> objetos = vm.comentarioDetalle[index].objetos;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(width: 1, color: AppTheme.border),
+              left: BorderSide(width: 1, color: AppTheme.border),
+              right: BorderSide(width: 1, color: AppTheme.border),
+            ),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10),
+              topRight: Radius.circular(10),
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(comentario.comentario.nameUser, style: StyleApp.normalBold),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            border: Border.all(width: 1, color: AppTheme.border),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(10),
+              bottomRight: Radius.circular(10),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    Utilities.formatearFechaHora(
+                      comentario.comentario.fechaHora,
+                    ),
+                    style: StyleApp.normal,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onLongPress: () => Utilities.copyToClipboard(
+                  context,
+                  comentario.comentario.comentario,
+                ),
+                child: Text(
+                  comentario.comentario.comentario,
+                  style: StyleApp.normal,
+                  textAlign: TextAlign.justify,
+                ),
+              ),
+              ListView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: objetos.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final ObjetoComentarioModel objeto = objetos[index];
+                  return ListTile(
+                    onTap: () => Utilities.openLink(objeto.objetoUrl),
+                    title: GestureDetector(
+                      onLongPress: () =>
+                          Utilities.copyToClipboard(context, objeto.objetoUrl),
+                      child: Text(
+                        objeto.observacion1.isEmpty
+                            ? objeto.objetoNombre
+                            : objeto.observacion1,
+                        style: StyleApp.enlace,
+                      ),
+                    ),
+                    leading: const Icon(Icons.insert_photo_outlined),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        if (index != vm.comentarioDetalle.length - 1)
+          Padding(
+            padding: const EdgeInsets.only(left: 15),
+            child: Container(color: AppTheme.border, height: 20, width: 3),
+          ),
+      ],
+    );
+  }
+}

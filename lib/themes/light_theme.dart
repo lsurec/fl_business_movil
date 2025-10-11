@@ -1,0 +1,59 @@
+// ignore_for_file: deprecated_member_use
+
+import 'package:flutter/material.dart';
+import 'package:fl_business/themes/themes.dart';
+
+class LightTheme {
+  // Colores del tema claro
+  static const Color primary = Color(0xff134895);
+
+  static final ThemeData lightTheme = ThemeData(
+    primaryColor: primary,
+    brightness: Brightness.light,
+    scaffoldBackgroundColor: AppTheme.backroundColor,
+    appBarTheme: AppBarTheme(
+      titleTextStyle: const TextStyle(fontSize: 20, color: Colors.black),
+      color: AppTheme.backroundColor,
+      iconTheme: const IconThemeData(size: 30, color: Colors.black),
+      elevation: 0,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      floatingLabelStyle: const TextStyle(color: primary),
+      enabledBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: primary),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: primary),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      border: OutlineInputBorder(
+        //borderSide: const BorderSide(color: primary),
+        borderRadius: BorderRadius.circular(8),
+      ),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: primary,
+      foregroundColor: AppTheme.white,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primary,
+        elevation: 0,
+        shape: const StadiumBorder(),
+      ),
+    ),
+    cardTheme: const CardThemeData(color: AppTheme.backroundSecondary),
+    dividerColor: AppTheme.divider,
+    dividerTheme: DividerThemeData(color: AppTheme.divider),
+    tabBarTheme: const TabBarThemeData(labelColor: Colors.black),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.all<TextStyle>(
+          const TextStyle(color: primary, fontSize: 17),
+        ),
+        foregroundColor: MaterialStateProperty.all<Color>(primary),
+      ),
+    ),
+  );
+}

@@ -1,0 +1,12 @@
+export 'package:fl_business/view_models/elemento_asignado_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/fechas_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/details_doc_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/add_client_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/recent_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/amount_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/details_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
+export 'package:fl_business/displays/prc_documento_3/view_models/product_view_model.dart';

@@ -1,0 +1,13 @@
+export 'package:fl_business/displays/restaurant/views/products_class_view.dart';
+export 'package:fl_business/displays/restaurant/views/transfer_summary_view.dart';
+export 'package:fl_business/displays/restaurant/views/select_account_view.dart';
+export 'package:fl_business/displays/restaurant/views/select_location_view.dart';
+export 'package:fl_business/displays/restaurant/views/select_table_view.dart';
+export 'package:fl_business/displays/restaurant/views/permisions_view.dart';
+export 'package:fl_business/displays/restaurant/views/pin_view.dart';
+export 'package:fl_business/displays/restaurant/views/tables_view.dart';
+export 'package:fl_business/displays/restaurant/views/locations_view.dart';
+export 'package:fl_business/displays/restaurant/views/classification_view.dart';
+export 'package:fl_business/displays/restaurant/views/details_restaurant_view.dart';
+export 'package:fl_business/displays/restaurant/views/home_restaurant_view.dart';
+export 'package:fl_business/displays/restaurant/views/order_view.dart';

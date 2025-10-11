@@ -1,0 +1,361 @@
+// ignore_for_file: use_build_context_synchronously
+import 'dart:io';
+
+import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
+import 'package:fl_business/models/models.dart';
+import 'package:fl_business/routes/app_routes.dart';
+import 'package:fl_business/services/picture_service.dart';
+import 'package:fl_business/services/services.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
+import 'package:fl_business/utilities/utilities.dart';
+import 'package:fl_business/view_models/view_models.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../displays/shr_local_config/services/services.dart';
+
+class LoginViewModel extends ChangeNotifier {
+  //manejar flujo del procesp
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  set isLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+  //token del usuario
+  String token = "";
+  //nombre del usuario
+  String user = "";
+  //Cadena de conexion
+  String conStr = "";
+  //conytrolar seion permanente
+  bool isSliderDisabledSession = false;
+  //ocultar y mostrar contraseña
+  bool obscureText = true;
+  //formulario login
+  final Map<String, String> formValues = {'user': '', 'pass': ''};
+
+  //Key for form
+  GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  //True if form is valid
+  bool isValidForm() {
+    return formKey.currentState?.validate() ?? false;
+  }
+
+  void showCustomDialog(BuildContext context) async {
+    String idDevice = await getDeviceId();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("ID del Dispositvo"),
+          content: SelectableText(idDevice),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Utilities.copyToClipboard(context, idDevice);
+                Navigator.of(context).pop();
+              },
+              child: const Text("Copiar"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Aceptar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<String> getOrCreateIOSDeviceId() async {
+    const storage = FlutterSecureStorage();
+    String? deviceId = await storage.read(key: 'device_id');
+
+    if (deviceId == null) {
+      deviceId =
+          'ios-${DateTime.now().millisecondsSinceEpoch}'; // Genera un ID único
+      await storage.write(key: 'device_id', value: deviceId);
+    }
+
+    return deviceId;
+  }
+
+  Future<String> getDeviceName() async {
+    var deviceInfo = DeviceInfoPlugin();
+
+    if (Platform.isAndroid) {
+      var androidInfo = await deviceInfo.androidInfo;
+      return androidInfo.model; // Nombre del modelo del dispositivo
+    } else if (Platform.isIOS) {
+      var iosInfo = await deviceInfo.iosInfo;
+      return iosInfo.name; // Nombre del dispositivo (Ejemplo: "iPhone de Juan")
+    }
+
+    return 'Unknown Device';
+  }
+
+  Future<String> getDeviceId() async {
+    if (Platform.isAndroid) {
+      return await getAndroidDeviceId();
+    } else if (Platform.isIOS) {
+      return await getOrCreateIOSDeviceId();
+    }
+    return 'unknown_device';
+  }
+
+  Future<String> getAndroidDeviceId() async {
+    var deviceInfo = DeviceInfoPlugin();
+    var androidInfo = await deviceInfo.androidInfo;
+    return androidInfo.id; // ANDROID_ID, único para el dispositivo
+  }
+
+  //disableSession
+  void disableSession(bool value) {
+    isSliderDisabledSession = value;
+    notifyListeners();
+  }
+
+  //navigate api url config
+  void navigateConfigApi(BuildContext context) {
+    Navigator.pushNamed(context, "api");
+  }
+
+  //cerrar Sesion
+  void logout() {
+    //limpiar datos en preferencias
+    Preferences.clearToken();
+    token = "";
+    user = "";
+    conStr = "";
+    notifyListeners();
+  }
+
+  //init Session
+  Future<void> login(BuildContext context) async {
+    //ocultar tecladp
+    FocusScope.of(context).unfocus();
+
+    LoginService loginService = LoginService();
+
+    //validate form
+    // Navigator.pushNamed(context, "home");
+    if (isValidForm()) {
+      //code if valid true
+      LoginModel loginModel = LoginModel(
+        user: formValues["user"]!,
+        pass: formValues["pass"]!,
+      );
+
+      //iniciar proceso
+      isLoading = true;
+
+      //uso servicio login
+      ApiResModel res = await loginService.postLogin(loginModel);
+
+      //validar respuesta del servico, si es incorrecta
+      if (!res.succes) {
+        //finalizar proceso
+        isLoading = false;
+
+        await NotificationService.showErrorView(context, res);
+        return;
+      }
+
+      //mapear respuesta servicio
+      AccessModel respLogin = res.response;
+
+      //si el usuaro es correcto
+      if (respLogin.success) {
+        String idDevice = await getDeviceId();
+
+        //guardar token y nombre de usuario
+        ApiResponseModel resIdDevice = await loginService.validateDeviceID(
+          // "UP1A.231005.007",
+          idDevice,
+          respLogin.user,
+          respLogin.message,
+        );
+
+        if (!resIdDevice.status) {
+          isLoading = false;
+
+          NotificationService.showInfoErrorView(context, resIdDevice);
+          return;
+        }
+
+        final List<IdDeviceResModel> devices = resIdDevice.data;
+
+        if (devices.isEmpty) {
+          isLoading = false;
+
+          resIdDevice.message = "No hay datos para validar";
+
+          NotificationService.showInfoErrorView(context, resIdDevice);
+          return;
+        }
+
+        // validar dispositivo
+        if (devices.first.resultado != true) {
+          isLoading = false;
+
+          NotificationService.showSnackbar("Dispositivo no registrado.");
+
+          return;
+        }
+
+        token = respLogin.message;
+        user = respLogin.user;
+        conStr = respLogin.con;
+
+        //si la sesion es permanente guardar en preferencias el token
+        if (isSliderDisabledSession) {
+          Preferences.token = token;
+          Preferences.userName = user;
+          Preferences.conStr = conStr;
+        }
+
+        //view models externos
+        final localVM = Provider.of<LocalSettingsViewModel>(
+          context,
+          listen: false,
+        );
+
+        //cargar emmpresas
+
+        localVM.selectedEmpresa = null;
+        localVM.selectedEstacion = null;
+
+        final EmpresaService empresaService = EmpresaService();
+
+        final ApiResModel resEmpresas = await empresaService.getEmpresa(
+          user,
+          token,
+        );
+
+        if (!resEmpresas.succes) {
+          isLoading = false;
+          NotificationService.showErrorView(context, resEmpresas);
+          return;
+        }
+
+        final EstacionService estacionService = EstacionService();
+
+        final ApiResModel resEstaciones = await estacionService.getEstacion(
+          user,
+          token,
+        );
+
+        if (!resEmpresas.succes) {
+          isLoading = false;
+          NotificationService.showErrorView(context, resEstaciones);
+
+          return;
+        }
+
+        localVM.empresas.clear();
+        localVM.estaciones.clear();
+
+        localVM.empresas.addAll(resEmpresas.response);
+        localVM.estaciones.addAll(resEstaciones.response);
+
+        if (localVM.estaciones.length == 1) {
+          localVM.selectedEstacion = localVM.estaciones.first;
+        }
+
+        if (localVM.empresas.length == 1) {
+          localVM.selectedEmpresa = localVM.empresas.first;
+
+          final PictureService pictureService = Provider.of<PictureService>(
+            context,
+            listen: false,
+          );
+
+          final urlPic = localVM.selectedEmpresa!.absolutePathPicture;
+
+          final String namePic = pictureService.getImageName(urlPic);
+
+          File? file = await pictureService.getSavedImage(namePic);
+
+          if (file == null) {
+            pictureService.fetchAndSaveImage(token, urlPic);
+          } else {
+            pictureService.loadSavedImage(namePic);
+          }
+        }
+
+        //si solo hay una estacion y una empresa mostrar home
+        if (localVM.estaciones.length == 1 && localVM.empresas.length == 1) {
+          //view model externo
+          final menuVM = Provider.of<MenuViewModel>(context, listen: false);
+
+          final MenuService menuService = MenuService();
+
+          final ApiResModel resApps = await menuService.getApplication(
+            user,
+            token,
+          );
+
+          if (!resApps.succes) {
+            //si hay mas de una estacion o mas de una empresa mostar configuracion local
+
+            isLoading = false;
+            NotificationService.showErrorView(context, resApps);
+
+            return;
+          }
+
+          final List<ApplicationModel> applications = resApps.response;
+
+          menuVM.menuData.clear();
+
+          for (var application in applications) {
+            final ApiResModel resDisplay = await menuService.getDisplay(
+              application.application,
+              user,
+              token,
+            );
+
+            if (!resDisplay.succes) {
+              //si hay mas de una estacion o mas de una empresa mostar configuracion local
+              isLoading = false;
+              NotificationService.showErrorView(context, resDisplay);
+
+              return;
+            }
+
+            menuVM.menuData.add(
+              MenuData(application: application, children: resDisplay.response),
+            );
+          }
+
+          menuVM.loadDataMenu(context);
+
+          //navegar a home
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          isLoading = false;
+
+          return;
+        }
+
+        localVM.resApis = null;
+
+        Navigator.pushReplacementNamed(context, AppRoutes.shrLocalConfig);
+        isLoading = false;
+      } else {
+        //finalizar proceso
+        isLoading = false;
+        //si el usuario es incorrecto
+        NotificationService.showSnackbar(respLogin.message);
+      }
+    }
+  }
+}
