@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fl_business/displays/report/utils/pdf_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
@@ -22,8 +23,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:provider/provider.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:share/share.dart';
 import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 import '../displays/prc_documento_3/services/services.dart';
 
 class ShareDocViewModel extends ChangeNotifier {
@@ -1076,20 +1077,7 @@ class ShareDocViewModel extends ChangeNotifier {
       ),
     );
 
-    //Crear y guardar el pdf
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/${DateTime.now().toString()}.pdf';
-    final file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
-
-    //Detener proceso de carag
-    //compartir documento
-    Share.shareFiles(
-      [filePath],
-      text: AppLocalizations.of(
-        contextP,
-      )!.translate(BlockTranslate.tiket, 'pdf'),
-    );
+    await PdfUtils.sharePdf(contextP, pdf, "Doc");
   }
 
   //encabezado del pdf
@@ -1596,20 +1584,7 @@ class ShareDocViewModel extends ChangeNotifier {
       ),
     );
 
-    //Crear y guardar el pdf
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/${DateTime.now().toString()}.pdf';
-    final file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
-
-    //Detener proceso de carag
-    //compartir documento
-    Share.shareFiles(
-      [filePath],
-      text: AppLocalizations.of(
-        contextP,
-      )!.translate(BlockTranslate.tiket, 'pdf'),
-    );
+    await PdfUtils.sharePdf(contextP, pdf, "Doc");
   }
 
   //Encabezados

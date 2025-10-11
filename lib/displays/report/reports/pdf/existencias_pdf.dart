@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:fl_business/displays/report/utils/pdf_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_business/displays/report/models/models.dart';
@@ -8,11 +7,9 @@ import 'package:fl_business/displays/shr_local_config/models/models.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/view_models/login_view_model.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
-import 'package:share/share.dart';
 
 class ExistenciasPdf {
   Future<void> getReport(BuildContext context, ReportStockModel data) async {
@@ -219,14 +216,6 @@ class ExistenciasPdf {
       ),
     );
 
-    //Crear y guardar el pdf
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/RptExistencias.pdf';
-    final filePdf = File(filePath);
-    await filePdf.writeAsBytes(await pdf.save());
-
-    //Detener proceso de carag
-    //compartir documento
-    Share.shareFiles([filePath], text: "RptExistencias");
+    await PdfUtils.sharePdf(context, pdf, "RptExistencias");
   }
 }

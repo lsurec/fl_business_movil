@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:fl_business/displays/report/utils/pdf_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/tareas/models/models.dart';
 import 'package:fl_business/utilities/utilities.dart';
@@ -10,14 +9,12 @@ import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:fl_business/view_models/splash_view_model.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
-import 'package:share/share.dart';
 
 class ErrorInfoViewModel extends ChangeNotifier {
-  Future<String> createAndSavePDF(
+  Future<void> createAndSavePDF(
     ApiResponseModel error,
     BuildContext contextP,
   ) async {
@@ -163,22 +160,7 @@ class ErrorInfoViewModel extends ChangeNotifier {
         },
       ),
     );
-
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/${error.timestamp.toString()}.pdf';
-    final file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
-
-    return filePath;
-  }
-
-  void sharePDFFile(String filePath) {
-    Share.shareFiles([filePath], text: 'Here is your PDF file');
-  }
-
-  shareDoc(ApiResponseModel error, BuildContext context) async {
-    String pdfFilePath = await createAndSavePDF(error, context);
-    sharePDFFile(pdfFilePath);
+    await PdfUtils.sharePdf(contextP, pdf, "Error");
   }
 
   copyPa(BuildContext context, ApiResponseModel data) {

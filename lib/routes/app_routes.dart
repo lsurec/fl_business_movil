@@ -94,7 +94,6 @@ class AppRoutes {
     withPayment: (BuildContext context) => const Tabs3View(),
     //Display configuracion local
     shrLocalConfig: (BuildContext context) => const LocalSettingsView(),
-    printer: (BuildContext context) => const PrintView(),
     settings: (BuildContext context) => const SettingsView(),
     error: (BuildContext context) => const ErrorView(),
     recent: (BuildContext context) => const RecentView(),

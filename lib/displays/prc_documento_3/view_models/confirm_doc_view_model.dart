@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, library_prefixes, avoid_print
 import 'dart:convert';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
-import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/prc_documento_3/services/services.dart';
@@ -21,7 +20,7 @@ import 'dart:math';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
 
 class ConfirmDocViewModel extends ChangeNotifier {
-  final PrinterManager instanceManager = PrinterManager.instance;
+  // final PrinterManager instanceManager = PrinterManager.instance;
 
   //Mostrar boton para imprimir
   bool _directPrint = Preferences.directPrint;
@@ -122,6 +121,12 @@ class ConfirmDocViewModel extends ChangeNotifier {
   }
 
   printNetwork(BuildContext context) async {
+    NotificationService.showSnackbar(
+      "Esta funcion no está disponible temporalmente",
+    );
+
+    return;
+    //TODO:buscar libreria
     //Proveedor de datos externo
     final loginVM = Provider.of<LoginViewModel>(
       scaffoldKey.currentContext!,
@@ -309,12 +314,12 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
         bytes += generator.cut();
 
-        await PrinterManager.instance.connect(
-          type: PrinterType.network,
-          model: TcpPrinterInput(ipAddress: element.ipAdress),
-        );
+        // await PrinterManager.instance.connect(
+        //   type: PrinterType.network,
+        //   model: TcpPrinterInput(ipAddress: element.ipAdress),
+        // );
 
-        await instanceManager.send(type: PrinterType.network, bytes: bytes);
+        // await instanceManager.send(type: PrinterType.network, bytes: bytes);
       } catch (e) {
         print(e.toString());
         isLoading = false;

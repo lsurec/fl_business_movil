@@ -1,5 +1,4 @@
-import 'dart:io';
-
+import 'package:fl_business/displays/report/utils/pdf_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_business/displays/report/models/models.dart';
@@ -9,11 +8,9 @@ import 'package:fl_business/displays/shr_local_config/view_models/view_models.da
 import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/login_view_model.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:provider/provider.dart';
-import 'package:share/share.dart';
 
 class FactTContadoCredPdf {
   Future<void> getReport(
@@ -306,14 +303,6 @@ class FactTContadoCredPdf {
       ),
     );
 
-    //Crear y guardar el pdf
-    final directory = await getTemporaryDirectory();
-    final filePath = '${directory.path}/RptFactTCredCont.pdf';
-    final file = File(filePath);
-    await file.writeAsBytes(await pdf.save());
-
-    //Detener proceso de carag
-    //compartir documento
-    Share.shareFiles([filePath], text: "RptFactTCredCont");
+    await PdfUtils.sharePdf(context, pdf, "RptFactTCredCont");
   }
 }

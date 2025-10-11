@@ -5,7 +5,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
-import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
+// import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/services.dart';
 import 'package:fl_business/displays/restaurant/models/models.dart';
@@ -21,7 +21,7 @@ import 'package:provider/provider.dart';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
 
 class OrderViewModel extends ChangeNotifier {
-  final PrinterManager instanceManager = PrinterManager.instance;
+  // final PrinterManager instanceManager = PrinterManager.instance;
 
   //manejar flujo del procesp
   bool _isSelectedMode = false;
@@ -547,34 +547,34 @@ class OrderViewModel extends ChangeNotifier {
 
         bytes += generator.cut();
 
-        await PrinterManager.instance
-            .connect(
-              type: PrinterType.network,
-              model: TcpPrinterInput(
-                //TODO:Cambiar a ip de la base de datos
-                ipAddress: element.ipAdress,
-                // ipAddress: "192.168.0.10",
-              ),
-            )
-            .timeout(
-              const Duration(seconds: 5),
-              onTimeout: () {
-                throw TimeoutException(
-                  'La conexión ha superado el tiempo de espera ${element.ipAdress}',
-                );
-              },
-            );
+        // await PrinterManager.instance
+        //     .connect(
+        //       type: PrinterType.network,
+        //       model: TcpPrinterInput(
+        //         //TODO:Cambiar a ip de la base de datos
+        //         ipAddress: element.ipAdress,
+        //         // ipAddress: "192.168.0.10",
+        //       ),
+        //     )
+        //     .timeout(
+        //       const Duration(seconds: 5),
+        //       onTimeout: () {
+        //         throw TimeoutException(
+        //           'La conexión ha superado el tiempo de espera ${element.ipAdress}',
+        //         );
+        //       },
+        //     );
 
-        await instanceManager
-            .send(type: PrinterType.network, bytes: bytes)
-            .timeout(
-              const Duration(seconds: 5),
-              onTimeout: () {
-                throw TimeoutException(
-                  'La conexión ha superado el tiempo de espera ${element.ipAdress}',
-                );
-              },
-            );
+        // await instanceManager
+        //     .send(type: PrinterType.network, bytes: bytes)
+        //     .timeout(
+        //       const Duration(seconds: 5),
+        //       onTimeout: () {
+        //         throw TimeoutException(
+        //           'La conexión ha superado el tiempo de espera ${element.ipAdress}',
+        //         );
+        //       },
+        //     );
 
         //marcar como comandados
         for (var traPend in orders[indexOrder].transacciones) {

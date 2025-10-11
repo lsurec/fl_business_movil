@@ -15,7 +15,6 @@ import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/widgets/widgets.dart';
-import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -685,23 +684,28 @@ class DetailsViewModel extends ChangeNotifier {
 
   //Obtener y escanear codico de barras
   Future<void> scanBarcode(BuildContext context) async {
-    //Escanear codigo de barras
-    String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
-      '#FF0000',
-      AppLocalizations.of(
-        context,
-      )!.translate(BlockTranslate.botones, 'cancelar'),
-      true,
-      ScanMode.BARCODE,
+    //TODO:Reemplazar libreria
+    NotificationService.showSnackbar(
+      "Esta funcion no está disponible temporalmente",
     );
 
-    //si se escane algun resultado
-    if (barcodeScanRes != '-1') {
-      //aiganr codigo escaneado a input
-      searchController.text = barcodeScanRes;
-      //Buscar producto
-      performSearch(context);
-    }
+    //Escanear codigo de barras
+    // String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
+    //   '#FF0000',
+    //   AppLocalizations.of(
+    //     context,
+    //   )!.translate(BlockTranslate.botones, 'cancelar'),
+    //   true,
+    //   ScanMode.BARCODE,
+    // );
+
+    // //si se escane algun resultado
+    // if (barcodeScanRes != '-1') {
+    //   //aiganr codigo escaneado a input
+    //   searchController.text = barcodeScanRes;
+    //   //Buscar producto
+    //   performSearch(context);
+    // }
   }
 
   //agreagar transaccion al documento

@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 
-class PdfUtils {
+class PdfUtilsDemo {
   /// Verifica si el formato de página es A4
   static bool esA4(PdfPageFormat format) {
     return (format.width - PdfPageFormat.a4.width).abs() < 0.1 &&
@@ -21,7 +21,7 @@ class PdfUtils {
     pw.Font? font,
   }) async {
     // Recuperar logos
-    final logos = await PdfUtils.cargarLogos();
+    final logos = await PdfUtilsDemo.cargarLogos();
     final logoEmpresa = logos['empresa'];
     final logoDemo = logos['demo'];
 

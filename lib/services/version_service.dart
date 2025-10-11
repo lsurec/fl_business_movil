@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:fl_business/models/models.dart';
 import 'package:fl_business/models/version_model.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
-import 'package:package_info/package_info.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_info_plus/package_info_plus.dart';
 
 class VersionService {
   // Url del servidor

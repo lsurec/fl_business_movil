@@ -13,19 +13,19 @@ class GenerarPdf {
     PdfPageFormat format = PdfPageFormat.a4,
   }) async {
     final pdf = pw.Document();
-    final isA4 = PdfUtils.esA4(format);
+    final isA4 = PdfUtilsDemo.esA4(format);
 
     // Fuente por defecto
     final font = await PdfGoogleFonts.openSansRegular();
 
     // Encabezado con ajuste según formato
-    final encabezado = await PdfUtils.encabezadoPagina(
+    final encabezado = await PdfUtilsDemo.encabezadoPagina(
       font: font,
       nombreFontSize: isA4 ? 14 : 7,
       infoFontSize: isA4 ? 10 : 6,
     );
 
-    final encabezadoTicket = await PdfUtils.encabezadoTicket(
+    final encabezadoTicket = await PdfUtilsDemo.encabezadoTicket(
       font: font,
       nombreFontSize: 7,
       infoFontSize: 6,
@@ -39,7 +39,7 @@ class GenerarPdf {
           build: (context) => [
             encabezado,
             pw.SizedBox(height: 20),
-            PdfUtils.tablaResponsive(
+            PdfUtilsDemo.tablaResponsive(
               headers: [
                 'Fecha',
                 'Detalle',
@@ -74,7 +74,7 @@ class GenerarPdf {
               color: PdfColors.grey400,
             ),
             // Pie de página A4
-            PdfUtils.piePaginaPdf(font: font, fontSize: 8),
+            PdfUtilsDemo.piePaginaPdf(font: font, fontSize: 8),
           ],
         ),
       );
@@ -87,7 +87,7 @@ class GenerarPdf {
             children: [
               encabezadoTicket,
               pw.SizedBox(height: 4), // menos espacio para ticket
-              PdfUtils.detalleTicket<EstadoCuenta>(
+              PdfUtilsDemo.detalleTicket<EstadoCuenta>(
                 items: movimientos,
                 font: font,
                 fontSize: 6,
@@ -104,7 +104,7 @@ class GenerarPdf {
               ),
               pw.SizedBox(height: 4),
               // Pie de página para ticket
-              PdfUtils.piePaginaPdf(font: font, fontSize: 6),
+              PdfUtilsDemo.piePaginaPdf(font: font, fontSize: 6),
             ],
           ),
         ),

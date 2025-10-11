@@ -5,7 +5,6 @@ export 'package:fl_business/views/lang_view.dart';
 export 'package:fl_business/views/hepl_view.dart';
 export 'package:fl_business/views/update_view.dart';
 export 'package:fl_business/views/error_view.dart';
-export 'package:fl_business/views/print_view.dart';
 export 'package:fl_business/views/api_view.dart';
 export 'package:fl_business/views/home_view.dart';
 export 'package:fl_business/views/login_view.dart';
