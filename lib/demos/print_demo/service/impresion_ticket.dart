@@ -1,7 +1,7 @@
 import 'dart:typed_data';
-import 'package:fl_business/models/estado_cuenta.dart';
-import 'package:fl_business/utils/ticket_utils.dart';
-import 'package:fl_business/utils/utils.dart';
+import 'package:fl_business/demos/print_demo/models/estado_cuenta.dart';
+import 'package:fl_business/demos/print_demo/utils/ticket_utils.dart';
+import 'package:fl_business/demos/print_demo/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';

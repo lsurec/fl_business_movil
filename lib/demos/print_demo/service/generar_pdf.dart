@@ -1,6 +1,6 @@
 import 'dart:typed_data';
-import 'package:fl_business/models/estado_cuenta.dart';
-import 'package:fl_business/utils/pdf_utils.dart';
+import 'package:fl_business/demos/print_demo/models/estado_cuenta.dart';
+import 'package:fl_business/demos/print_demo/utils/pdf_utils.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';

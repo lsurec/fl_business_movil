@@ -1,4 +1,4 @@
-import 'package:fl_business/widgets/tabla_demo.dart';
+import 'package:fl_business/demos/print_demo/widgets/tabla_demo.dart';
 import 'package:flutter/material.dart';
 
 void main() {
