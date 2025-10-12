@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:fl_business/models/models.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/themes.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   navigatePrint(BuildContext context) {
-    Navigator.pushNamed(
-      context,
-      AppRoutes.printer,
-      arguments: PrintDocSettingsModel(opcion: 1),
-    );
+    Navigator.pushNamed(context, AppRoutes.printerView);
   }
 
   navigateLang(BuildContext context) {

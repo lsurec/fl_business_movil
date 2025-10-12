@@ -1,3 +1,4 @@
+import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Guardar Preferencias de usuario
@@ -18,6 +19,41 @@ class Preferences {
   static const String _colorKey = "color";
   static const String _valueColorKey = "valueColor";
   static const String _logo = "logo";
+  static const String _printer = "printer";
+  static const String _paperSize = "paperSize";
+
+  //iniciar shared preferences
+  static Future init() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  //guardar tamaño de papel
+  static set paperSize(int value) {
+    _prefs.setInt(_paperSize, value);
+  }
+
+  //Recuperar tamaño de papel
+  static int? get paperSize {
+    return _prefs.getInt(_paperSize);
+  }
+
+  // Guardar un BluetoothDevice
+  static set printer(BluetoothDevice device) {
+    _prefs.setString(_printer, device.toJson());
+  }
+
+  // Recuperar un BluetoothDevice
+  static BluetoothDevice? get printer {
+    final jsonStr = _prefs.getString(_printer);
+    if (jsonStr == null) return null;
+    return BluetoothDevice.fromJson(jsonStr);
+  }
+
+  // Eliminar la preferencia
+  static clearPrinter() {
+    _prefs.remove(_printer);
+    _prefs.remove(_paperSize);
+  }
 
   static String get logo {
     return _prefs.getString(_logo) ?? "";
@@ -25,11 +61,6 @@ class Preferences {
 
   static set logo(String value) {
     _prefs.setString(_logo, value);
-  }
-
-  //iniciar shared preferences
-  static Future init() async {
-    _prefs = await SharedPreferences.getInstance();
   }
 
   static bool get directPrint {

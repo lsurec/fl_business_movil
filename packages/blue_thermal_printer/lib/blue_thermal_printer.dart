@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
@@ -175,6 +176,11 @@ class BluetoothDevice {
   bool connected = false;
 
   BluetoothDevice(this.name, this.address);
+
+  factory BluetoothDevice.fromJson(String str) =>
+      BluetoothDevice.fromMap(json.decode(str));
+
+  String toJson() => json.encode(toMap());
 
   BluetoothDevice.fromMap(Map map)
       : name = map['name'],

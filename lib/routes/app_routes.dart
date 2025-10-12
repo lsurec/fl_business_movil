@@ -77,6 +77,7 @@ class AppRoutes {
   static const errorInfo = 'errorInfo';
   static const eaTareas = "eaTareas";
   static const tablero = "PrcTareaTableroCanva";
+  static const printerView = "printView";
 
   //otras rutas
   static Map<String, Widget Function(BuildContext)> routes = {
@@ -143,6 +144,7 @@ class AppRoutes {
     elementoAsignado: (BuildContext context) => const ElementoAsignadoView(),
     eaTareas: (BuildContext context) => const EATareasView(),
     tablero: (BuildContext context) => const PrincipalView(),
+    printerView: (BuildContext context) => const PrinterView(),
   };
 
   //en caso de ruta incorrecta
