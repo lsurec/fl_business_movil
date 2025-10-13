@@ -3,6 +3,7 @@ import 'package:fl_business/displays/report/view_models/printer_view_model.dart'
 import 'package:fl_business/displays/report/widgets/bluetooth_loading.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/themes/styles.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
@@ -69,27 +70,37 @@ class PrinterView extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 ListTile(
-                  title: Text("Impresora Seleccionada", style: StyleApp.normal),
+                  title: Text(
+                    Preferences.printer == null
+                        ? "Sin impresora"
+                        : Preferences.printer!.name ?? "Desconocido",
+                    style: StyleApp.normal,
+                  ),
                   subtitle: Text(
-                    "00:00:00 | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} 80:00",
+                    "${Preferences.printer == null ? "Sin impresora" : Preferences.printer!.address ?? "Desconocido"} | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} ${Preferences.paperSize ?? 0} mm",
                     style: StyleApp.subTitle,
                   ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed: Preferences.printer == null
+                            ? () => NotificationService.showSnackbar(
+                                "No hay impresora",
+                              )
+                            : () =>
+                                  vm.savePrinter(context, Preferences.printer!),
                         icon: const Icon(Icons.edit),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () => vm.deletePrinter(),
                         icon: const Icon(Icons.delete),
                       ),
                     ],
                   ),
                   leading: Icon(
                     Icons.bluetooth,
-                    color: Colors.red, //cambia color segun la conexion
+                    color: AppTheme.primary, //cambia color segun la conexion
                   ),
                 ),
                 const Divider(),

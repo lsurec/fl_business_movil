@@ -62,6 +62,11 @@ class PrinterViewModel extends ChangeNotifier {
     isLoadingDevices = false;
   }
 
+  deletePrinter() {
+    Preferences.clearPrinter();
+    notifyListeners();
+  }
+
   Future<void> savePrinter(BuildContext context, BluetoothDevice device) async {
     final int? paperSize = await showDialog<int>(
       context: context,
