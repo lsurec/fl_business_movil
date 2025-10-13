@@ -137,6 +137,13 @@ class PrinterView extends StatelessWidget {
                                 "No hay dispositivos vinculados",
                                 style: StyleApp.normal,
                               ),
+                              TextButton(
+                                child: Text(
+                                  "Ir a configuracion",
+                                  style: StyleApp.enlace,
+                                ),
+                                onPressed: () => vm.goSettings(),
+                              ),
                             ],
                           ),
                         )

@@ -184,19 +184,23 @@ class PrinterViewModel extends ChangeNotifier {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              if (Platform.isAndroid) {
-                final intent = AndroidIntent(
-                  action: 'android.settings.BLUETOOTH_SETTINGS',
-                  flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
-                );
-                intent.launch();
-              }
+              goSettings();
             },
             child: Text('Ir a configuración'),
           ),
         ],
       ),
     );
+  }
+
+  goSettings() {
+    if (Platform.isAndroid) {
+      final intent = AndroidIntent(
+        action: 'android.settings.BLUETOOTH_SETTINGS',
+        flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
+      );
+      intent.launch();
+    }
   }
 
   Future<bool> showInfoPrint(BuildContext context) async {
