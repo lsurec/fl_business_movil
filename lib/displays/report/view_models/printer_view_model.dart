@@ -101,15 +101,19 @@ class PrinterViewModel extends ChangeNotifier {
   }
 
   Future<void> printTest(BuildContext context) async {
+    if (Preferences.printer == null) {
+      NotificationService.showSnackbar("Configura una impresora");
+      return;
+    }
+
     final TestTMU testTMU = TestTMU();
 
     isLoading = true;
     final bool resReport = await testTMU.getReport(context);
 
     isLoading = false;
-    if (!resReport) {
-      return;
-    }
+    if (!resReport) return;
+
     await printTMU(context, testTMU.report, true);
   }
 
