@@ -1,12 +1,12 @@
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:fl_business/displays/report/widgets/bluetooth_loading.dart';
-import 'package:fl_business/libraries/app_data.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/themes/styles.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
+import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -24,7 +24,7 @@ class PrinterView extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             height: 80,
             child: ElevatedButton(
-              onPressed: () => {},
+              onPressed: () => vm.printTest(context),
               child: SizedBox(
                 width: double.infinity,
                 child: Center(
@@ -154,7 +154,7 @@ class PrinterView extends StatelessWidget {
             ),
           ),
         ),
-        if (vm.isLoadingDevices)
+        if (vm.isLoadingDevices || vm.isLoading)
           ModalBarrier(
             dismissible: false,
             // color: Colors.black.withOpacity(0.3),
@@ -163,6 +163,7 @@ class PrinterView extends StatelessWidget {
                 : AppTheme.backroundColor,
           ),
         if (vm.isLoadingDevices) const BluetoothLoadingWidget(),
+        if (vm.isLoading) const LoadWidget(),
       ],
     );
   }
