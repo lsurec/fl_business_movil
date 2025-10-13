@@ -1,3 +1,6 @@
+import 'package:fl_business/displays/report/utils/tmu_utils.dart';
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/report/models/models.dart';
@@ -10,30 +13,30 @@ import 'package:provider/provider.dart';
 
 class UnidadesVendidasTMU {
   //reports function
-  static Future<PrintModel> getReport(
+  static Future<void> getReport(
     BuildContext context,
-    int paperDefault,
     ReportUnidadesVendidasModel data,
   ) async {
     List<int> bytes = [];
 
+    final PrinterViewModel printerVM = Provider.of<PrinterViewModel>(
+      context,
+      listen: false,
+    );
     final LoginViewModel loginVM = Provider.of<LoginViewModel>(
       context,
       listen: false,
     );
+    final TmuUtils utils = TmuUtils();
 
-    UtilitiesTMU utilitiesTMU = UtilitiesTMU();
-
-    final image = await utilitiesTMU.loadLogo(context);
+    final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
     final generator = Generator(
-      AppData.paperSize[paperDefault],
+      AppData.paperSize[Preferences.paperSize],
       await CapabilityProfile.load(),
     );
 
-    bytes += generator.setGlobalCodeTable('CP1252');
-
-    bytes += generator.image(image, align: PosAlign.center);
+    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
 
     //Reporte de xistencias
     // Encabezado
@@ -101,7 +104,8 @@ class UnidadesVendidasTMU {
     );
 
     bytes += generator.text(data.storeProcedure, styles: UtilitiesTMU.center);
+    bytes += generator.cut();
 
-    return PrintModel(bytes: bytes, generator: generator);
+    printerVM.printTMU(context, bytes, false);
   }
 }

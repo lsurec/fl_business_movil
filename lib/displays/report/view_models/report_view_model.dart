@@ -1,5 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/report/reports/tmu/existencias_tmu.dart';
+import 'package:fl_business/displays/report/reports/tmu/fact_t_contado_cred_tmu.dart';
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/report/models/models.dart';
 import 'package:fl_business/displays/report/reports/pdf/existencias_pdf.dart';
@@ -275,14 +278,20 @@ class ReportViewModel extends ChangeNotifier {
 
           return;
         }
-        break;
+
+        isLoading = false;
+
+        ExistenciasTMU.getReport(context, reportStockModel!);
+
+        return;
+
       case 6: //unidades vendidas
 
         final menuVM = Provider.of<MenuViewModel>(context, listen: false);
 
         if (menuVM.documento == null) {
           NotificationService.showSnackbar(
-            "No hay se ha asignado tipo de documento.",
+            "No se ha asignado tipo de documento.",
           );
           return;
         }
@@ -330,7 +339,12 @@ class ReportViewModel extends ChangeNotifier {
 
           return;
         }
-        break;
+
+        isLoading = false;
+
+        UnidadesVendidasTMU.getReport(context, reportUnidadesVendidasModel!);
+
+        return;
       case 7: //facturas
 
         final menuVM = Provider.of<MenuViewModel>(context, listen: false);
@@ -386,15 +400,11 @@ class ReportViewModel extends ChangeNotifier {
           return;
         }
 
-        break;
+        isLoading = false;
+
+        FactTContadoCredTMU.getReport(context, reportFactContCredModel!);
       default:
     }
-
-    Navigator.pushNamed(
-      context,
-      AppRoutes.printer,
-      arguments: PrintDocSettingsModel(opcion: value.id, report: value),
-    );
   }
 
   Future<ApiResponseModel> loadBodegas(BuildContext context) async {

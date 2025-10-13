@@ -1,3 +1,6 @@
+import 'package:fl_business/displays/report/utils/tmu_utils.dart';
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/report/models/report_fact_cont_cred_model.dart';
@@ -10,30 +13,33 @@ import 'package:provider/provider.dart';
 
 class FactTContadoCredTMU {
   //reports function
-  static Future<PrintModel> getReport(
+  static Future<void> getReport(
     BuildContext context,
-    int paperDefault,
     ReportFactContCredModel data,
   ) async {
+    final PrinterViewModel printerVM = Provider.of<PrinterViewModel>(
+      context,
+      listen: false,
+    );
     final LoginViewModel loginVM = Provider.of<LoginViewModel>(
       context,
       listen: false,
     );
 
-    UtilitiesTMU utilitiesTMU = UtilitiesTMU();
+    final TmuUtils utils = TmuUtils();
 
-    final image = await utilitiesTMU.loadLogo(context);
+    final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
     List<int> bytes = [];
 
     final generator = Generator(
-      AppData.paperSize[paperDefault],
+      AppData.paperSize[Preferences.paperSize],
       await CapabilityProfile.load(),
     );
 
     bytes += generator.setGlobalCodeTable('CP1252');
 
-    bytes += generator.image(image, align: PosAlign.center);
+    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
 
     //Reporte de xistencias
     // Encabezado
@@ -135,6 +141,8 @@ class FactTContadoCredTMU {
 
     bytes += generator.text(data.storeProcedure, styles: UtilitiesTMU.center);
 
-    return PrintModel(bytes: bytes, generator: generator);
+    bytes += generator.cut();
+
+    printerVM.printTMU(context, bytes, false);
   }
 }

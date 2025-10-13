@@ -1,39 +1,43 @@
+import 'package:fl_business/displays/report/utils/tmu_utils.dart';
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/report/models/models.dart';
 import 'package:fl_business/displays/report/reports/tmu/utilities_tmu.dart';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
-import 'package:fl_business/models/print_model.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:provider/provider.dart';
 
 class ExistenciasTMU {
   //reports function
-  static Future<PrintModel> getReport(
+  static Future<void> getReport(
     BuildContext context,
-    int paperDefault,
     ReportStockModel data,
   ) async {
+    final PrinterViewModel printerVM = Provider.of<PrinterViewModel>(
+      context,
+      listen: false,
+    );
+
     final LoginViewModel loginVM = Provider.of<LoginViewModel>(
       context,
       listen: false,
     );
 
-    UtilitiesTMU utilitiesTMU = UtilitiesTMU();
+    final TmuUtils utils = TmuUtils();
 
-    final image = await utilitiesTMU.loadLogo(context);
+    final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
     List<int> bytes = [];
 
     final generator = Generator(
-      AppData.paperSize[paperDefault],
+      AppData.paperSize[Preferences.paperSize],
       await CapabilityProfile.load(),
     );
 
-    bytes += generator.setGlobalCodeTable('CP1252');
-
-    bytes += generator.image(image, align: PosAlign.center);
+    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
 
     //Reporte de xistencias
     // Encabezado
@@ -96,6 +100,8 @@ class ExistenciasTMU {
 
     bytes += generator.text(data.storeProcedure, styles: UtilitiesTMU.center);
 
-    return PrintModel(bytes: bytes, generator: generator);
+    bytes += generator.cut();
+
+    printerVM.printTMU(context, bytes, false);
   }
 }

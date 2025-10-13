@@ -29,7 +29,7 @@ class AppRoutes {
   static const withoutPayment = 'withoutPayment';
   static const withPayment = 'withPayment';
   static const shrLocalConfig = 'shrLocalConfig';
-  static const printer = 'printer';
+  // static const printer = 'printer';
   static const settings = 'settings';
   static const error = 'error';
   static const recent = 'recent';
