@@ -10,6 +10,7 @@ import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:provider/provider.dart';
+import 'package:diacritic/diacritic.dart';
 
 class TestTMU {
   List<int> report = [];
@@ -42,27 +43,39 @@ class TestTMU {
 
       report = [];
 
-      report += generator.setGlobalCodeTable('CP1252');
-
       report += generator.image(enterpriseLogo, align: PosAlign.center);
 
       report += generator.hr();
-      report += generator.text("PRUEBA DE IMPRESIÓN", styles: centerBold);
+      report += generator.text(
+        removeDiacritics("PRUEBA DE IMPRESIÓN"),
+        styles: centerBold,
+      );
       report += generator.hr();
 
       report += generator.text("Dispositivo: ${Preferences.printer!.name}");
-      report += generator.text("Dirección: ${Preferences.printer!.address}");
-      report += generator.text("Tamaño de papel: ${Preferences.paperSize} mm");
+      report += generator.text(
+        removeDiacritics("Dirección: ${Preferences.printer!.address}"),
+      );
+      report += generator.text(
+        removeDiacritics("Tamaño de papel: ${Preferences.paperSize} mm"),
+      );
       report += generator.emptyLines(1);
-      report += generator.text("*** Conexión exitosa ***", styles: center);
+      report += generator.text(
+        removeDiacritics("*** Conexión exitosa ***"),
+        styles: center,
+      );
       report += generator.emptyLines(1);
       report += generator.hr();
       report += generator.text("Usuario: ${vmLogin.user}");
       report += generator.text(
-        "Empresa: ${vmSettings.selectedEmpresa!.empresaNombre}",
+        removeDiacritics(
+          "Empresa: ${vmSettings.selectedEmpresa!.empresaNombre}",
+        ),
       );
       report += generator.text(
-        "Estacion: ${vmSettings.selectedEstacion!.descripcion}",
+        removeDiacritics(
+          "Estación: ${vmSettings.selectedEstacion!.descripcion}",
+        ),
       );
       report += generator.text("Fecha: ${Utilities.getDateDDMMYYYY()}");
       report += generator.text("Origen de datos: ${Preferences.urlApi}");
@@ -73,11 +86,10 @@ class TestTMU {
       report += generator.text(Utilities.author.website, styles: center);
 
       report += generator.text(
-        "Version: ${SplashViewModel.versionLocal}",
+        removeDiacritics("Versión: ${SplashViewModel.versionLocal}"),
         styles: center,
       );
 
-      report += generator.emptyLines(3);
       report += generator.cut();
 
       return true;
