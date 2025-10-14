@@ -33,8 +33,8 @@ class Preferences {
   }
 
   //Recuperar tamaño de papel
-  static int? get paperSize {
-    return _prefs.getInt(_paperSize);
+  static int get paperSize {
+    return _prefs.getInt(_paperSize) ?? 58;
   }
 
   // Guardar un BluetoothDevice

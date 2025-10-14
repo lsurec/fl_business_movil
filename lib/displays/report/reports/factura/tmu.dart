@@ -1,5 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/report/utils/tmu_utils.dart';
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
@@ -16,8 +19,13 @@ import 'package:fl_business/libraries/app_data.dart' as AppData;
 class FacturaTMU {
   PrintModel? report;
 
-  Future<bool> getReport(BuildContext context, int paperDefault) async {
+  Future<void> getReport(BuildContext context) async {
     try {
+      final PrinterViewModel printerVM = Provider.of<PrinterViewModel>(
+        context,
+        listen: false,
+      );
+
       final HomeViewModel vmHome = Provider.of<HomeViewModel>(
         context,
         listen: false,
@@ -30,16 +38,16 @@ class FacturaTMU {
         decimalDigits: 2, // Número de decimales a mostrar
       );
 
-      final UtilitiesTMU utilitiesTMU = UtilitiesTMU();
-
       final DocPrintModel data = FacturaProvider.data!;
 
-      final image = await utilitiesTMU.loadLogo(context);
+      final TmuUtils utils = TmuUtils();
+
+      final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
       List<int> bytes = [];
 
       final generator = Generator(
-        AppData.paperSize[paperDefault],
+        AppData.paperSize[Preferences.paperSize],
         await CapabilityProfile.load(),
       );
 
@@ -51,7 +59,7 @@ class FacturaTMU {
 
       bytes += generator.setGlobalCodeTable('CP1252');
 
-      bytes += generator.image(image, align: PosAlign.center);
+      bytes += generator.image(enterpriseLogo, align: PosAlign.center);
 
       bytes += generator.text(data.empresa.razonSocial, styles: center);
       bytes += generator.text(data.empresa.nombre, styles: center);
@@ -150,7 +158,7 @@ class FacturaTMU {
 
       bytes += generator.hr(); // Línea horizontal
 
-      if (paperDefault != 58) {
+      if (Preferences.paperSize != 58) {
         bytes += generator.row([
           PosColumn(text: 'Cant.', width: 2), // Ancho 2
           PosColumn(text: 'Descripcion', width: 4), // Ancho 6
@@ -198,7 +206,7 @@ class FacturaTMU {
         }
       }
 
-      if (paperDefault != 58) {
+      if (Preferences.paperSize != 58) {
         bytes += generator.row([
           PosColumn(
             text: AppLocalizations.of(
@@ -294,7 +302,7 @@ class FacturaTMU {
         styles: center,
       );
 
-      if (paperDefault != 58) {
+      if (Preferences.paperSize != 58) {
         for (var pago in data.pagos) {
           bytes += generator.row([
             PosColumn(text: "", width: 6),
@@ -418,9 +426,9 @@ class FacturaTMU {
 
       bytes += generator.text(data.procedimientoAlmacenado, styles: center);
 
-      report = PrintModel(bytes: bytes, generator: generator);
+      bytes += generator.cut();
 
-      return true;
+      printerVM.printTMU(context, bytes, false);
     } catch (e) {
       final ApiResModel res = ApiResModel(
         succes: false,
@@ -430,8 +438,6 @@ class FacturaTMU {
       );
 
       NotificationService.showErrorView(context, res);
-
-      return false;
     }
   }
 }

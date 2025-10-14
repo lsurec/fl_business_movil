@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, library_prefixes, avoid_print
 import 'dart:convert';
+import 'package:fl_business/displays/report/reports/factura/provider.dart';
+import 'package:fl_business/displays/report/reports/factura/tmu.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
@@ -336,19 +338,34 @@ class ConfirmDocViewModel extends ChangeNotifier {
   }
 
   //Navgar a pantalla de impresion
-  navigatePrint(BuildContext context) {
-    final menuVM = Provider.of<MenuViewModel>(context, listen: false);
-
-    Navigator.pushNamed(
+  Future<void> navigatePrint(BuildContext context) async {
+    final DocumentoViewModel docsVm = Provider.of<DocumentoViewModel>(
       context,
-      AppRoutes.printer,
-      arguments: PrintDocSettingsModel(
-        opcion: menuVM.documento == 20
-            ? 4
-            : 2, //TODO: Parametrizar con Alfa y Omega
-        consecutivoDoc: consecutivoDoc,
-      ),
+      listen: false,
     );
+
+    final DocumentViewModel docVm = Provider.of<DocumentViewModel>(
+      context,
+      listen: false,
+    );
+
+    final FacturaProvider facturaProvider = FacturaProvider();
+
+    final FacturaTMU facturaTMU = FacturaTMU();
+
+    isLoading = true;
+
+    //cragar datos del reporte
+    bool loadData = await facturaProvider.loaData(context, consecutivoDoc);
+
+    isLoading = false;
+    if (!loadData) return;
+
+    await facturaTMU.getReport(context);
+
+    if (docVm.valueParametro(48)) {
+      docsVm.backTabs(context);
+    }
   }
 
   //Ver infromes o errores

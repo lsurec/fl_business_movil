@@ -1,7 +1,9 @@
+import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
+import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
+import 'package:fl_business/displays/report/reports/factura/provider.dart';
+import 'package:fl_business/displays/report/reports/factura/tmu.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
-import 'package:fl_business/models/models.dart';
-import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:provider/provider.dart';
 
@@ -25,19 +27,34 @@ class DetailsDocViewModel extends ChangeNotifier {
   }
 
   //Navgar a pantalla de impresion
-  navigatePrint(BuildContext context, DetailDocModel doc) {
-    final menuVM = Provider.of<MenuViewModel>(context, listen: false);
-
-    Navigator.pushNamed(
+  Future<void> navigatePrint(BuildContext context, DetailDocModel doc) async {
+    final DocumentoViewModel docsVm = Provider.of<DocumentoViewModel>(
       context,
-      AppRoutes.printer,
-      arguments: PrintDocSettingsModel(
-        opcion: menuVM.documento == 20
-            ? 4
-            : 2, //TODO: Parametrizar con Alfa y Omega
-        consecutivoDoc: doc.consecutivo,
-      ),
+      listen: false,
     );
+
+    final DocumentViewModel docVm = Provider.of<DocumentViewModel>(
+      context,
+      listen: false,
+    );
+
+    final FacturaProvider facturaProvider = FacturaProvider();
+
+    final FacturaTMU facturaTMU = FacturaTMU();
+
+    isLoading = true;
+
+    //cragar datos del reporte
+    bool loadData = await facturaProvider.loaData(context, doc.consecutivo);
+
+    isLoading = false;
+    if (!loadData) return;
+
+    await facturaTMU.getReport(context);
+
+    if (docVm.valueParametro(48)) {
+      docsVm.backTabs(context);
+    }
   }
 
   //Navgar a pantalla de impresion

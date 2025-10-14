@@ -14,6 +14,7 @@ import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/themes/themes.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
+import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/views/views.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,6 @@ class AppState extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LocalSettingsViewModel()),
         ChangeNotifierProvider(create: (_) => DocumentoViewModel()),
         ChangeNotifierProvider(create: (_) => SplashViewModel()),
-        ChangeNotifierProvider(create: (_) => PrintViewModel()),
         ChangeNotifierProvider(create: (_) => SettingsViewModel()),
         ChangeNotifierProvider(create: (_) => ErrorViewModel()),
         // ChangeNotifierProvider(create: (_) => UpdateViewModel()),

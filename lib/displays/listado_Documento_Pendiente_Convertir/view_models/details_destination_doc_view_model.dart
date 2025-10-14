@@ -102,11 +102,13 @@ class DetailsDestinationDocViewModel extends ChangeNotifier {
   //imprimir docuemnto
   printDoc(BuildContext context, DocDestinationModel document) {
     //navegar a pantalla de impresion
-    Navigator.pushNamed(
-      context,
-      AppRoutes.printer,
-      arguments: PrintDocSettingsModel(opcion: 3, destination: document),
-    );
+    // TODO: imprimir documento conversion
+
+    // Navigator.pushNamed(
+    //   context,
+    //   AppRoutes.printer,
+    //   arguments: PrintDocSettingsModel(opcion: 3, destination: document),
+    // );
   }
 
   Future shareDoc(BuildContext contextP, DocDestinationModel document) async {
