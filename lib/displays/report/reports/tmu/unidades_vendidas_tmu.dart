@@ -6,7 +6,6 @@ import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/report/models/models.dart';
 import 'package:fl_business/displays/report/reports/tmu/utilities_tmu.dart';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
-import 'package:fl_business/models/print_model.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:provider/provider.dart';
