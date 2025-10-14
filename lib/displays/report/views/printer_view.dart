@@ -77,7 +77,7 @@ class PrinterView extends StatelessWidget {
                     style: StyleApp.normal,
                   ),
                   subtitle: Text(
-                    "${Preferences.printer == null ? "Sin impresora" : Preferences.printer!.address ?? "Desconocido"} | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} ${Preferences.paperSize ?? 0} mm",
+                    "${Preferences.printer == null ? "Sin impresora" : Preferences.printer!.address ?? "Desconocido"} | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} ${Preferences.paperSize} mm",
                     style: StyleApp.subTitle,
                   ),
                   trailing: Row(

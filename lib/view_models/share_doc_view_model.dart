@@ -1,8 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:fl_business/displays/report/utils/pdf_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,18 +11,15 @@ import 'package:fl_business/displays/report/reports/factura/provider.dart';
 import 'package:fl_business/displays/shr_local_config/models/models.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/models/models.dart';
-import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:provider/provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:http/http.dart' as http;
-import 'package:share_plus/share_plus.dart';
 import '../displays/prc_documento_3/services/services.dart';
 
 class ShareDocViewModel extends ChangeNotifier {
@@ -237,16 +232,9 @@ class ShareDocViewModel extends ChangeNotifier {
       decimalDigits: 2, // Número de decimales a mostrar
     );
 
-    //Nuevo para el logo
-    final vmLocal = Provider.of<LocalSettingsViewModel>(
-      contextP,
-      listen: false,
-    );
-
     final facturaVM = Provider.of<DocumentoViewModel>(contextP, listen: false);
 
     //obtener la empresa de seleccionada
-    final EmpresaModel imgEmpresa = vmLocal.selectedEmpresa!;
 
     // Logotipo por defecto
     final ByteData defaultLogoData = await rootBundle.load(

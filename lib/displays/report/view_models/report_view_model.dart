@@ -2,7 +2,6 @@
 
 import 'package:fl_business/displays/report/reports/tmu/existencias_tmu.dart';
 import 'package:fl_business/displays/report/reports/tmu/fact_t_contado_cred_tmu.dart';
-import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/report/models/models.dart';
 import 'package:fl_business/displays/report/reports/pdf/existencias_pdf.dart';
@@ -12,7 +11,6 @@ import 'package:fl_business/displays/report/services/bodega_user_service.dart';
 import 'package:fl_business/displays/report/services/report_service.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/displays/tareas/models/models.dart';
-import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:provider/provider.dart';
