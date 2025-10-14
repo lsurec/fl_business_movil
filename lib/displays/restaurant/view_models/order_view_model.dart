@@ -17,6 +17,7 @@ import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/widgets/widgets.dart';
+import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
 
@@ -546,35 +547,17 @@ class OrderViewModel extends ChangeNotifier {
         );
 
         bytes += generator.cut();
+        var printerManager = PrinterManager.instance;
 
-        // await PrinterManager.instance
-        //     .connect(
-        //       type: PrinterType.network,
-        //       model: TcpPrinterInput(
-        //         //TODO:Cambiar a ip de la base de datos
-        //         ipAddress: element.ipAdress,
-        //         // ipAddress: "192.168.0.10",
-        //       ),
-        //     )
-        //     .timeout(
-        //       const Duration(seconds: 5),
-        //       onTimeout: () {
-        //         throw TimeoutException(
-        //           'La conexión ha superado el tiempo de espera ${element.ipAdress}',
-        //         );
-        //       },
-        //     );
+        //TODO:Nueva metodología
+        await printerManager.connect(
+          type: PrinterType.network,
+          model: TcpPrinterInput(ipAddress: element.ipAdress),
+        );
 
-        // await instanceManager
-        //     .send(type: PrinterType.network, bytes: bytes)
-        //     .timeout(
-        //       const Duration(seconds: 5),
-        //       onTimeout: () {
-        //         throw TimeoutException(
-        //           'La conexión ha superado el tiempo de espera ${element.ipAdress}',
-        //         );
-        //       },
-        //     );
+        await printerManager.send(type: PrinterType.network, bytes: bytes);
+
+        await printerManager.disconnect(type: PrinterType.network);
 
         //marcar como comandados
         for (var traPend in orders[indexOrder].transacciones) {

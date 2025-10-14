@@ -126,13 +126,11 @@ class ConfirmDocViewModel extends ChangeNotifier {
   }
 
   printNetwork(BuildContext context) async {
-    var printerManager = PrinterManager.instance;
+    // final TestTMU testTMU = TestTMU();
 
-    final TestTMU testTMU = TestTMU();
+    // final isReport = await testTMU.getReportTCPIP(context);
 
-    final isReport = await testTMU.getReportTCPIP(context);
-
-    if (!isReport) return;
+    // if (!isReport) return;
 
     // await PrinterManager.instance.connect(
     //   type: PrinterType.bluetooth,
@@ -144,20 +142,15 @@ class ConfirmDocViewModel extends ChangeNotifier {
     //   ),
     // );
 
-    await PrinterManager.instance.connect(
-      type: PrinterType.network,
-      model: TcpPrinterInput(ipAddress: "192.168.0.10"),
-    );
+    // await PrinterManager.instance.connect(
+    //   type: PrinterType.network,
+    //   model: TcpPrinterInput(ipAddress: "192.168.0.10"),
+    // );
 
-    await printerManager.send(type: PrinterType.network, bytes: testTMU.report);
+    // await printerManager.send(type: PrinterType.network, bytes: testTMU.report);
 
-    await printerManager.disconnect(type: PrinterType.network);
+    // await printerManager.disconnect(type: PrinterType.network);
 
-    NotificationService.showSnackbar(
-      "Esta funcion no está disponible temporalmente",
-    );
-
-    return;
     //TODO:buscar libreria
     //Proveedor de datos externo
     final loginVM = Provider.of<LoginViewModel>(
@@ -346,12 +339,17 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
         bytes += generator.cut();
 
-        // await PrinterManager.instance.connect(
-        //   type: PrinterType.network,
-        //   model: TcpPrinterInput(ipAddress: element.ipAdress),
-        // );
+        var printerManager = PrinterManager.instance;
 
-        // await instanceManager.send(type: PrinterType.network, bytes: bytes);
+        //TODO:Nueva metodología
+        await printerManager.connect(
+          type: PrinterType.network,
+          model: TcpPrinterInput(ipAddress: element.ipAdress),
+        );
+
+        await printerManager.send(type: PrinterType.network, bytes: bytes);
+
+        await printerManager.disconnect(type: PrinterType.network);
       } catch (e) {
         print(e.toString());
         isLoading = false;

@@ -9,6 +9,7 @@ import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/widgets/widgets.dart';
+import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_business/libraries/app_data.dart'
     // ignore: library_prefixes
@@ -227,6 +228,18 @@ class SelectAccountViewModel extends ChangeNotifier {
       bytes += generator.text("www.demosoft.com.gt", styles: center);
 
       bytes += generator.cut();
+
+      var printerManager = PrinterManager.instance;
+
+      //TODO:Nueva metodología
+      await printerManager.connect(
+        type: PrinterType.network,
+        model: TcpPrinterInput(ipAddress: "192.168.0.10"),
+      );
+
+      await printerManager.send(type: PrinterType.network, bytes: bytes);
+
+      await printerManager.disconnect(type: PrinterType.network);
 
       // await PrinterManager.instance.connect(
       //   type: PrinterType.network,
