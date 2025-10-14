@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   flutter_inappwebview_windows
   flutter_localization
+  flutter_pos_printer_platform_image_3
   flutter_secure_storage_windows
   geolocator_windows
   printing

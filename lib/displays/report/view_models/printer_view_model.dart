@@ -109,7 +109,7 @@ class PrinterViewModel extends ChangeNotifier {
     final TestTMU testTMU = TestTMU();
 
     isLoading = true;
-    final bool resReport = await testTMU.getReport(context);
+    final bool resReport = await testTMU.getReportBluetooth(context);
 
     isLoading = false;
     if (!resReport) return;
