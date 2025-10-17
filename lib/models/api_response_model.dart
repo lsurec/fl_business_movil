@@ -42,14 +42,14 @@ class ApiResponseModel {
       );
 
   Map<String, dynamic> toMap() => {
-        "status": status,
-        "message": message,
-        "error": error,
-        "storeProcedure": storeProcedure,
-        "parameters": parameters,
-        "data": data,
-        "timestamp": timestamp.toIso8601String(),
-        "version": version,
-        "url": url,
-      };
+    "status": status,
+    "message": message,
+    "error": error,
+    "storeProcedure": storeProcedure,
+    "parameters": parameters,
+    "data": data,
+    "timestamp": timestamp.toIso8601String(),
+    "version": version,
+    "url": url,
+  };
 }

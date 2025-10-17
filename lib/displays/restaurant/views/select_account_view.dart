@@ -70,7 +70,8 @@ class SelectAccountView extends StatelessWidget {
                     )!.translate(BlockTranslate.botones, 'trasladar'),
                   ),
                   IconButton(
-                    onPressed: () => vm.printStatusAccount(context),
+                    onPressed: () {},
+                    // onPressed: () => vm.printStatusAccount(context, ),
                     icon: const Icon(Icons.print_outlined),
                     tooltip: AppLocalizations.of(
                       context,

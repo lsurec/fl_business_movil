@@ -1,5 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/report/reports/estado_cuenta/estado_cuenta_model.dart';
+import 'package:fl_business/displays/report/services/report_service.dart';
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/models/api_response_model.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
+import 'package:fl_business/utilities/utilities.dart';
+import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 // import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
@@ -37,23 +44,48 @@ class SelectAccountViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> printStatusAccount(BuildContext context) async {
+  Future<void> printStatusAccount(BuildContext context, int consecutivo) async {
+    //Proveedores externos
+    final LoginViewModel loginVM = Provider.of<LoginViewModel>(
+      context,
+      listen: false,
+    );
+
+    //usario
+    String user = loginVM.user;
+    //token
+    String token = loginVM.token;
+
+    final ReportService reportService = ReportService();
+
+    ApiResponseModel res = await reportService.getEstadoCuenta(
+      token,
+      user,
+      consecutivo,
+    );
+
+    //valid succes response
+    if (!res.status) {
+      //finalozar el proceso
+      await NotificationService.showInfoErrorView(context, res);
+      return;
+    }
+
+    final List<EstadoCuentaModel> data = res.data;
+
+    if (data.isEmpty) {
+      NotificationService.showSnackbar("No hay datos para imprimir");
+      return;
+    }
+
     try {
-      int paperDefault = 80; //58 //72 //80
-
       PosStyles center = const PosStyles(align: PosAlign.center);
-
-      String line = "________________________________________________";
 
       List<int> bytes = [];
       final generator = Generator(
-        AppData.paperSize[paperDefault],
+        AppData.paperSize[Preferences.paperSize],
         await CapabilityProfile.load(),
       );
-
-      // final ByteData data = await rootBundle.load('assets/logo_demosoft.png');
-      // final Uint8List bytesImg = data.buffer.asUint8List();
-      // final img.Image? image = decodeImage(bytesImg);
 
       bytes += generator.setGlobalCodeTable('CP1252');
 
@@ -76,7 +108,7 @@ class SelectAccountViewModel extends ChangeNotifier {
       );
 
       bytes += generator.text(
-        "Mesa: Mesa 1",
+        "Mesa: ${data[0].desMesa}",
         styles: const PosStyles(
           align: PosAlign.center,
           height: PosTextSize.size2,
@@ -94,83 +126,12 @@ class SelectAccountViewModel extends ChangeNotifier {
 
       bytes += generator.emptyLines(1);
 
-      bytes += generator.row([
-        PosColumn(text: "Cant", width: 2),
-        PosColumn(text: "Descripcion", width: 7),
-        PosColumn(
-          text: "Total",
-          width: 3,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-      ]);
+      for (var item in data) {
+        bytes += generator.text("Cant: ${item.cantidad}");
+        bytes += generator.text(item.desProducto);
+        bytes += generator.hr();
+      }
 
-      bytes += generator.text(line);
-      bytes += generator.emptyLines(1);
-
-      bytes += generator.row([
-        PosColumn(text: "100", width: 2),
-        PosColumn(
-          text: "Excepteur reprehenderit ut nostrud et veniam in.",
-          width: 7,
-        ),
-        PosColumn(
-          text: "100.00",
-          width: 3,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-      ]);
-      bytes += generator.text(line);
-      bytes += generator.emptyLines(1);
-
-      bytes += generator.row([
-        PosColumn(
-          text: "Sub-Total:",
-          width: 8,
-          styles: const PosStyles(align: PosAlign.right, bold: true),
-        ),
-        PosColumn(
-          text: "100,000.00",
-          width: 4,
-          styles: const PosStyles(align: PosAlign.right, bold: true),
-        ),
-      ]);
-      bytes += generator.row([
-        PosColumn(
-          text: "Descuento:",
-          width: 8,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-        PosColumn(
-          text: "100,000.00",
-          width: 4,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-      ]);
-      bytes += generator.row([
-        PosColumn(
-          text: "Total:",
-          width: 8,
-          styles: const PosStyles(align: PosAlign.right, bold: true),
-        ),
-        PosColumn(
-          text: "100,000.00",
-          width: 4,
-          styles: const PosStyles(align: PosAlign.right, bold: true),
-        ),
-      ]);
-
-      bytes += generator.row([
-        PosColumn(
-          text: "",
-          width: 8,
-          styles: const PosStyles(align: PosAlign.right, bold: true),
-        ),
-        PosColumn(
-          text: "_______________",
-          width: 4,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-      ]);
       bytes += generator.emptyLines(1);
 
       bytes += generator.row([
@@ -185,74 +146,43 @@ class SelectAccountViewModel extends ChangeNotifier {
           styles: const PosStyles(align: PosAlign.right),
         ),
       ]);
-      bytes += generator.emptyLines(1);
+
+      bytes += generator.text("Propina:");
+      bytes += generator.hr();
 
       bytes += generator.text("Nombre:");
-
-      bytes += generator.text(line);
-
-      bytes += generator.emptyLines(1);
-
+      bytes += generator.hr();
       bytes += generator.text("NIT:");
-
-      bytes += generator.text(line);
-      bytes += generator.emptyLines(1);
+      bytes += generator.hr();
 
       bytes += generator.text("Celular:");
-
-      bytes += generator.text(line);
-
-      bytes += generator.emptyLines(1);
+      bytes += generator.hr();
 
       bytes += generator.text("Email:");
+      bytes += generator.hr();
 
-      bytes += generator.text(line);
-      bytes += generator.emptyLines(2);
-
-      bytes += generator.text("Le atendió: MESERO");
+      bytes += generator.text("Le atendió: ");
       bytes += generator.emptyLines(1);
-      bytes += generator.text("12/12/2020");
-      bytes += generator.text("12:12:00");
+      bytes += generator.text(Utilities.getDateDDMMYYYY());
 
-      bytes += generator.emptyLines(2);
+      bytes += generator.emptyLines(1);
+      bytes += generator.hr();
 
-      bytes += generator.text(line);
-      bytes += generator.emptyLines(2);
+      bytes += generator.emptyLines(1);
 
       bytes += generator.text("Powered By:", styles: center);
 
-      bytes += generator.text(
-        "Desarrollo Moderno de Software S.A.",
-        styles: center,
-      );
-      bytes += generator.text("www.demosoft.com.gt", styles: center);
+      bytes += generator.text(Utilities.author.nombre, styles: center);
+      bytes += generator.text(Utilities.author.website, styles: center);
 
       bytes += generator.cut();
 
-      var printerManager = PrinterManager.instance;
-
-      //TODO:Nueva metodología
-      await printerManager.connect(
-        type: PrinterType.network,
-        model: TcpPrinterInput(ipAddress: "192.168.0.10"),
+      final PrinterViewModel vmPrint = Provider.of<PrinterViewModel>(
+        context,
+        listen: false,
       );
 
-      await printerManager.send(type: PrinterType.network, bytes: bytes);
-
-      await printerManager.disconnect(type: PrinterType.network);
-
-      // await PrinterManager.instance.connect(
-      //   type: PrinterType.network,
-      //   model: TcpPrinterInput(
-      //     // ipAddress: element.ipAdress,
-      //     ipAddress: "192.168.0.10",
-      //   ),
-      // );
-
-      // await instanceManager.send(
-      //   type: PrinterType.network,
-      //   bytes: bytes,
-      // );
+      await vmPrint.printTMU(context, bytes, false);
     } catch (e) {
       // isLoading = false;
       NotificationService.showSnackbar(
