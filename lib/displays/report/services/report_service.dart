@@ -14,7 +14,7 @@ class ReportService {
     String user,
     int consecutivo,
   ) async {
-    Uri url = Uri.parse("${_baseUrl}v2/Report/facturas");
+    Uri url = Uri.parse("${_baseUrl}v2/report/estado/cuenta");
 
     try {
       //url completa

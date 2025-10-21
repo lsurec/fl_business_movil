@@ -16,7 +16,6 @@ import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/widgets/widgets.dart';
-import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_business/libraries/app_data.dart'
     // ignore: library_prefixes
@@ -42,6 +41,41 @@ class SelectAccountViewModel extends ChangeNotifier {
     isSelectedMode = value;
 
     notifyListeners();
+  }
+
+  printSelectStatusAccount(BuildContext context) {
+    final OrderViewModel orderVM = Provider.of<OrderViewModel>(
+      context,
+      listen: false,
+    );
+
+    for (var element in orderVM.orders) {
+      if (element.selected) {
+        if (element.consecutivo != 0) {
+          printStatusAccount(context, element.consecutivo);
+        } else {
+          NotificationService.showSnackbar(
+            "No se ha comandado ninguna transaccion",
+          );
+        }
+      }
+    }
+  }
+
+  printStatus(BuildContext context, index) {
+    final OrderViewModel orderVM = Provider.of<OrderViewModel>(
+      context,
+      listen: false,
+    );
+
+    if (orderVM.orders[index].consecutivo == 0) {
+      NotificationService.showSnackbar(
+        "No se ha comandado ninguna transaccion",
+      );
+      return;
+    }
+
+    printStatusAccount(context, orderVM.orders[index].consecutivo);
   }
 
   Future<void> printStatusAccount(BuildContext context, int consecutivo) async {
@@ -89,17 +123,17 @@ class SelectAccountViewModel extends ChangeNotifier {
 
       bytes += generator.setGlobalCodeTable('CP1252');
 
-      bytes += generator.text(
-        "Club campestre la montaña",
-        styles: const PosStyles(
-          bold: true,
-          align: PosAlign.center,
-          height: PosTextSize.size2,
-        ),
-      );
+      // bytes += generator.text(
+      //   "Club campestre la montaña",
+      //   styles: const PosStyles(
+      //     bold: true,
+      //     align: PosAlign.center,
+      //     height: PosTextSize.size2,
+      //   ),
+      // );
 
       bytes += generator.text(
-        "Barra mirablosque",
+        data[0].desUbicacion,
         styles: const PosStyles(
           bold: true,
           align: PosAlign.center,
@@ -116,7 +150,7 @@ class SelectAccountViewModel extends ChangeNotifier {
       );
 
       bytes += generator.text(
-        "MIRALBOLSQUE - 1",
+        data[0].desSerieDocumento,
         styles: const PosStyles(
           bold: true,
           align: PosAlign.center,

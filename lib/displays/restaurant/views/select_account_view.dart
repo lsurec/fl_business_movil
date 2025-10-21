@@ -70,8 +70,7 @@ class SelectAccountView extends StatelessWidget {
                     )!.translate(BlockTranslate.botones, 'trasladar'),
                   ),
                   IconButton(
-                    onPressed: () {},
-                    // onPressed: () => vm.printStatusAccount(context, ),
+                    onPressed: () => vm.printSelectStatusAccount(context),
                     icon: const Icon(Icons.print_outlined),
                     tooltip: AppLocalizations.of(
                       context,
@@ -164,7 +163,9 @@ class _AccountCard extends StatelessWidget {
       elevation: 2,
       raidus: 10,
       child: InkWell(
-        onLongPress: screen == 3 ? null : () => vm.onLongPress(context, index),
+        onLongPress: screen == 3
+            ? null
+            : () => vm.printSelectStatusAccount(context),
         onTap: vm.isSelectedMode
             ? () => vm.selectedItem(context, index)
             : () => vm.tapCard(context, screen, index, transaction, tipoAccion),
