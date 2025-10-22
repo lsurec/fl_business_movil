@@ -20,7 +20,6 @@ class OrderView extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = Provider.of<OrderViewModel>(context);
     final homeVM = Provider.of<HomeViewModel>(context);
-    final saVM = Provider.of<SelectAccountViewModel>(context);
 
     final currencyFormat = NumberFormat.currency(
       // Símbolo de la moneda (puedes cambiarlo según tu necesidad)
@@ -122,7 +121,7 @@ class OrderView extends StatelessWidget {
                     ]
                   : [
                       IconButton(
-                        onPressed: () => saVM.printStatus(context, indexOrder),
+                        onPressed: () => vm.printStatus(context, indexOrder),
                         icon: const Icon(Icons.print_outlined),
                         tooltip: "Imprimir",
                       ),

@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:fl_business/displays/restaurant/view_models/select_account_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 // import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
@@ -70,6 +71,29 @@ class OrderViewModel extends ChangeNotifier {
     );
   }
 
+  Future<void> printStatus(BuildContext context, index) async {
+    final SelectAccountViewModel saVM = Provider.of<SelectAccountViewModel>(
+      context,
+      listen: false,
+    );
+
+    final OrderViewModel orderVM = Provider.of<OrderViewModel>(
+      context,
+      listen: false,
+    );
+
+    if (orderVM.orders[index].consecutivo == 0) {
+      NotificationService.showSnackbar(
+        "No se ha comandado ninguna transaccion",
+      );
+      return;
+    }
+
+    isLoading = true;
+    await saVM.printStatusAccount(context, orderVM.orders[index].consecutivo);
+    isLoading = false;
+  }
+
   Future<void> monitorPrint(BuildContext context, int indexOrder) async {
     final MenuViewModel menuVM = Provider.of<MenuViewModel>(
       context,
@@ -92,6 +116,8 @@ class OrderViewModel extends ChangeNotifier {
     String serieDocumento = homeResVM.serieSelect!.serieDocumento!;
     int empresa = localVM.selectedEmpresa!.empresa;
     int estacion = localVM.selectedEstacion!.estacionTrabajo;
+
+    //TODO:Verificar dispoinibilidad de la immpresora
 
     double traTotal = 0;
     final List<DocTransaccion> transactions = [];
@@ -550,12 +576,35 @@ class OrderViewModel extends ChangeNotifier {
         var printerManager = PrinterManager.instance;
 
         //TODO:Nueva metodología
-        await printerManager.connect(
+        final bool isConnect = await printerManager.connect(
           type: PrinterType.network,
           model: TcpPrinterInput(ipAddress: element.ipAdress),
         );
 
-        await printerManager.send(type: PrinterType.network, bytes: bytes);
+        if (!isConnect) {
+          isLoading = false;
+
+          NotificationService.showSnackbar(
+            "Impresora ${element.ipAdress} no disponible",
+          );
+
+          return;
+        }
+
+        final bool isSend = await printerManager.send(
+          type: PrinterType.network,
+          bytes: bytes,
+        );
+
+        if (!isSend) {
+          isLoading = false;
+
+          NotificationService.showSnackbar(
+            "No se pudieron enviar los datos a la impresora ${element.ipAdress}]",
+          );
+
+          return;
+        }
 
         await printerManager.disconnect(type: PrinterType.network);
 

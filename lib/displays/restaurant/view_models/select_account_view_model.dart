@@ -62,22 +62,6 @@ class SelectAccountViewModel extends ChangeNotifier {
     }
   }
 
-  printStatus(BuildContext context, index) {
-    final OrderViewModel orderVM = Provider.of<OrderViewModel>(
-      context,
-      listen: false,
-    );
-
-    if (orderVM.orders[index].consecutivo == 0) {
-      NotificationService.showSnackbar(
-        "No se ha comandado ninguna transaccion",
-      );
-      return;
-    }
-
-    printStatusAccount(context, orderVM.orders[index].consecutivo);
-  }
-
   Future<void> printStatusAccount(BuildContext context, int consecutivo) async {
     //Proveedores externos
     final LoginViewModel loginVM = Provider.of<LoginViewModel>(
@@ -163,23 +147,11 @@ class SelectAccountViewModel extends ChangeNotifier {
       for (var item in data) {
         bytes += generator.text("Cant: ${item.cantidad}");
         bytes += generator.text(item.desProducto);
+        bytes += generator.text("Monto: ${item.monto}");
         bytes += generator.hr();
       }
 
       bytes += generator.emptyLines(1);
-
-      bytes += generator.row([
-        PosColumn(
-          text: "Propina:",
-          width: 8,
-          styles: const PosStyles(align: PosAlign.right, bold: true),
-        ),
-        PosColumn(
-          text: "_______________",
-          width: 4,
-          styles: const PosStyles(align: PosAlign.right),
-        ),
-      ]);
 
       bytes += generator.text("Propina:");
       bytes += generator.hr();
