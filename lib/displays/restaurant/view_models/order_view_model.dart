@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:fl_business/displays/restaurant/view_models/select_account_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
@@ -584,9 +585,46 @@ class OrderViewModel extends ChangeNotifier {
         if (!isConnect) {
           isLoading = false;
 
-          NotificationService.showSnackbar(
-            "Impresora ${element.ipAdress} no disponible",
+          // NotificationService.showSnackbar(
+          //   "Impresora ${element.ipAdress} no disponible",
+          // );
+
+          //mostrar dialogo de confirmacion
+          bool result =
+              await showDialog(
+                context: context,
+                builder: (context) => AlertWidget(
+                  textOk: "Impresión Bluetooth",
+                  textCancel: "Aceptar",
+                  title: "Impresora no disponible",
+                  description: "Impresora ${element.ipAdress} no disponible",
+                  onOk: () => Navigator.of(context).pop(true),
+                  onCancel: () => Navigator.of(context).pop(false),
+                ),
+              ) ??
+              false;
+
+          if (!result) return;
+
+          final PrinterViewModel pvm = Provider.of<PrinterViewModel>(
+            context,
+            listen: false,
           );
+
+          isLoading = true;
+          final bool isPirnt = await pvm.printTMU(context, bytes, false);
+          isLoading = false;
+
+          if (isPirnt) {
+            //marcar como comandados
+            for (var traPend in orders[indexOrder].transacciones) {
+              if (traPend.consecutivo == element.traConsecutivo) {
+                traPend.processed = true;
+              }
+            }
+          } else {
+            NotificationService.showSnackbar("No se pudo imprimir");
+          }
 
           return;
         }
@@ -602,6 +640,8 @@ class OrderViewModel extends ChangeNotifier {
           NotificationService.showSnackbar(
             "No se pudieron enviar los datos a la impresora ${element.ipAdress}]",
           );
+
+          await printerManager.disconnect(type: PrinterType.network);
 
           return;
         }
