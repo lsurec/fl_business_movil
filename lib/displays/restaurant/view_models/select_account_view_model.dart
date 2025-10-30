@@ -117,7 +117,7 @@ class SelectAccountViewModel extends ChangeNotifier {
       // );
 
       bytes += generator.text(
-        data[0].desUbicacion,
+        data[0].desUbicacion ?? "",
         styles: const PosStyles(
           bold: true,
           align: PosAlign.center,
@@ -134,7 +134,7 @@ class SelectAccountViewModel extends ChangeNotifier {
       );
 
       bytes += generator.text(
-        data[0].desSerieDocumento,
+        data[0].desSerieDocumento ?? "",
         styles: const PosStyles(
           bold: true,
           align: PosAlign.center,
@@ -146,7 +146,7 @@ class SelectAccountViewModel extends ChangeNotifier {
 
       for (var item in data) {
         bytes += generator.text("Cant: ${item.cantidad}");
-        bytes += generator.text(item.desProducto);
+        bytes += generator.text(item.desProducto ?? "");
         bytes += generator.text("Monto: ${item.monto}");
         bytes += generator.hr();
       }

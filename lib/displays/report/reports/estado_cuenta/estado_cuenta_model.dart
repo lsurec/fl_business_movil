@@ -2,31 +2,31 @@ import 'dart:convert';
 
 class EstadoCuentaModel {
   DateTime fechaDocumento;
-  String idDocumento;
+  String? idDocumento;
   int tipoDocumento;
-  String desTipoDocumento;
-  String serieDocumento;
-  String desSerieDocumento;
-  String iDDocumentoRef;
-  String observacion1;
+  String? desTipoDocumento;
+  String? serieDocumento;
+  String? desSerieDocumento;
+  String? iDDocumentoRef;
+  String? observacion1;
   int consecutivoInterno;
   DateTime fechaHora;
-  String desUbicacion;
-  String desMesa;
-  String cliente;
-  String nitCliente;
-  String direccionCliente;
-  String userName;
-  String productoId;
-  String unidadMedida;
-  String desProducto;
+  String? desUbicacion;
+  String? desMesa;
+  String? cliente;
+  String? nitCliente;
+  String? direccionCliente;
+  String? userName;
+  String? productoId;
+  String? unidadMedida;
+  String? desProducto;
   int bodega;
-  String nomBodega;
+  String? nomBodega;
   double cantidad;
   double monto;
   int tipoTransaccion;
   int dConsecutivoInterno;
-  String simbolo;
+  String? simbolo;
   int moneda;
 
   EstadoCuentaModel({
