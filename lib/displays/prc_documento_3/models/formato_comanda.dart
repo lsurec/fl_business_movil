@@ -13,3 +13,15 @@ class FormatoComanda {
     required this.ipAdress,
   });
 }
+
+class ResComandaModel {
+  FormatoComanda comanda;
+  List<int> format;
+  String? error;
+
+  ResComandaModel({
+    required this.comanda,
+    required this.format,
+    required this.error,
+  });
+}

@@ -4,7 +4,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/displays/report/views/error_print.dart';
 import 'package:fl_business/displays/restaurant/view_models/select_account_view_model.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 // import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
@@ -347,8 +349,6 @@ class OrderViewModel extends ChangeNotifier {
     //   element.processed = true;
     // }
 
-    isLoading = false;
-
     // final RestaurantService restaurantService = RestaurantService();
 
     // SenOrderModel order = SenOrderModel(
@@ -365,6 +365,8 @@ class OrderViewModel extends ChangeNotifier {
     // NotificationService.showSnackbar(resPostComanda.response);
 
     await printNetwork(context, indexOrder);
+
+    isLoading = false;
   }
 
   printNetwork(BuildContext context, int indexOrder) async {
@@ -450,7 +452,7 @@ class OrderViewModel extends ChangeNotifier {
       }
     }
 
-    int paperDefault = 80; //58 //72 //80
+    int paperDefault = Preferences.paperSize; //58 //72 //80
 
     PosStyles center = const PosStyles(align: PosAlign.center);
 
@@ -458,6 +460,9 @@ class OrderViewModel extends ChangeNotifier {
     // final Uint8List bytesImg = data.buffer.asUint8List();
     // final img.Image? image = decodeImage(bytesImg);
 
+    final List<ResComandaModel> formatsP = [];
+
+    //hacer formatos
     for (var element in formats) {
       try {
         List<int> bytes = [];
@@ -496,50 +501,12 @@ class OrderViewModel extends ChangeNotifier {
 
         bytes += generator.emptyLines(1);
 
-        //Incio del formato
-        bytes += generator.row([
-          PosColumn(
-            text: AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.tiket, 'cantidad'),
-            width: 2,
-            styles: const PosStyles(align: PosAlign.right),
-          ),
-          PosColumn(
-            text: '',
-            width: 1,
-            styles: const PosStyles(align: PosAlign.left),
-          ),
-          PosColumn(
-            text: AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.general, 'descripcion'),
-            width: 9,
-            styles: const PosStyles(align: PosAlign.left),
-          ),
-        ]);
-
         for (var tra in element.detalles) {
-          bytes += generator.row([
-            PosColumn(
-              text: "${tra.cantidad}",
-              width: 2,
-              styles: const PosStyles(
-                height: PosTextSize.size2,
-                align: PosAlign.right,
-              ),
-            ),
-            PosColumn(text: "", width: 1), // Anc/ Ancho 2
-            PosColumn(
-              text:
-                  "${tra.desProducto} ${tra.observacion.isNotEmpty ? '(${tra.observacion})' : ''}",
-              width: 9,
-              styles: const PosStyles(
-                height: PosTextSize.size2,
-                align: PosAlign.left,
-              ),
-            ), // Ancho 6
-          ]);
+          bytes += generator.text("Cant. ${tra.cantidad}");
+          bytes += generator.text(
+            "${tra.desProducto} ${tra.observacion.isNotEmpty ? '(${tra.observacion})' : ''}",
+          );
+          bytes += generator.hr();
         }
 
         bytes += generator.emptyLines(1);
@@ -574,108 +541,79 @@ class OrderViewModel extends ChangeNotifier {
         );
 
         bytes += generator.cut();
+
+        formatsP.add(
+          ResComandaModel(comanda: element, format: bytes, error: null),
+        );
+      } catch (e) {
+        formatsP.add(
+          ResComandaModel(comanda: element, format: [], error: e.toString()),
+        );
+      }
+    }
+
+    for (var element in formatsP) {
+      if (element.error == null) {
         var printerManager = PrinterManager.instance;
 
-        //TODO:Nueva metodología
-        final bool isConnect = await printerManager.connect(
-          type: PrinterType.network,
-          model: TcpPrinterInput(ipAddress: element.ipAdress),
-        );
-
-        if (!isConnect) {
-          isLoading = false;
-
-          // NotificationService.showSnackbar(
-          //   "Impresora ${element.ipAdress} no disponible",
-          // );
-
-          //mostrar dialogo de confirmacion
-          bool result =
-              await showDialog(
-                context: context,
-                builder: (context) => AlertWidget(
-                  textOk: "Impresión Bluetooth",
-                  textCancel: "Aceptar",
-                  title: "Impresora no disponible",
-                  description: "Impresora ${element.ipAdress} no disponible",
-                  onOk: () => Navigator.of(context).pop(true),
-                  onCancel: () => Navigator.of(context).pop(false),
-                ),
-              ) ??
-              false;
-
-          if (!result) return;
-
-          final PrinterViewModel pvm = Provider.of<PrinterViewModel>(
-            context,
-            listen: false,
+        try {
+          //TODO:Nueva metodología
+          final bool isConnect = await printerManager.connect(
+            type: PrinterType.network,
+            model: TcpPrinterInput(ipAddress: element.comanda.ipAdress),
           );
 
-          isLoading = true;
-          final bool isPirnt = await pvm.printTMU(context, bytes, false);
-          isLoading = false;
+          if (!isConnect) {
+            isLoading = false;
+            element.error =
+                "Impresora ${element.comanda.ipAdress} no disponible";
 
-          if (isPirnt) {
-            //marcar como comandados
-            for (var traPend in orders[indexOrder].transacciones) {
-              if (traPend.consecutivo == element.traConsecutivo) {
-                traPend.processed = true;
-              }
+            continue;
+          }
+
+          final bool isSend = await printerManager.send(
+            type: PrinterType.network,
+            bytes: element.format,
+          );
+
+          if (!isSend) {
+            await printerManager.disconnect(type: PrinterType.network);
+
+            isLoading = false;
+            element.error =
+                "No se pudieron enviar los datos a la impresora ${element.comanda.ipAdress}]";
+            continue;
+          }
+
+          //marcar como comandados
+          for (var traPend in orders[indexOrder].transacciones) {
+            if (traPend.consecutivo == element.comanda.traConsecutivo) {
+              traPend.processed = true;
             }
-          } else {
-            NotificationService.showSnackbar("No se pudo imprimir");
           }
-
-          return;
+        } catch (e) {
+          element.error = e.toString();
         }
-
-        final bool isSend = await printerManager.send(
-          type: PrinterType.network,
-          bytes: bytes,
-        );
-
-        if (!isSend) {
-          isLoading = false;
-
-          NotificationService.showSnackbar(
-            "No se pudieron enviar los datos a la impresora ${element.ipAdress}]",
-          );
-
-          await printerManager.disconnect(type: PrinterType.network);
-
-          return;
-        }
-
-        await printerManager.disconnect(type: PrinterType.network);
-
-        //marcar como comandados
-        for (var traPend in orders[indexOrder].transacciones) {
-          if (traPend.consecutivo == element.traConsecutivo) {
-            traPend.processed = true;
-          }
-        }
-      } catch (e) {
-        isLoading = false;
-
-        NotificationService.showErrorView(
-          context,
-          ApiResModel(
-            succes: false,
-            response: e.toString(),
-            url: "",
-            storeProcedure: "",
-          ),
-        );
-
-        // NotificationService.showSnackbar(
-        //   AppLocalizations.of(context)!.translate(
-        //     BlockTranslate.notificacion,
-        //     'noImprimio',
-        //   ),
-        // );
-
-        return;
       }
+    }
+
+    //TODO:verificar si las comandas fueron enviadas
+    final List<ResComandaModel> errores = formatsP
+        .where((p) => p.error != null)
+        .toList();
+
+    if (errores.isNotEmpty) {
+      //mostrar pantalla con errores
+      isLoading = false;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ErrorPrintView(comandas: errores, indexOrder: indexOrder),
+        ),
+      );
+
+      return;
     }
 
     NotificationService.showSnackbar(

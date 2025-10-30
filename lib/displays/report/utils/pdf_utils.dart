@@ -7,7 +7,7 @@ import 'package:pdf/widgets.dart';
 import 'package:share_plus/share_plus.dart';
 
 class PdfUtils {
-  static Future<void> sharePdf(
+  static Future<bool> sharePdf(
     BuildContext context,
     Document pdf,
     String name,
@@ -26,10 +26,13 @@ class PdfUtils {
 
     if (result.status == ShareResultStatus.dismissed) {
       NotificationService.showSnackbar("Acción cancelada");
+      return false;
     } else if (result.status == ShareResultStatus.success) {
       NotificationService.showSnackbar("Documento compartido");
+      return true;
     } else {
       NotificationService.showSnackbar("No se pudo completar la acción");
+      return false;
     }
   }
 }

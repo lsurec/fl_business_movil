@@ -2,6 +2,7 @@ import 'package:fl_business/displays/calendario/view_models/view_models.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/view_models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
+import 'package:fl_business/displays/report/view_models/error_print_view_model.dart';
 import 'package:fl_business/displays/report/view_models/view_models.dart';
 import 'package:fl_business/displays/restaurant/view_models/select_account_view_model.dart';
 import 'package:fl_business/displays/restaurant/view_models/view_models.dart';
@@ -97,6 +98,7 @@ class AppState extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ElementoAsigandoViewModel()),
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => PrinterViewModel()),
+        ChangeNotifierProvider(create: (_) => ErrorPrintViewModel()),
       ],
       child: const MyApp(),
     );
