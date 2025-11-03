@@ -484,6 +484,7 @@ class OrderViewModel extends ChangeNotifier {
             ipAdress: detalle.printerName,
             bodega: detalle.bodega,
             detalles: [detalle],
+            storedProcedure: res.storeProcedure ?? "",
           ),
         );
       } else {
@@ -504,6 +505,7 @@ class OrderViewModel extends ChangeNotifier {
               ipAdress: detalle.printerName,
               bodega: detalle.bodega,
               detalles: [detalle],
+              storedProcedure: res.storeProcedure ?? "",
             ),
           );
         } else {
@@ -599,6 +601,8 @@ class OrderViewModel extends ChangeNotifier {
           "Version: ${SplashViewModel.versionLocal}",
           styles: center,
         );
+
+        bytes += generator.text(element.storedProcedure, styles: center);
 
         bytes += generator.cut();
 

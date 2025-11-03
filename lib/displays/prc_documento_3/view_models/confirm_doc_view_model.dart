@@ -192,6 +192,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
             ipAdress: detalle.printerName,
             bodega: detalle.bodega,
             detalles: [detalle],
+            storedProcedure: res.storeProcedure ?? "",
           ),
         );
       } else {
@@ -212,6 +213,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
               ipAdress: detalle.printerName,
               bodega: detalle.bodega,
               detalles: [detalle],
+              storedProcedure: res.storeProcedure ?? "",
             ),
           );
         } else {

@@ -4,6 +4,7 @@ class FormatoComanda {
   int traConsecutivo;
   String bodega;
   String ipAdress;
+  String storedProcedure;
   List<PrintDataComandaModel> detalles;
 
   FormatoComanda({
@@ -11,6 +12,7 @@ class FormatoComanda {
     required this.bodega,
     required this.detalles,
     required this.ipAdress,
+    required this.storedProcedure,
   });
 }
 

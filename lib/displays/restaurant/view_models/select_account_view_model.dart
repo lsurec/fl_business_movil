@@ -7,6 +7,7 @@ import 'package:fl_business/models/api_response_model.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/login_view_model.dart';
+import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 // import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
@@ -180,6 +181,12 @@ class SelectAccountViewModel extends ChangeNotifier {
 
       bytes += generator.text(Utilities.author.nombre, styles: center);
       bytes += generator.text(Utilities.author.website, styles: center);
+      bytes += generator.text(
+        "Version: ${SplashViewModel.versionLocal}",
+        styles: center,
+      );
+
+      bytes += generator.text(res.storeProcedure, styles: center);
 
       bytes += generator.cut();
 
