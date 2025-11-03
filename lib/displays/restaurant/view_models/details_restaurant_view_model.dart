@@ -267,6 +267,9 @@ class DetailsRestaurantViewModel extends ChangeNotifier {
       formValues["observacion"] = "";
 
       Navigator.pop(context);
+
+      vmOrders.saveOrder();
+
       NotificationService.showSnackbar(
         AppLocalizations.of(
           context,

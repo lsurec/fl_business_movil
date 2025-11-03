@@ -49,6 +49,64 @@ class OrderViewModel extends ChangeNotifier {
   final List<OrderModel> orders = [];
   final List<int> selectedTra = [];
 
+  saveOrder() {
+    final List<String> ordersStr = [];
+
+    ordersStr.addAll(orders.map((item) => item.toJson()).toList());
+
+    Preferences.order = ordersStr;
+  }
+
+  Future<void> loadOrder(BuildContext context) async {
+    final List<String> ordersStr = Preferences.order;
+
+    if (ordersStr.isEmpty) return;
+
+    if (orders.isNotEmpty) return;
+
+    //TODO:Agregar validaciones para que no siempre se genere la recuperacion
+
+    //TODO:dilogo de restarancion
+
+    //mostrar dialogo de confirmacion
+    bool? result = await showDialog(
+      context: context,
+      builder: (context) => AlertWidget(
+        title: AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'continuarDoc'),
+        description: AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'docSinConfirmar'),
+        onOk: () => Navigator.of(context).pop(true),
+        onCancel: () => Navigator.of(context).pop(false),
+        textCancel: "Inciar de nuevo",
+        textOk: "Cargar datos",
+      ),
+    );
+
+    if (result == null) return;
+
+    //si la opcion fie nuevo docummento llimpiar el documento de preferencias
+    if (!result) {
+      Preferences.clearOrders();
+      //limpiar pantalla documento
+      return;
+    }
+
+    orders.clear();
+    orders.addAll(
+      ordersStr.map((orderStr) => OrderModel.fromJson(orderStr)).toList(),
+    );
+
+    notifyListeners();
+
+    await Provider.of<TablesViewModel>(
+      context,
+      listen: false,
+    ).updateOrdersTable(context);
+  }
+
   navigatePermisionView(BuildContext context, int indexOrder) {
     final TablesViewModel tablesVM = Provider.of<TablesViewModel>(
       context,
@@ -364,6 +422,8 @@ class OrderViewModel extends ChangeNotifier {
 
     // NotificationService.showSnackbar(resPostComanda.response);
 
+    saveOrder();
+
     await printNetwork(context, indexOrder);
 
     isLoading = false;
@@ -591,6 +651,8 @@ class OrderViewModel extends ChangeNotifier {
               traPend.processed = true;
             }
           }
+
+          saveOrder();
         } catch (e) {
           element.error = e.toString();
         }
@@ -791,6 +853,7 @@ class OrderViewModel extends ChangeNotifier {
       }
     }
 
+    saveOrder();
     notifyListeners();
   }
 
@@ -799,7 +862,6 @@ class OrderViewModel extends ChangeNotifier {
         !orders[indexOrder].transacciones[indexTra].selected;
 
     notifyListeners();
-
     if (getSelectedItems(indexOrder) == 0) isSelectedMode = false;
   }
 
@@ -819,6 +881,7 @@ class OrderViewModel extends ChangeNotifier {
   //incrementa la cantidad de la transaccion
   increment(int indexOrder, int indexTra) {
     orders[indexOrder].transacciones[indexTra].cantidad++;
+    saveOrder();
 
     notifyListeners();
   }
@@ -827,10 +890,15 @@ class OrderViewModel extends ChangeNotifier {
   decrement(BuildContext context, int indexOrder, int indexTra) {
     if (orders[indexOrder].transacciones[indexTra].cantidad == 1) {
       delete(context, indexOrder, indexTra);
+      saveOrder();
+
       return;
     }
 
     orders[indexOrder].transacciones[indexTra].cantidad--;
+
+    saveOrder();
+
     notifyListeners();
   }
 
@@ -840,6 +908,8 @@ class OrderViewModel extends ChangeNotifier {
           !orders[indexOrder].transacciones[i].processed) {
         orders[indexOrder].transacciones.removeAt(i);
         deleteSelectRecursive(indexOrder);
+        saveOrder();
+
         break;
       }
     }
@@ -865,6 +935,8 @@ class OrderViewModel extends ChangeNotifier {
           }
 
           deleteSelectRecursive(indexOrder);
+
+          saveOrder();
 
           if (orders[indexOrder].transacciones.isEmpty) {
             Navigator.of(context).pop();
@@ -924,6 +996,8 @@ class OrderViewModel extends ChangeNotifier {
             )!.translate(BlockTranslate.notificacion, 'traEliminada'),
           );
 
+          saveOrder();
+
           notifyListeners();
         },
         onCancel: () => Navigator.pop(context),
@@ -935,16 +1009,22 @@ class OrderViewModel extends ChangeNotifier {
     final vmTable = Provider.of<TablesViewModel>(context, listen: false);
     orders.add(item);
     vmTable.updateOrdersTable(context);
+    saveOrder();
+
     notifyListeners();
   }
 
   editTra(int indexOrder, int indexTra, TraRestaurantModel transaction) {
     orders[indexOrder].transacciones[indexTra] = transaction;
+    saveOrder();
+
     notifyListeners();
   }
 
   addTransactionFirst(TraRestaurantModel transaction, int indexOrder) {
     orders[indexOrder].transacciones.add(transaction);
+    saveOrder();
+
     notifyListeners();
   }
 
@@ -960,6 +1040,8 @@ class OrderViewModel extends ChangeNotifier {
         context,
       )!.translate(BlockTranslate.notificacion, 'productoAgregado'),
     );
+
+    saveOrder();
 
     notifyListeners();
   }

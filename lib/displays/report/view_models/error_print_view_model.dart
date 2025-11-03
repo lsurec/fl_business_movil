@@ -74,6 +74,7 @@ class ErrorPrintViewModel extends ChangeNotifier {
           traPend.processed = true;
         }
       }
+      vmOrder.saveOrder();
 
       comanda.error = null;
 
@@ -118,6 +119,7 @@ class ErrorPrintViewModel extends ChangeNotifier {
         traPend.processed = true;
       }
     }
+    vmOrder.saveOrder();
 
     comanda.error = null;
     returnView(context, comandas);
@@ -212,6 +214,8 @@ class ErrorPrintViewModel extends ChangeNotifier {
       }
     }
 
+    vmOrder.saveOrder();
+
     comanda.error = null;
     returnView(context, comandas);
   }
@@ -267,6 +271,7 @@ class ErrorPrintViewModel extends ChangeNotifier {
               traPend.processed = true;
             }
           }
+          vmOrder.saveOrder();
         } catch (e) {
           element.error = e.toString();
         }
@@ -318,6 +323,7 @@ class ErrorPrintViewModel extends ChangeNotifier {
           traPend.processed = true;
         }
       }
+      vmOrder.saveOrder();
 
       comanda.error = null;
     }
@@ -419,6 +425,10 @@ class ErrorPrintViewModel extends ChangeNotifier {
         comanda.error = null;
       }
     }
+
+    vmOrder.saveOrder();
+
+    vmOrder.saveOrder();
 
     returnView(context, comandas);
   }

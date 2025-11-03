@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/restaurant/view_models/order_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/restaurant/services/restaurant_service.dart';
 import 'package:fl_business/displays/restaurant/view_models/classification_view_model.dart';
@@ -89,6 +90,12 @@ class PinViewModel extends ChangeNotifier {
       NotificationService.showErrorView(context, resClassification);
       return;
     }
+
+    //cargar mesas
+    await Provider.of<OrderViewModel>(
+      context,
+      listen: false,
+    ).loadOrder(context);
 
     Navigator.pushNamed(context, AppRoutes.classification);
 
