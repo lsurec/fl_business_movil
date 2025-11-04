@@ -535,11 +535,8 @@ class OrderViewModel extends ChangeNotifier {
 
         bytes += generator.setGlobalCodeTable('CP1252');
 
-        // bytes += generator.image(
-        //   img.copyResize(image!, height: 200, width: 250),
-        // );
         bytes += generator.text(
-          element.detalles[0].desUbicacion,
+          "Ubicacion: ${element.detalles[0].desUbicacion}",
           styles: const PosStyles(
             bold: true,
             align: PosAlign.center,
@@ -549,8 +546,14 @@ class OrderViewModel extends ChangeNotifier {
 
         bytes += generator.text(
           "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'mesa')}: ${element.detalles[0].desMesa.toUpperCase()}",
-          styles: center,
+          styles: const PosStyles(
+            bold: true,
+            align: PosAlign.center,
+            height: PosTextSize.size2,
+          ),
         );
+
+        bytes += generator.text("Comanda:", styles: center);
 
         bytes += generator.text(
           "${element.detalles[0].desSerieDocumento} - ${element.detalles[0].iDDocumentoRef}",
@@ -561,17 +564,36 @@ class OrderViewModel extends ChangeNotifier {
           ),
         );
 
-        bytes += generator.emptyLines(1);
+        bytes += generator.text(
+          "Comensal: ${element.detalles[0].comensal}",
+          styles: const PosStyles(
+            bold: true,
+            align: PosAlign.center,
+            height: PosTextSize.size2,
+          ),
+        );
+
+        bytes += generator.text(element.detalles[0].bodega, styles: center);
+
+        bytes += generator.hr();
+        bytes += generator.text(
+          "Registros (${element.detalles.length})",
+          styles: center,
+        );
+
+        bytes += generator.hr();
 
         for (var tra in element.detalles) {
-          bytes += generator.text("Cant. ${tra.cantidad}");
+          bytes += generator.text(
+            "Cant. ${tra.cantidad}",
+            styles: const PosStyles(height: PosTextSize.size2),
+          );
           bytes += generator.text(
             "${tra.desProducto} ${tra.observacion.isNotEmpty ? '(${tra.observacion})' : ''}",
+            styles: const PosStyles(height: PosTextSize.size2),
           );
           bytes += generator.hr();
         }
-
-        bytes += generator.emptyLines(1);
 
         bytes += generator.text(
           "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'atencion')}: ${element.detalles[0].userName.toUpperCase()}",
@@ -584,8 +606,6 @@ class OrderViewModel extends ChangeNotifier {
           "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}:${now.second}",
           styles: center,
         );
-
-        bytes += generator.emptyLines(2);
 
         bytes += generator.hr();
 
