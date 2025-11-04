@@ -67,6 +67,7 @@ class TraRestaurantModel {
   List<GarnishTra> guarniciones;
   bool selected;
   bool processed;
+  DateTime date;
 
   TraRestaurantModel({
     required this.consecutivo,
@@ -78,6 +79,7 @@ class TraRestaurantModel {
     required this.guarniciones,
     required this.selected,
     required this.processed,
+    required this.date,
   });
 
   factory TraRestaurantModel.fromJson(String str) =>
@@ -88,6 +90,7 @@ class TraRestaurantModel {
   factory TraRestaurantModel.fromMap(Map<String, dynamic> json) =>
       TraRestaurantModel(
         consecutivo: json["consecutivo"],
+        date: json["date"],
         cantidad: json["cantidad"],
         precio: UnitarioModel.fromMap(json["precio"]),
         bodega: BodegaProductoModel.fromMap(json["bodega"]),
@@ -101,6 +104,7 @@ class TraRestaurantModel {
       );
 
   Map<String, dynamic> toMap() => {
+    "date": date.toIso8601String(),
     "consecutivo": consecutivo,
     "cantidad": cantidad,
     "precio": precio.toMap(),

@@ -207,6 +207,11 @@ class OrderView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
+                                      DateFormat(
+                                        'dd/MM/yyyy HH:mm:ss',
+                                      ).format(transaction.date),
+                                    ),
+                                    Text(
                                       currencyFormat.format(
                                         transaction.cantidad *
                                             transaction.precio.precioU,

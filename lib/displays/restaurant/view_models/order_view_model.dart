@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:fl_business/displays/report/views/error_print.dart';
 import 'package:fl_business/displays/restaurant/view_models/select_account_view_model.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -1046,7 +1045,7 @@ class OrderViewModel extends ChangeNotifier {
   }
 
   addTransactionFirst(TraRestaurantModel transaction, int indexOrder) {
-    orders[indexOrder].transacciones.add(transaction);
+    orders[indexOrder].transacciones.insert(0, transaction);
     saveOrder();
 
     notifyListeners();
@@ -1057,7 +1056,7 @@ class OrderViewModel extends ChangeNotifier {
     TraRestaurantModel transaction,
     int idexOrder,
   ) {
-    orders[idexOrder].transacciones.add(transaction);
+    orders[idexOrder].transacciones.insert(0, transaction);
     Navigator.popUntil(context, ModalRoute.withName(AppRoutes.productsClass));
     NotificationService.showSnackbar(
       AppLocalizations.of(
