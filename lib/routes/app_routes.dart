@@ -10,6 +10,7 @@ import 'package:fl_business/displays/shr_local_config/views/views.dart';
 import 'package:fl_business/displays/tablero_kanban/views/tablero_view.dart';
 import 'package:fl_business/displays/tareas/views/ea_tareas_view.dart';
 import 'package:fl_business/displays/tareas/views/views.dart';
+import 'package:fl_business/displays/vehiculos/views/inicio.view.dart';
 import 'package:fl_business/views/error_infor_view.dart';
 import 'package:fl_business/views/views.dart';
 import 'package:flutter/material.dart';
@@ -78,6 +79,7 @@ class AppRoutes {
   static const eaTareas = "eaTareas";
   static const tablero = "PrcTareaTableroCanva";
   static const printerView = "printView";
+  static const vehiculos = "prcRecepcionVehiculo";
 
   //otras rutas
   static Map<String, Widget Function(BuildContext)> routes = {
@@ -145,6 +147,7 @@ class AppRoutes {
     eaTareas: (BuildContext context) => const EATareasView(),
     tablero: (BuildContext context) => const PrincipalView(),
     printerView: (BuildContext context) => const PrinterView(),
+    vehiculos: (BuildContext context) => const InicioVehiculosView(),
   };
 
   //en caso de ruta incorrecta
