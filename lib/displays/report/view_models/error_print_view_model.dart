@@ -318,15 +318,14 @@ class ErrorPrintViewModel extends ChangeNotifier {
     if (!isPrint) return;
     //marcar como comandados
     for (var comanda in comandas) {
-      for (var traPend in vmOrder.orders[indexOrder].transacciones) {
-        if (traPend.consecutivo == comanda.comanda.traConsecutivo) {
-          traPend.processed = true;
-        }
-      }
-      vmOrder.saveOrder();
-
       comanda.error = null;
     }
+
+    for (var element in vmOrder.orders[indexOrder].transacciones) {
+      element.processed = true;
+    }
+
+    vmOrder.saveOrder();
 
     returnView(context, comandas);
   }
@@ -416,17 +415,14 @@ class ErrorPrintViewModel extends ChangeNotifier {
     isLoading = false;
 
     if (!isShare) return;
-
+    //marcar como comandados
     for (var comanda in comandas) {
-      for (var traPend in vmOrder.orders[indexOrder].transacciones) {
-        if (traPend.consecutivo == comanda.comanda.traConsecutivo) {
-          traPend.processed = true;
-        }
-        comanda.error = null;
-      }
+      comanda.error = null;
     }
 
-    vmOrder.saveOrder();
+    for (var element in vmOrder.orders[indexOrder].transacciones) {
+      element.processed = true;
+    }
 
     vmOrder.saveOrder();
 

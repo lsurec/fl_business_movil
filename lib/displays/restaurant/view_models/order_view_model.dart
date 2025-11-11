@@ -21,6 +21,7 @@ import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/widgets/widgets.dart';
 import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
 
@@ -590,6 +591,9 @@ class OrderViewModel extends ChangeNotifier {
           bytes += generator.text(
             "${tra.desProducto} ${tra.observacion.isNotEmpty ? '(${tra.observacion})' : ''}",
             styles: const PosStyles(height: PosTextSize.size2),
+          );
+          bytes += generator.text(
+            DateFormat('dd/MM/yyyy HH:mm:ss').format(tra.fechaHora),
           );
           bytes += generator.hr();
         }
