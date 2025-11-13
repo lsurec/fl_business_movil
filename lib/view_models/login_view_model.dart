@@ -281,14 +281,18 @@ class LoginViewModel extends ChangeNotifier {
 
           final urlPic = localVM.selectedEmpresa!.absolutePathPicture;
 
-          final String namePic = pictureService.getImageName(urlPic);
-
-          File? file = await pictureService.getSavedImage(namePic);
-
-          if (file == null) {
-            pictureService.fetchAndSaveImage(token, urlPic);
+          if (urlPic.isEmpty) {
+            NotificationService.showSnackbar("Logo de empresa no asignado");
           } else {
-            pictureService.loadSavedImage(namePic);
+            final String namePic = pictureService.getImageName(urlPic);
+
+            File? file = await pictureService.getSavedImage(namePic);
+
+            if (file == null) {
+              pictureService.fetchAndSaveImage(token, urlPic);
+            } else {
+              pictureService.loadSavedImage(namePic);
+            }
           }
         }
 
