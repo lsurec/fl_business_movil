@@ -5,6 +5,7 @@ import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/views
 import 'package:fl_business/displays/prc_documento_3/views/referencia_view.dart';
 import 'package:fl_business/displays/prc_documento_3/views/views.dart';
 import 'package:fl_business/displays/report/views/views.dart';
+import 'package:fl_business/displays/restaurant/views/classification_view.dart';
 import 'package:fl_business/displays/restaurant/views/views.dart';
 import 'package:fl_business/displays/shr_local_config/views/views.dart';
 import 'package:fl_business/displays/tablero_kanban/views/tablero_view.dart';

@@ -135,98 +135,122 @@ class _RowMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final vmClass = Provider.of<ClassificationViewModel>(
-      context,
-      listen: false,
-    );
-
     return Row(
       children: [
-        CardImageWidget(
-          onTap: () => vmClass.navigateProduct(context, classification[0]),
-          description: classification[0].desClasificacion,
-          // srcImage: options[0].image,
-          srcImage:
-              classification[0].urlImg != null || classification[0].urlImg != ""
-              ? classification[0].urlImg!
-              : 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png',
-        ),
+        CardViewMore(classification: classification[0]),
         if (classification.length == 2)
-          CardImageWidget(
-            onTap: () => vmClass.navigateProduct(context, classification[1]),
-            description: classification[1].desClasificacion,
-
-            // srcImage: options[1].image,
-            srcImage:
-                classification[1].urlImg != null ||
-                    classification[1].urlImg != ""
-                ? classification[1].urlImg!
-                : "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png",
-            // srcImage: options[1].image,
-          ),
+          CardViewMore(classification: classification[0]),
         if (classification.length == 1) Expanded(child: Container()),
       ],
     );
   }
 }
 
-class CardImageWidget extends StatelessWidget {
-  const CardImageWidget({
-    Key? key,
-    required this.description,
-    required this.srcImage,
-    required this.onTap,
-  }) : super(key: key);
+class CardViewMore extends StatelessWidget {
+  const CardViewMore({super.key, required this.classification});
 
-  final String description;
-  final String srcImage;
-  final Function onTap;
+  final ClassificationModel classification;
 
   @override
   Widget build(BuildContext context) {
+    final ClassificationViewModel vm = Provider.of<ClassificationViewModel>(
+      context,
+    );
+
     return Expanded(
-      child: InkWell(
-        onTap: () => onTap(),
-        child: Container(
-          height: 260,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              if (srcImage.isEmpty)
-                Expanded(
-                  child: Image.asset(
-                    "assets/image_not_available.png",
-                    fit: BoxFit.contain,
-                  ),
+      child: SizedBox(
+        height: 230,
+        child: Stack(
+          children: [
+            InkWell(
+              onTap: () => vm.navigateProduct(context, classification),
+
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              if (srcImage.isNotEmpty)
-                Expanded(
-                  child: FadeInImage(
-                    placeholder: const AssetImage("assets/load.gif"),
-                    image: NetworkImage(srcImage),
-                    fit: BoxFit.contain,
-                    imageErrorBuilder: (context, error, stackTrace) {
-                      // Aquí se maneja el error y se muestra una imagen alternativa
-                      return Image.asset(
-                        'assets/image_not_available.png',
-                        fit: BoxFit.contain,
-                      );
-                    },
-                  ),
-                ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: 55,
-                child: Text(
-                  description,
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: StyleApp.title,
-                  overflow: TextOverflow.ellipsis,
+                elevation: 4,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Imagen superior
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
+                      child: classification.urlImg!.isEmpty
+                          ? Image.asset(
+                              "assets/image_not_available.png",
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : FadeInImage(
+                              placeholder: const AssetImage("assets/load.gif"),
+                              image: NetworkImage(classification.urlImg!),
+                              height: 150,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              imageErrorBuilder: (context, error, stackTrace) {
+                                // Aquí se maneja el error y se muestra una imagen alternativa
+                                return Image.asset(
+                                  'assets/image_not_available.png',
+                                  height: 150,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                );
+                              },
+                            ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            classification.desClasificacion,
+                            maxLines: 2,
+                            overflow: TextOverflow.fade,
+                            style: StyleApp.normal,
+                            textAlign: TextAlign.justify,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              bottom: 2,
+              right: 2,
+              child: IconButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      backgroundColor: AppTheme.backroundColor,
+                      title: Text("Categoría", style: StyleApp.normalBold),
+                      content: SingleChildScrollView(
+                        child: Text(
+                          classification.desClasificacion,
+                          style: StyleApp.normal,
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text("Cerrar"),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                icon: Icon(Icons.visibility),
+              ),
+            ),
+          ],
         ),
       ),
     );
