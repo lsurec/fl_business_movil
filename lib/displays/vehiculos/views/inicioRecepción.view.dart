@@ -1,6 +1,6 @@
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
-import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_screen.dart';
-import 'package:fl_business/displays/vehiculos/views/datos_guardados_screen.dart';
+import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
+import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

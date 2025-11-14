@@ -1,4 +1,4 @@
-class ItemVehiculo {
+class ItemVehiculoApi {
   final int bodega;
   final int producto;
   final int unidadMedida;
@@ -9,7 +9,7 @@ class ItemVehiculo {
   final String idProducto;
   final String desProducto;
 
-  ItemVehiculo({
+  ItemVehiculoApi({
     required this.bodega,
     required this.producto,
     required this.unidadMedida,
@@ -21,31 +21,17 @@ class ItemVehiculo {
     required this.desProducto,
   });
 
-  factory ItemVehiculo.fromJson(Map<String, dynamic> json) {
-    return ItemVehiculo(
-      bodega: json['bodega'],
-      producto: json['producto'],
-      unidadMedida: json['unidad_Medida'],
-      tipoPrecio: json['tipo_Precio'],
-      moneda: json['moneda'],
-      precioUnidad: (json['precio_Unidad'] as num).toDouble(),
-      tipoTarifa: json['tipo_Tarifa'],
-      idProducto: json['id_Producto'],
-      desProducto: json['des_Producto'],
+  factory ItemVehiculoApi.fromJson(Map<String, dynamic> json) {
+    return ItemVehiculoApi(
+      bodega: json['bodega'] ?? 0,
+      producto: json['producto'] ?? 0,
+      unidadMedida: json['unidad_Medida'] ?? 0,
+      tipoPrecio: json['tipo_Precio'] ?? 0,
+      moneda: json['moneda'] ?? 0,
+      precioUnidad: (json['precio_Unidad'] ?? 0).toDouble(),
+      tipoTarifa: json['tipo_Tarifa'] ?? 0,
+      idProducto: json['id_Producto']?.toString() ?? '',
+      desProducto: json['des_Producto'] ?? '',
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'bodega': bodega,
-      'producto': producto,
-      'unidad_Medida': unidadMedida,
-      'tipo_Precio': tipoPrecio,
-      'moneda': moneda,
-      'precio_Unidad': precioUnidad,
-      'tipo_Tarifa': tipoTarifa,
-      'id_Producto': idProducto,
-      'des_Producto': desProducto,
-    };
   }
 }

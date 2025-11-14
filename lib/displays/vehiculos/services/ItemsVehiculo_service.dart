@@ -3,10 +3,10 @@ import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart';
 import 'package:http/http.dart' as http;
 
 class ItemVehiculoService {
-  final String baseUrl = 'http://192.168.0.101:9085/api/v2/ItemsVehiculo/items';
+  final String baseUrl = 'http://192.168.0.6:9085/api/v2/ItemsVehiculo/items';
 
   /// Obtiene la lista de ítems de vehículo desde la API
-  Future<List<ItemVehiculo>> getItemsVehiculo({
+  Future<List<ItemVehiculoApi>> getItemsVehiculo({
     required String token,
     required String userName,
     required String tipoDocumento,
@@ -33,7 +33,7 @@ class ItemVehiculoService {
 
       if (body['status'] == true && body['data'] != null) {
         final List<dynamic> data = body['data'];
-        return data.map((item) => ItemVehiculo.fromJson(item)).toList();
+        return data.map((item) => ItemVehiculoApi.fromJson(item)).toList();
       } else {
         throw Exception('Error en la respuesta: ${body['message']}');
       }

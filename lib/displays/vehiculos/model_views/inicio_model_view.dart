@@ -3,6 +3,31 @@ import 'package:fl_business/displays/vehiculos/models/vehiculos_model.dart';
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
 import 'package:flutter/material.dart';
 
+/// Modelo de un ítem del vehículo
+import 'package:image_picker/image_picker.dart';
+
+/// Modelo de un ítem del vehículo
+class ItemVehiculo {
+  final String idProducto;
+  final String desProducto;
+  String detalle;
+  bool completado;
+
+  // 👇 Nueva propiedad para almacenar fotos del item
+  List<XFile> fotos = [];
+
+
+  ItemVehiculo({
+    required this.idProducto,
+    required this.desProducto,
+    this.detalle = '',
+    this.completado = false,
+    List<XFile>? fotos, // 👈 nuevo parámetro opcional
+  }) : fotos = fotos ?? [];
+}
+
+
+/// ViewModel general
 class InicioVehiculosViewModel extends ChangeNotifier {
   final VehiculoService _vehiculoService = VehiculoService(
     token:
@@ -26,53 +51,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String cc = '';
   String cil = '';
 
-  void actualizarNit(String v) {
-    nit = v;
-    notifyListeners();
-  }
-
-  void actualizarNombre(String v) {
-    nombre = v;
-    notifyListeners();
-  }
-
-  void actualizarDireccion(String v) {
-    direccion = v;
-    notifyListeners();
-  }
-
-  void actualizarCelular(String v) {
-    celular = v;
-    notifyListeners();
-  }
-
-  void actualizarEmail(String v) {
-    email = v;
-    notifyListeners();
-  }
-
-  void actualizarDetalleTrabajo(String v) {
-    detalleTrabajo = v;
-    notifyListeners();
-  }
-
-  void actualizarKilometraje(String v) {
-    kilometraje = v;
-    notifyListeners();
-  }
-
-  void actualizarCC(String v) {
-    cc = v;
-    notifyListeners();
-  }
-
-  void actualizarCil(String v) {
-    cil = v;
-    notifyListeners();
-  }
-
-  final TextEditingController detalleTrabajoController =
-      TextEditingController();
+  // Controladores
+  final TextEditingController detalleTrabajoController = TextEditingController();
   final TextEditingController celularController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController kilometrajeController = TextEditingController();
@@ -97,7 +77,30 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   VehiculoYearModel? anioSeleccionado;
   VehiculoModel? colorSeleccionado;
 
-  // Inicialización
+  // --- 🧩 Nueva sección: ÍTEMS DEL VEHÍCULO ---
+  List<ItemVehiculo> itemsAsignados = [];
+
+  void setItemsAsignados(List<ItemVehiculo> items) {
+    itemsAsignados = items;
+    notifyListeners();
+  }
+
+  void actualizarItem(String idProducto, {String? detalle, bool? completado}) {
+    final index = itemsAsignados.indexWhere((e) => e.idProducto == idProducto);
+    if (index != -1) {
+      final item = itemsAsignados[index];
+      if (detalle != null) item.detalle = detalle;
+      if (completado != null) item.completado = completado;
+      notifyListeners();
+    }
+  }
+
+  void limpiarItems() {
+    itemsAsignados.clear();
+    notifyListeners();
+  }
+
+  // --- Carga inicial ---
   Future<void> cargarDatosIniciales() async {
     try {
       isLoading = true;
@@ -157,36 +160,29 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   // --- Guardado general ---
- void guardar() {
-  // Actualiza las variables con lo que el usuario escribió en los inputs
-  nit = nitController.text;
-  nombre = nombreController.text;
-  direccion = direccionController.text;
-  detalleTrabajo = detalleTrabajoController.text;
-  celular = celularController.text;
-  email = emailController.text;
-  kilometraje = kilometrajeController.text;
-  cc = ccController.text;
-  cil = cilController.text;
+  void guardar() {
+    nit = nitController.text;
+    nombre = nombreController.text;
+    direccion = direccionController.text;
+    detalleTrabajo = detalleTrabajoController.text;
+    celular = celularController.text;
+    email = emailController.text;
+    kilometraje = kilometrajeController.text;
+    cc = ccController.text;
+    cil = cilController.text;
 
-  // Muestra en consola (puedes quitarlo luego)
-  debugPrint('Guardando datos del vehículo y cliente...');
-  debugPrint('NIT: $nit, Nombre: $nombre, Dirección: $direccion');
-  debugPrint(
-    'Marca: ${marcaSeleccionada?.descripcion}, Modelo: ${modeloSeleccionado?.descripcion}, Año: ${anioSeleccionado?.anio}, Color: ${colorSeleccionado?.descripcion}',
-  );
-  debugPrint(
-    'Detalle: $detalleTrabajo, Celular: $celular, Email: $email, KM: $kilometraje, CC: $cc, CIL: $cil',
-  );
-  debugPrint('Fecha recibido: $fechaRecibido, Fecha salida: $fechaSalida');
+    debugPrint('Guardando datos del vehículo y cliente...');
+    debugPrint('NIT: $nit, Nombre: $nombre, Dirección: $direccion');
+    debugPrint(
+      'Marca: ${marcaSeleccionada?.descripcion}, Modelo: ${modeloSeleccionado?.descripcion}, Año: ${anioSeleccionado?.anio}, Color: ${colorSeleccionado?.descripcion}',
+    );
+    debugPrint(
+      'Detalle: $detalleTrabajo, Celular: $celular, Email: $email, KM: $kilometraje, CC: $cc, CIL: $cil',
+    );
+    debugPrint('Fecha recibido: $fechaRecibido, Fecha salida: $fechaSalida');
 
-  // Notifica cambios si hay algo que actualizar visualmente
-  notifyListeners();
-
-  // Muestra un mensaje de confirmación en pantalla
- 
-}
-
+    notifyListeners();
+  }
 
   void cancelar() {
     nit = '';
@@ -204,8 +200,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     colorSeleccionado = null;
     fechaRecibido = '';
     fechaSalida = '';
+    limpiarItems();
 
-    // Limpieza de controladores
     detalleTrabajoController.clear();
     celularController.clear();
     emailController.clear();

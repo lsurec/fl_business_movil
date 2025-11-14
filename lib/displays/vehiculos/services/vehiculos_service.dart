@@ -5,7 +5,7 @@ import 'dart:convert';
 
 class VehiculoService {
   final String token;
-  final String baseUrl = 'http://192.168.0.101:9085/api/v2/vehiculos'; 
+  final String baseUrl = 'http://192.168.0.6:9085/api/v2/vehiculos'; 
 
   VehiculoService({required this.token});
 
