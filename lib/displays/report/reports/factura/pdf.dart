@@ -119,6 +119,11 @@ class FacturaPDF {
                       'Cons. Interno: ${data.documento.consecutivoInterno}',
                       style: font8,
                     ),
+                    pw.Text(
+                      "Lugar de entrega: ${data.direccionEntrega ?? ""}",
+                      style: font8,
+                    ),
+
                     pw.Text("Registros: ${data.items.length}", style: font8),
                   ],
                 ),

@@ -162,6 +162,9 @@ class FacturaTMU {
         styles: center,
       );
 
+      bytes += generator.text("Lugar de entrega:", styles: center);
+
+      bytes += generator.text(data.direccionEntrega ?? "", styles: center);
       bytes += generator.text(
         "Registros: ${data.items.length}",
         styles: center,
