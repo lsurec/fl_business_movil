@@ -139,7 +139,7 @@ class _RowMenu extends StatelessWidget {
       children: [
         CardViewMore(classification: classification[0]),
         if (classification.length == 2)
-          CardViewMore(classification: classification[0]),
+          CardViewMore(classification: classification[1]),
         if (classification.length == 1) Expanded(child: Container()),
       ],
     );

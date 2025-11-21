@@ -12,6 +12,7 @@ import 'package:fl_business/themes/styles.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/widgets/alert_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 
 //TODO:Translate
 class PrinterViewModel extends ChangeNotifier {
@@ -48,6 +49,8 @@ class PrinterViewModel extends ChangeNotifier {
 
   // Instancia de la impresora
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
+  var printerManager = PrinterManager.instance;
+
   final List<BluetoothDevice> devices = [];
 
   Future<void> getDevices() async {
@@ -142,7 +145,15 @@ class PrinterViewModel extends ChangeNotifier {
       //Desconectar instancias
       await disconnectPrint();
 
-      bool isConnect = await connectPrint(context);
+      bool isConnect = await printerManager.connect(
+        type: PrinterType.bluetooth,
+        model: BluetoothPrinterInput(
+          name: Preferences.printer!.name!,
+          address: Preferences.printer!.address!,
+        ),
+      );
+
+      // bool isConnect = await connectPrint(context);
 
       if (!isConnect) {
         final bool viewPrints = await showInfoPrint(context);
@@ -156,8 +167,19 @@ class PrinterViewModel extends ChangeNotifier {
         return false;
       }
 
-      //imprimir reporte
-      await bluetooth.writeBytes(Uint8List.fromList(report));
+      // //imprimir reporte
+      // await bluetooth.writeBytes(Uint8List.fromList(report));
+
+      // await bluetooth.writeBytes(Uint8List.fromList(report));
+      final bool isSend = await printerManager.send(
+        type: PrinterType.bluetooth,
+        bytes: report,
+      );
+
+      if (!isSend) {
+        NotificationService.showSnackbar("No se pudo enviar los datos.");
+        return false;
+      }
 
       //desconectar impresora
       await disconnectPrint();
@@ -379,10 +401,12 @@ class PrinterViewModel extends ChangeNotifier {
 
   //desconectar bluethoth si está conectado
   Future<void> disconnectPrint() async {
-    bool? isConnected = await bluetooth.isConnected;
-    if (isConnected == true) {
-      await bluetooth.disconnect();
-      await Future.delayed(const Duration(seconds: 1));
+    try {
+      await printerManager.disconnect(type: PrinterType.bluetooth);
+    } catch (e) {
+      NotificationService.showSnackbar(
+        "No se pudo desconectar el dispositvo bluetooth",
+      );
     }
   }
 
