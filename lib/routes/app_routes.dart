@@ -148,8 +148,9 @@ class AppRoutes {
     elementoAsignado: (BuildContext context) => const ElementoAsignadoView(),
     eaTareas: (BuildContext context) => const EATareasView(),
     tablero: (BuildContext context) => const PrincipalView(),
+
     printerView: (BuildContext context) => const PrinterView(),
-    vehiculos: (BuildContext context) => const SelectProductView(),
+    vehiculos: (BuildContext context) => const InicioVehiculosView(),
   };
 
   //en caso de ruta incorrecta

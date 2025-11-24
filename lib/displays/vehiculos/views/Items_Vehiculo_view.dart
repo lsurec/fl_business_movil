@@ -34,21 +34,17 @@ class _ItemsVehiculoScreenState extends State<ItemsVehiculoScreen> {
   }
 
   Future<List<api.ItemVehiculoApi>> _loadItems() async {
-    const token =
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJhZG1pbiIsIm5iZiI6MTc2MTE3MDU3NywiZXhwIjoxNzkyMjc0NTc3LCJpYXQiOjE3NjExNzA1Nzd9.3BXM8Usk7wUHvsV4LX3S7pOl3Hvr_Z9LenkH4vgvOek';
+  final items = await _service.getItemsVehiculo(
+    tipoDocumento: '28',
+    serieDocumento: '1',
+    empresa: '1',
+    estacionTrabajo: '2',
+  );
 
-    final items = await _service.getItemsVehiculo(
-      token: token,
-      userName: 'sa',
-      tipoDocumento: '28',
-      serieDocumento: '1',
-      empresa: '1',
-      estacionTrabajo: '2',
-    );
+  _items = items;
+  return items;
+}
 
-    _items = items;
-    return items;
-  }
 
   void _moveItemToTop(String idProducto) {
     final index = _items.indexWhere((i) => i.idProducto == idProducto);

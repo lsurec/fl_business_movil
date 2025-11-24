@@ -19,6 +19,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       context.read<InicioVehiculosViewModel>().cargarDatosIniciales();
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {

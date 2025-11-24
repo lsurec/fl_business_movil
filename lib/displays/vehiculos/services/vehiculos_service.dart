@@ -1,84 +1,91 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:fl_business/shared_preferences/preferences.dart';
+
 import 'package:fl_business/displays/vehiculos/models/vehiculoYearModel.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculos_model.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:fl_business/displays/prc_documento_3/models/post_document_model.dart';
 
 class VehiculoService {
-  final String token;
-  final String baseUrl = 'http://192.168.0.6:9085/api/v2/vehiculos'; 
+  VehiculoService();
 
-  VehiculoService({required this.token});
-
+  // ============= HEADERS AUTOMÁTICOS DESDE PREFERENCES =============
   Map<String, String> get headers => {
-        'Authorization': 'bearer $token',
-        'Content-Type': 'application/json',
+        "Authorization": "bearer ${Preferences.token}",
+        "Content-Type": "application/json",
       };
 
-  // --- Obtener Marcas ---
+  // ============= BASE URL AUTOMÁTICA =============
+  String get baseUrl => "${Preferences.urlApi}v2/vehiculos";
+
+  // ====================== OBTENER MARCAS ======================
   Future<List<VehiculoModel>> obtenerMarcas() async {
-    final url = Uri.parse('$baseUrl/marcas');
+    final url = Uri.parse("$baseUrl/marcas");
 
     final res = await http.get(url, headers: headers);
 
     if (res.statusCode == 200) {
-      try {
-        return VehiculoModel.fromJsonList(res.body);
-      } catch (e) {
-        throw Exception('Error al parsear marcas: $e');
-      }
+      return VehiculoModel.fromJsonList(res.body);
     } else {
-      throw Exception('Error al cargar marcas (${res.statusCode})');
+      throw Exception("Error al cargar marcas (${res.statusCode})");
     }
   }
 
-  // --- Obtener Modelos ---
+  // ====================== OBTENER MODELOS ======================
   Future<List<VehiculoModel>> obtenerModelos(int marcaId) async {
-    final url = Uri.parse('$baseUrl/modelos/$marcaId');
+    final url = Uri.parse("$baseUrl/modelos/$marcaId");
 
     final res = await http.get(url, headers: headers);
 
     if (res.statusCode == 200) {
-      try {
-        return VehiculoModel.fromJsonList(res.body);
-      } catch (e) {
-        throw Exception('Error al parsear modelos: $e');
-      }
+      return VehiculoModel.fromJsonList(res.body);
     } else {
-      throw Exception('Error al cargar modelos (${res.statusCode})');
+      throw Exception("Error al cargar modelos (${res.statusCode})");
     }
   }
 
-  // --- Obtener Años ---
+  // ====================== OBTENER AÑOS ======================
   Future<List<VehiculoYearModel>> obtenerAnios() async {
-    final url = Uri.parse('$baseUrl/anios');
+    final url = Uri.parse("$baseUrl/anios");
 
     final res = await http.get(url, headers: headers);
 
     if (res.statusCode == 200) {
-      try {
-        return VehiculoYearModel.fromJsonList(res.body);
-      } catch (e) {
-        throw Exception('Error al parsear años: $e');
-      }
+      return VehiculoYearModel.fromJsonList(res.body);
     } else {
-      throw Exception('Error al cargar años (${res.statusCode})');
+      throw Exception("Error al cargar años (${res.statusCode})");
     }
   }
 
-  // --- Obtener Colores ---
+  // ====================== OBTENER COLORES ======================
   Future<List<VehiculoModel>> obtenerColores() async {
-    final url = Uri.parse('$baseUrl/colores');
+    final url = Uri.parse("$baseUrl/colores");
 
     final res = await http.get(url, headers: headers);
 
     if (res.statusCode == 200) {
-      try {
-        return VehiculoModel.fromJsonList(res.body);
-      } catch (e) {
-        throw Exception('Error al parsear colores: $e');
-      }
+      return VehiculoModel.fromJsonList(res.body);
     } else {
-      throw Exception('Error al cargar colores (${res.statusCode})');
+      throw Exception("Error al cargar colores (${res.statusCode})");
+    }
+  }
+
+  // ====================== GUARDAR DOCUMENTO ======================
+  Future<Map<String, dynamic>> enviarDocumento(PostDocumentModel documento) async {
+    final url = Uri.parse("$baseUrl/documento/crear");
+
+    final res = await http.post(
+      url,
+      headers: headers,
+      body: documento.toJson(),
+    );
+
+    print("Respuesta servidor: ${res.body}");
+
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      return jsonDecode(res.body);
+    } else {
+      throw Exception("Error al guardar documento (${res.statusCode})");
     }
   }
 }
