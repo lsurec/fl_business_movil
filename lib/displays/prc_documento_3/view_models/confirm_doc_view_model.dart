@@ -1,6 +1,8 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, library_prefixes, avoid_print
 import 'dart:convert';
 import 'package:diacritic/diacritic.dart';
+import 'package:fl_business/demos/printer/service/impresion_ticket.dart';
+import 'package:fl_business/demos/printer/widgets/tabla_demo.dart';
 import 'package:fl_business/displays/report/reports/factura/provider.dart';
 import 'package:fl_business/displays/report/reports/factura/tmu.dart';
 import 'package:fl_business/displays/report/reports/test/tmu.dart';
@@ -391,7 +393,11 @@ class ConfirmDocViewModel extends ChangeNotifier {
     isLoading = false;
     if (!loadData) return;
 
-    await facturaTMU.getReport(context);
+    final ImpresionTicket impresionTicket = ImpresionTicket();
+
+    await impresionTicket.getReport(context);
+
+    // await facturaTMU.getReport(context);
 
     if (docVm.valueParametro(48)) {
       docsVm.backTabs(context);
