@@ -28,7 +28,7 @@ class ExistenciasTMU {
 
     final TmuUtils utils = TmuUtils();
 
-    final enterpriseLogo = await utils.getEnterpriseLogo(context);
+    // final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
     List<int> bytes = [];
 
@@ -37,7 +37,7 @@ class ExistenciasTMU {
       await CapabilityProfile.load(),
     );
 
-    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+    // bytes += generator.image(enterpriseLogo, align: PosAlign.center);
 
     //Reporte de xistencias
     // Encabezado

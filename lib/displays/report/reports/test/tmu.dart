@@ -27,8 +27,8 @@ class TestTMU {
 
       final TmuUtils utils = TmuUtils();
 
-      final enterpriseLogo = await utils.getEnterpriseLogo(context);
-      final myLogo = await utils.getMyCompanyLogo();
+      // final enterpriseLogo = await utils.getEnterpriseLogo(context);
+      // final myLogo = await utils.getMyCompanyLogo();
 
       final generator = Generator(
         AppData.paperSize[Preferences.paperSize],
@@ -43,7 +43,7 @@ class TestTMU {
 
       report = [];
 
-      report += generator.image(enterpriseLogo, align: PosAlign.center);
+      // report += generator.image(enterpriseLogo, align: PosAlign.center);
 
       report += generator.hr();
       report += generator.text(
@@ -80,7 +80,7 @@ class TestTMU {
       report += generator.text("Fecha: ${Utilities.getDateDDMMYYYY()}");
       report += generator.text("Origen de datos: ${Preferences.urlApi}");
       report += generator.hr(); // Línea horizontal
-      report += generator.image(myLogo, align: PosAlign.center);
+      // report += generator.image(myLogo, align: PosAlign.center);
       report += generator.text("Powered by", styles: center);
       report += generator.text(Utilities.author.nombre, styles: center);
       report += generator.text(Utilities.author.website, styles: center);

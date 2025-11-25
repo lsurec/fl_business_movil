@@ -27,7 +27,7 @@ class FactTContadoCredTMU {
 
     final TmuUtils utils = TmuUtils();
 
-    final enterpriseLogo = await utils.getEnterpriseLogo(context);
+    // final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
     List<int> bytes = [];
 
@@ -38,7 +38,7 @@ class FactTContadoCredTMU {
 
     bytes += generator.setGlobalCodeTable('CP1252');
 
-    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+    // bytes += generator.image(enterpriseLogo, align: PosAlign.center);
 
     //Reporte de xistencias
     // Encabezado

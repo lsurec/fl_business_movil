@@ -28,14 +28,14 @@ class UnidadesVendidasTMU {
     );
     final TmuUtils utils = TmuUtils();
 
-    final enterpriseLogo = await utils.getEnterpriseLogo(context);
+    // final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
     final generator = Generator(
       AppData.paperSize[Preferences.paperSize],
       await CapabilityProfile.load(),
     );
 
-    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+    // bytes += generator.image(enterpriseLogo, align: PosAlign.center);
 
     //Reporte de xistencias
     // Encabezado
