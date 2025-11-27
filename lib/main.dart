@@ -9,6 +9,7 @@ import 'package:fl_business/displays/restaurant/view_models/view_models.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/displays/tablero_kanban/view_models/tablero_view_model.dart';
 import 'package:fl_business/displays/tareas/view_models/view_models.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
@@ -98,6 +99,7 @@ class AppState extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => PrinterViewModel()),
         ChangeNotifierProvider(create: (_) => ErrorPrintViewModel()),
+        ChangeNotifierProvider(create: (_) => LogoProvider()),
       ],
       child: const MyApp(),
     );

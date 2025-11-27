@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:fl_business/displays/shr_local_config/services/services.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/models/models.dart';
+import 'package:fl_business/models/url_pic_model.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
@@ -52,6 +54,14 @@ class SplashViewModel extends ChangeNotifier {
     VersionService versionService = VersionService();
 
     versionLocal = await versionService.getVersionLocal();
+
+    //cargar logo guardado
+    if (Preferences.logo.isNotEmpty) {
+      Provider.of<LogoProvider>(
+        context,
+        listen: false,
+      ).loadLogo(Preferences.token, UrlPicModel(url: ""));
+    }
 
     //TODO: Buscar version remota
 
@@ -217,21 +227,20 @@ class SplashViewModel extends ChangeNotifier {
 
     if (localVM.empresas.length == 1) {
       localVM.selectedEmpresa = localVM.empresas.first;
-      final PictureService pictureService = Provider.of<PictureService>(
-        context,
-        listen: false,
-      );
 
-      final urlPic = localVM.selectedEmpresa!.absolutePathPicture;
-
-      final String namePic = pictureService.getImageName(urlPic);
-
-      File? file = await pictureService.getSavedImage(namePic);
-
-      if (file == null) {
-        pictureService.fetchAndSaveImage(token, urlPic);
+      if (localVM.selectedEmpresa?.absolutePathPicture == null) {
+        NotificationService.showSnackbar("Logo de empresa no asignado");
       } else {
-        pictureService.loadSavedImage(namePic);
+        Uri uriPicture = Uri.parse(
+          localVM.selectedEmpresa!.absolutePathPicture,
+        );
+
+        if (Preferences.logo != uriPicture.pathSegments.last) {
+          Provider.of<LogoProvider>(context, listen: false).loadLogo(
+            token,
+            UrlPicModel(url: localVM.selectedEmpresa!.absolutePathPicture),
+          );
+        }
       }
     }
 

@@ -1,3 +1,4 @@
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -28,6 +29,7 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<LoginViewModel>(context);
+    final provVM = Provider.of<LogoProvider>(context);
 
     return Stack(
       children: [
@@ -50,29 +52,8 @@ class _LoginViewState extends State<LoginView> {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  Consumer<PictureService>(
-                    builder: (context, imageProvider, child) {
-                      if (imageProvider.isDownloading) {
-                        return Column(
-                          children: [
-                            const CircularProgressIndicator(),
-                            Text("Descargando... ${imageProvider.progress}%"),
-                          ],
-                        );
-                      } else if (imageProvider.errorMessage != null) {
-                        return Text("Error: ${imageProvider.errorMessage}");
-                      } else if (imageProvider.imageFile != null) {
-                        return Center(
-                          child: Image.file(
-                            imageProvider.imageFile!,
-                            height: 125,
-                          ),
-                        );
-                      } else {
-                        return Container();
-                      }
-                    },
-                  ),
+                  if (provVM.logo != null)
+                    Center(child: Image.file(provVM.logo!, height: 125)),
                   // const Center(
                   //   child: Image(
                   //     height: 125,
