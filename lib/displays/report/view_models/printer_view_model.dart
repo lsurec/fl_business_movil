@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:android_intent_plus/flag.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:fl_business/demos/printer/service/impresion_ticket.dart';
 import 'package:fl_business/displays/report/reports/test/tmu.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -12,7 +13,6 @@ import 'package:fl_business/themes/styles.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/widgets/alert_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 
 //TODO:Translate
 class PrinterViewModel extends ChangeNotifier {
@@ -49,20 +49,23 @@ class PrinterViewModel extends ChangeNotifier {
 
   // Instancia de la impresora
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
-  var printerManager = PrinterManager.instance;
 
   final List<BluetoothDevice> devices = [];
 
   Future<void> getDevices() async {
     isLoadingDevices = true;
 
-    devices.clear();
+    try {
+      devices.clear();
 
-    devices.addAll(
-      await bluetooth.getBondedDevices().timeout(Duration(seconds: 8)),
-    );
+      devices.addAll(
+        await bluetooth.getBondedDevices().timeout(Duration(seconds: 10)),
+      );
 
-    isLoadingDevices = false;
+      isLoadingDevices = false;
+    } catch (e) {
+      isLoadingDevices = false;
+    }
   }
 
   deletePrinter() {
@@ -101,6 +104,11 @@ class PrinterViewModel extends ChangeNotifier {
     Preferences.paperSize = paperSize;
 
     NotificationService.showSnackbar("Impresora guardada");
+  }
+
+  Future<void> printTestV2(BuildContext context) async {
+    ImpresionTicket impresionTicket = ImpresionTicket();
+    impresionTicket.getTest(context);
   }
 
   Future<void> printTest(BuildContext context) async {
@@ -145,15 +153,7 @@ class PrinterViewModel extends ChangeNotifier {
       //Desconectar instancias
       await disconnectPrint();
 
-      bool isConnect = await printerManager.connect(
-        type: PrinterType.bluetooth,
-        model: BluetoothPrinterInput(
-          name: Preferences.printer!.name!,
-          address: Preferences.printer!.address!,
-        ),
-      );
-
-      // bool isConnect = await connectPrint(context);
+      bool isConnect = await connectPrint(context);
 
       if (!isConnect) {
         final bool viewPrints = await showInfoPrint(context);
@@ -168,18 +168,10 @@ class PrinterViewModel extends ChangeNotifier {
       }
 
       // //imprimir reporte
-      // await bluetooth.writeBytes(Uint8List.fromList(report));
+      await bluetooth.writeBytes(Uint8List.fromList(report));
 
-      // await bluetooth.writeBytes(Uint8List.fromList(report));
-      final bool isSend = await printerManager.send(
-        type: PrinterType.bluetooth,
-        bytes: report,
-      );
-
-      if (!isSend) {
-        NotificationService.showSnackbar("No se pudo enviar los datos.");
-        return false;
-      }
+      // esperar a que termine de procesar la impresión
+      await Future.delayed(const Duration(seconds: 5));
 
       //desconectar impresora
       await disconnectPrint();
@@ -401,12 +393,10 @@ class PrinterViewModel extends ChangeNotifier {
 
   //desconectar bluethoth si está conectado
   Future<void> disconnectPrint() async {
-    try {
-      await printerManager.disconnect(type: PrinterType.bluetooth);
-    } catch (e) {
-      NotificationService.showSnackbar(
-        "No se pudo desconectar el dispositvo bluetooth",
-      );
+    bool? isConnected = await bluetooth.isConnected;
+    if (isConnected == true) {
+      await bluetooth.disconnect();
+      await Future.delayed(const Duration(seconds: 1));
     }
   }
 

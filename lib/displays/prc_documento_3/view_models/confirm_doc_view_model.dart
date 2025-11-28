@@ -395,9 +395,9 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
     final ImpresionTicket impresionTicket = ImpresionTicket();
 
-    await impresionTicket.getReport(context);
+    // await impresionTicket.getReport(context);
 
-    // await facturaTMU.getReport(context);
+    await facturaTMU.getReport(context);
 
     if (docVm.valueParametro(48)) {
       docsVm.backTabs(context);

@@ -26,6 +26,7 @@ class PrinterView extends StatelessWidget {
             height: 80,
             child: ElevatedButton(
               onPressed: () => vm.printTest(context),
+              // onPressed: () => vm.printTestV2(context),
               child: SizedBox(
                 width: double.infinity,
                 child: Center(

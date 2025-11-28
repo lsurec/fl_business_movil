@@ -8,17 +8,24 @@ import 'package:fl_business/displays/report/utils/tmu_utils.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:fl_business/displays/shr_local_config/models/empresa_model.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/libraries/app_data.dart' as AppData;
 import 'package:fl_business/models/api_res_model.dart';
 import 'package:fl_business/models/doc_print_model.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/home_view_model.dart';
 import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:image/image.dart' as img;
 
 class ImpresionTicket {
   //imrimir factura
@@ -348,6 +355,71 @@ class ImpresionTicket {
     }
   }
 
+  Future<void> getTest(BuildContext context) async {
+    final TicketUtils ticketUtils = TicketUtils();
+    final UtilitiesService utils = UtilitiesService();
+    final bluetooth = ticketUtils.bluetooth;
+
+    // Verificar Bluetooth
+    if (!await ticketUtils.verificarBluetoothDisponible(context)) return;
+
+    // Seleccionar impresora
+    BluetoothDevice? impresora = await ticketUtils.seleccionarImpresora(
+      context,
+    );
+    if (impresora == null) return;
+
+    // Conectar impresora
+    bool conectado = await ticketUtils.conectarImpresora(context, impresora);
+    if (!conectado) return;
+
+    await bluetooth.printNewLine();
+
+    //imprimirimagen de prueba
+
+    final LogoProvider logoProvider = Provider.of<LogoProvider>(
+      context,
+      listen: false,
+    );
+
+    Uint8List bytesPict = await logoProvider.logo!.readAsBytes();
+    ByteData byteData = ByteData.sublistView(bytesPict);
+    // Convertir ByteData a Uint8List
+    final Uint8List logoBytes = byteData.buffer.asUint8List();
+
+    final Uint8List? imagenReducida = await utils.prepararImagenParaImpresion(
+      logoBytes,
+    );
+
+    final enterpriseLogo = img.decodeImage(imagenReducida!)!;
+
+    List<int> bytes = [];
+
+    final generator = Generator(
+      AppData.paperSize[Preferences.paperSize],
+      await CapabilityProfile.load(),
+    );
+
+    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+
+    await bluetooth.writeBytes(Uint8List.fromList(bytes));
+
+    // Imprimir encabezado (empresa, NIT, dirección) de la empresa seleccionada
+    await ticketUtils.imprimirTexto('PRUEBA DE IMPRESIÓN', size: 2, align: 1);
+    await bluetooth.printNewLine();
+
+    // await ticketUtils.imprimirTexto('Dispositivo: ${Preferences.printer!.name}', size: 1, align: 1);
+    await ticketUtils.imprimirTexto('Dispositivo: ', size: 1, align: 1);
+    await bluetooth.printNewLine();
+
+    await ticketUtils.imprimirTexto('Fecha: ');
+    // Línea final y desconexión
+    await bluetooth.printNewLine();
+    await bluetooth.printNewLine();
+    await bluetooth.printNewLine();
+    await ticketUtils.desconectarSiConectado();
+  }
+
   /// Método estático para imprimir directamente en ticket
   static Future<void> imprimirTicket({
     required BuildContext context,
@@ -375,7 +447,7 @@ class ImpresionTicket {
 
     //Con este codigo se agregaría el logo:
     final Uint8List? logoBytesEmp = await UtilitiesService.loadLogoImage(
-      '', //path completo generado con el campo de la empresa seleccionada
+      'http://10.2.12.42/host/La_Carreta/BusinessAdvantage/UploadFile/cc3xd0n1bmiykbnbpktivh0f102047.jpeg', //path completo generado con el campo de la empresa seleccionada
     );
     if (logoBytesEmp != null) {
       final Uint8List? imagenReducida = await utils.prepararImagenParaImpresion(
@@ -423,6 +495,6 @@ class ImpresionTicket {
     bluetooth.printNewLine();
     bluetooth.printNewLine();
     bluetooth.printNewLine();
-    await ticketUtils.desconectarSiConectado();
+    // await ticketUtils.desconectarSiConectado();
   }
 }

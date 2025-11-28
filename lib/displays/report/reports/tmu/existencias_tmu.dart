@@ -1,5 +1,6 @@
 import 'package:fl_business/displays/report/utils/tmu_utils.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
@@ -28,8 +29,6 @@ class ExistenciasTMU {
 
     final TmuUtils utils = TmuUtils();
 
-    // final enterpriseLogo = await utils.getEnterpriseLogo(context);
-
     List<int> bytes = [];
 
     final generator = Generator(
@@ -37,7 +36,11 @@ class ExistenciasTMU {
       await CapabilityProfile.load(),
     );
 
-    // bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+    if (Provider.of<LogoProvider>(context, listen: false).logo != null) {
+      final enterpriseLogo = await utils.getEnterpriseLogo(context);
+
+      bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+    }
 
     //Reporte de xistencias
     // Encabezado
@@ -100,7 +103,7 @@ class ExistenciasTMU {
 
     bytes += generator.text(data.storeProcedure, styles: UtilitiesTMU.center);
 
-    bytes += generator.cut();
+    bytes += generator.emptyLines(3);
 
     printerVM.printTMU(context, bytes, false);
   }
