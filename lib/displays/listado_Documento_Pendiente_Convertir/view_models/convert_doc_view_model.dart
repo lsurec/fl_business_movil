@@ -862,6 +862,7 @@ class ConvertDocViewModel extends ChangeNotifier {
       detalleVM.traInternas.add(
         //Agregar montos por dia
         TraInternaModel(
+          files: null,
           consecutivo: tra.detalle.transaccionConsecutivoInterno,
           estadoTra: 0,
           precioCantidad: precioSelect.precioU * tra.detalle.disponible,

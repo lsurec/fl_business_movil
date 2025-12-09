@@ -1,6 +1,21 @@
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/convert_doc_view_model.dart';
+import 'package:fl_business/displays/prc_documento_3/models/serie_model.dart';
+import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
+import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
+import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
+import 'package:fl_business/routes/app_routes.dart';
+import 'package:fl_business/services/language_service.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
+import 'package:fl_business/themes/app_theme.dart';
+import 'package:fl_business/themes/styles.dart';
+import 'package:fl_business/utilities/translate_block_utilities.dart';
+import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
+import 'package:fl_business/view_models/referencia_view_model.dart';
+import 'package:fl_business/view_models/theme_view_model.dart';
+import 'package:fl_business/widgets/not_found_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,7 +31,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      context.read<InicioVehiculosViewModel>().cargarDatosIniciales();
+      context.read<InicioVehiculosViewModel>().cargarDatosIniciales(context);
     });
   }
   
@@ -24,6 +39,14 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<InicioVehiculosViewModel>();
+    final vmFactura = Provider.of<DocumentoViewModel>(context);
+    final vmConfirm = Provider.of<ConfirmDocViewModel>(context);
+    final vmConvert = Provider.of<ConvertDocViewModel>(context);
+    final vmLocation = Provider.of<LocationService>(context);
+    final ReferenciaViewModel refVM = Provider.of<ReferenciaViewModel>(context);
+    final vmTheme = Provider.of<ThemeViewModel>(context);
+    final ElementoAsigandoViewModel elVM = Provider.of<ElementoAsigandoViewModel>(context);
+
 
     return Scaffold(
       appBar: AppBar(
@@ -124,8 +147,308 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       ),
                     ],
                   ),
+                  Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.translate(BlockTranslate.cotizacion, 'docIdRef'),
+                      style: StyleApp.title,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                    vm.idDocumentoRef.toString(),
+                      style: StyleApp.normal,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+                Text(
+                  AppLocalizations.of(
+                    context,
+                  )!.translate(BlockTranslate.general, 'serie'),
+                  style: StyleApp.title,
+                ),
+                if (vm.series.isEmpty && !vmFactura.editDoc)
+                  NotFoundWidget(
+                    text: AppLocalizations.of(
+                      context,
+                    )!.translate(BlockTranslate.notificacion, 'sinElementos'),
+                    icon: const Icon(
+                      Icons.browser_not_supported_outlined,
+                      size: 50,
+                    ),
+                  ),
+                if (vmFactura.editDoc)
+                  Text(
+                    "${vmConvert.docOriginSelect!.serie} (${vmConvert.docOriginSelect!.serieDocumento})",
+                    style: StyleApp.normal,
+                  ),
+                if (vm.series.isNotEmpty && !vmFactura.editDoc)
+                  DropdownButton<SerieModel>(
+                    isExpanded: true,
+                    dropdownColor: AppTheme.isDark()
+                        ? AppTheme.darkBackroundColor
+                        : AppTheme.backroundColor,
+                    hint: Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.translate(BlockTranslate.factura, 'opcion'),
+                    ),
+                    value: vm.serieSelect,
+                    onChanged: (value) => vm.changeSerie(value, context),
+                    items: vm.series.map((serie) {
+                      return DropdownMenuItem<SerieModel>(
+                        value: serie,
+                        child: Text(serie.descripcion!),
+                      );
+                    }).toList(),
+                  ),
+                if (vm.valueParametro(318))
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          style: StyleApp.normal.copyWith(
+                            color: Theme.of(context).textTheme.bodyLarge!.color,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: AppLocalizations.of(
+                                context,
+                              )!.translate(BlockTranslate.tiket, 'latitud'),
+                              style: StyleApp.normalBold,
+                            ),
+                            TextSpan(
+                              text: vmLocation.latitutd,
+                              style: StyleApp.normal,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      RichText(
+                        text: TextSpan(
+                          style: StyleApp.normal.copyWith(
+                            color: Theme.of(context).textTheme.bodyLarge!.color,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: AppLocalizations.of(
+                                context,
+                              )!.translate(BlockTranslate.tiket, 'longitud'),
+                              style: StyleApp.normalBold,
+                            ),
+                            TextSpan(
+                              text: vmLocation.longitud,
+                              style: StyleApp.normal,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                if (vm.valueParametro(58))
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Referencia", //TODO:Translate
+                        style: StyleApp.title,
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, AppRoutes.ref),
+                        child: ListTile(
+                          title: Row(
+                            children: [
+                              Text(
+                                refVM.referencia == null
+                                    ? "Buscar..."
+                                    : refVM.referencia!.descripcion,
+                                style: StyleApp.normal.copyWith(
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              const Text(" * ", style: StyleApp.obligatory),
+                              const SizedBox(width: 30),
+                            ],
+                          ),
+                          leading: Icon(
+                            Icons.search,
+                            color: vmTheme.colorPref(AppTheme.idColorTema),
+                          ),
+                          contentPadding: const EdgeInsets.all(0),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                if (vm.valueParametro(259))
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Elemento Asignado", //TODO:Translate
+                        style: StyleApp.title,
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.elementoAsignado,
+                        ),
+                        child: ListTile(
+                          title: Row(
+                            children: [
+                              Text(
+                                elVM.elemento == null
+                                    ? "Buscar..."
+                                    : elVM.elemento!.descripcion,
+                                style: StyleApp.normal.copyWith(
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              const Text(" * ", style: StyleApp.obligatory),
+                              const SizedBox(width: 30),
+                            ],
+                          ),
+                          leading: Icon(
+                            Icons.search,
+                            color: vmTheme.colorPref(AppTheme.idColorTema),
+                          ),
+                          contentPadding: const EdgeInsets.all(0),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                  Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(vm.getTextCuenta(context), style: StyleApp.title),
+                    IconButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, AppRoutes.addClient),
+                      icon: const Icon(Icons.person_add_outlined),
+                      tooltip: AppLocalizations.of(
+                        context,
+                      )!.translate(BlockTranslate.cuenta, 'nueva'),
+                    ),
+                    // IconButton(
+                    //   onPressed: () => vm.restaurarFechas(),
+                    //   icon: const Icon(
+                    //     Icons.refresh,
+                    //   ),
+                    // )
+                  ],
+                ),
+                if (vm.clienteSelect == null) const SizedBox(height: 20),
+                if (vm.clienteSelect == null)
+                  Form(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    key: vm.formKeyClient,
+                    child: TextFormField(
+                      controller: vm.client,
+                      onFieldSubmitted: (value) =>
+                          vm.performSearchClient(context),
+                      textInputAction: TextInputAction.search,
+                      decoration: InputDecoration(
+                        hintText: vm.getTextCuenta(context),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () => vm.performSearchClient(context),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context)!.translate(
+                            BlockTranslate.notificacion,
+                            'requerido',
+                          );
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 10),
+                SwitchListTile(
+                  activeColor: AppTheme.hexToColor(Preferences.valueColor),
+                  contentPadding: EdgeInsets.zero,
+                  value: vm.cf,
+                  onChanged: (value) => vm.changeCF(context, value),
+                  title: const Text("C/F", style: StyleApp.title),
+                ),
+                if (vm.clienteSelect != null)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            vm.getTextCuenta(context),
+                            style: StyleApp.titlegrey,
+                          ),
+                          if (!vm.cf)
+                            IconButton(
+                              onPressed: () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.updateClient,
+                                arguments: vm.clienteSelect,
+                              ),
+                              icon: Icon(
+                                Icons.edit_outlined,
+                                color: AppTheme.grey,
+                              ),
+                              tooltip: AppLocalizations.of(
+                                context,
+                              )!.translate(BlockTranslate.cuenta, 'editar'),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        vm.clienteSelect!.facturaNit,
+                        style: StyleApp.normal,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        vm.clienteSelect!.facturaNombre,
+                        style: StyleApp.normal,
+                      ),
+                      if (vm.clienteSelect!.facturaDireccion.isNotEmpty &&
+                          vmFactura.editDoc)
+                        Column(
+                          children: [
+                            const SizedBox(height: 10),
+                            Text(
+                              vm.clienteSelect!.facturaDireccion,
+                              style: StyleApp.normal,
+                            ),
+                          ],
+                        ),
+                      if (vm.clienteSelect!.desCuentaCta.isNotEmpty &&
+                          vmFactura.editDoc)
+                        Column(
+                          children: [
+                            const SizedBox(height: 10),
+                            Text(
+                              "(${vm.clienteSelect!.desCuentaCta})",
+                              style: StyleApp.greyText,
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
                 ],
               ),
+              //seccioón de cuente
+              
       ),
     );
   }

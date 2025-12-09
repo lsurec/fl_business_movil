@@ -645,6 +645,7 @@ class DetailsViewModel extends ChangeNotifier {
     //agregar transacion al documento
     detailsVM.addTransaction(
       TraInternaModel(
+        files: null,
         bodega: productVM.selectedBodega!,
         cantidad: (int.tryParse(productVM.controllerNum.text) ?? 0),
         cantidadDias: docVM.valueParametro(44) ? cantidadDias : 0,
@@ -987,6 +988,7 @@ class DetailsViewModel extends ChangeNotifier {
           cargo: operacion == 1 ? cargoDescuento : 0,
           descuento: operacion == 2 ? cargoDescuento * -1 : 0,
           operaciones: [],
+          files: null,
           observacion: null,
         );
 

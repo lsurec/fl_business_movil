@@ -473,6 +473,7 @@ class ProductViewModel extends ChangeNotifier {
     //agregar transacion al documento
     detailsVM.addTransaction(
       TraInternaModel(
+        files: null,
         bodega: selectedBodega!,
         cantidad: (int.tryParse(controllerNum.text) ?? 0),
         cantidadDias: docVM.valueParametro(44) ? cantidadDias : 0,
@@ -1358,6 +1359,7 @@ class ProductViewModel extends ChangeNotifier {
       //agregar transacion al documento
       detailsVM.addTransaction(
         TraInternaModel(
+          files: null,
           consecutivo: 0,
           estadoTra: 1,
           isChecked: false,
@@ -1393,6 +1395,7 @@ class ProductViewModel extends ChangeNotifier {
 
     if (opcion == 1) {
       detailsVM.traInternas[indexEdit] = TraInternaModel(
+        files: null,
         consecutivo: 0,
         estadoTra: 1,
         isChecked: false,

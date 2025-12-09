@@ -19,6 +19,7 @@ class TraInternaModel {
     required this.consecutivo,
     required this.estadoTra,
     required this.observacion,
+    required this.files,
   });
 
   bool isChecked;
@@ -36,6 +37,8 @@ class TraInternaModel {
   int consecutivo;
   int estadoTra;
   String? observacion;
+  List<String>? files;
+
 
   factory TraInternaModel.fromJson(String str) =>
       TraInternaModel.fromMap(json.decode(str));
@@ -43,6 +46,7 @@ class TraInternaModel {
   String toJson() => json.encode(toMap());
 
   factory TraInternaModel.fromMap(Map<String, dynamic> json) => TraInternaModel(
+  files: List<String>.from(json["files"]),
     observacion: json["observacion"],
     isChecked: json["isChecked"],
     producto: ProductModel.fromMap(json["producto"]),
@@ -70,6 +74,7 @@ class TraInternaModel {
     "observacion": observacion,
     "isChecked": isChecked,
     "producto": producto.toMap(),
+    "files": files,
     "precio": precio?.toMap(),
     "cantidad": cantidad,
     "total": total,
