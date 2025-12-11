@@ -83,13 +83,14 @@ class _ItemsVehiculoView extends StatelessWidget {
                       ),
 
                       Checkbox(
-                        value: vm.isChecked[item.idProducto],
+                        value: vm.isChecked[item.idProducto] ?? false,
                         onChanged: (value) {
                           vm.toggleCheck(item.idProducto, value ?? false);
 
                           if (value == true) {
                             final text = vm.controllers[item.idProducto]!.text
                                 .trim();
+
                             if (text.isNotEmpty) {
                               vmInicio.actualizarItem(
                                 item.idProducto,
@@ -103,6 +104,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                                   content: Text("Escribe un detalle antes"),
                                 ),
                               );
+
                               vm.toggleCheck(item.idProducto, false);
                             }
                           }
@@ -137,7 +139,8 @@ class _ItemsVehiculoView extends StatelessWidget {
                     ],
                   ),
 
-                  if (vm.fotosPorItem[item.idProducto]!.isNotEmpty)
+                  if ((vm.fotosPorItem[item.idProducto] ?? []).isNotEmpty)
+
                     SizedBox(
                       height: 80,
                       child: ListView(

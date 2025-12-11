@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -60,31 +62,35 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
                   moneda: item.moneda,
                   orden: 0,
                 ),
-                cantidad:1,
+                cantidad: 1,
                 total: item.precioUnidad * 1,
                 descuento: 0,
                 cargo: 0,
                 operaciones: [],
-                bodega: BodegaProductoModel(bodega: item.bodega, nombre: '', existencia: 1, poseeComponente: false, orden: 1),
+                bodega: BodegaProductoModel(
+                  bodega: item.bodega,
+                  nombre: '',
+                  existencia: 1,
+                  poseeComponente: false,
+                  orden: 1,
+                ),
                 cantidadDias: 0,
                 precioDia: 0,
                 precioCantidad: 0,
                 consecutivo: 0,
                 estadoTra: 1,
                 observacion: '',
-                files: []
+                files: [],
               ),
             )
             .toList(),
       );
 
-
-      // // Inicializar controles
-      // for (var item in items) {
-      //   controllers[item.idProducto] = TextEditingController();
-      //   isChecked[item.idProducto] = false;
-      //   fotosPorItem[item.idProducto] = [];
-      // }
+      for (var item in items) {
+        controllers[item.idProducto] = TextEditingController();
+        isChecked[item.idProducto] = false;
+        fotosPorItem[item.idProducto] = [];
+      }
 
       error = null;
     } catch (e) {
@@ -114,10 +120,32 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     final picker = ImagePicker();
     final XFile? foto = await picker.pickImage(source: ImageSource.camera);
 
-    if (foto != null) {
-      fotosPorItem[idProducto]?.add(foto);
-      notifyListeners();
+    if (foto == null) return;
+
+    // Obtener objeto transacción según idProducto
+    final index = transaciciones.indexWhere(
+      (t) => t.producto.productoId == idProducto,
+    );
+
+    if (index == -1) return;
+
+    // Ruta original de la foto
+    final String originalPath = foto.path;
+
+    // Crear un nombre único para almacenar el path
+    final String newPath = "${originalPath}_ref";
+
+    // Guardar solo el path dentro del modelo
+    transaciciones[index].files ??= [];
+    transaciciones[index].files!.add(newPath);
+
+    // Borrar archivo original
+    final file = File(originalPath);
+    if (await file.exists()) {
+      await file.delete();
     }
+
+    notifyListeners();
   }
 
   // ================================
@@ -125,6 +153,15 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   // ================================
   void toggleCheck(String idProducto, bool value) {
     isChecked[idProducto] = value;
+
+    final index = transaciciones.indexWhere(
+      (t) => t.producto.productoId == idProducto,
+    );
+
+    if (index != -1) {
+      transaciciones[index].isChecked = value;
+    }
+
     notifyListeners();
   }
 

@@ -1016,6 +1016,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     return 0;
   }
 
+  void changeSeller(SellerModel? value) {
+    vendedorSelect = value;
+    notifyListeners();
+  }
+
   //Docestructura/////////////////////////////////////////////////////////
   //enviar el odcumento
   Future<ApiResModel> sendDocument(BuildContext context) async {
