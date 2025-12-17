@@ -14,6 +14,8 @@ class AddPersonViewModel extends ChangeNotifier {
       listen: false,
     );
 
+    vmOrder.saveOrder();
+
     vmOrder.orders[indexOrder].nombre = formValues["name"] ?? "";
     Navigator.pop(context);
     notifyListeners();
@@ -56,6 +58,8 @@ class AddPersonViewModel extends ChangeNotifier {
     formValues["name"] = "";
 
     vmTable.updateOrdersTable(context);
+
+    vmOrder.saveOrder();
 
     NotificationService.showSnackbar(
       AppLocalizations.of(

@@ -217,6 +217,7 @@ class DetailsRestaurantViewModel extends ChangeNotifier {
       selected: false,
       bodega: bodega!,
       processed: false,
+      date: DateTime.now(),
     );
 
     if (options["modify"]) {
@@ -267,6 +268,9 @@ class DetailsRestaurantViewModel extends ChangeNotifier {
       formValues["observacion"] = "";
 
       Navigator.pop(context);
+
+      vmOrders.saveOrder();
+
       NotificationService.showSnackbar(
         AppLocalizations.of(
           context,

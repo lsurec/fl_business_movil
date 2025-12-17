@@ -15,7 +15,7 @@ import 'package:diacritic/diacritic.dart';
 class TestTMU {
   List<int> report = [];
 
-  Future<bool> getReport(BuildContext context) async {
+  Future<bool> getReportBluetooth(BuildContext context) async {
     try {
       final LoginViewModel vmLogin = Provider.of<LoginViewModel>(
         context,
@@ -59,6 +59,93 @@ class TestTMU {
       report += generator.text(
         removeDiacritics("Tamaño de papel: ${Preferences.paperSize} mm"),
       );
+      report += generator.emptyLines(1);
+      report += generator.text(
+        removeDiacritics("*** Conexión exitosa ***"),
+        styles: center,
+      );
+      report += generator.emptyLines(1);
+      report += generator.hr();
+      report += generator.text("Usuario: ${vmLogin.user}");
+      report += generator.text(
+        removeDiacritics(
+          "Empresa: ${vmSettings.selectedEmpresa!.empresaNombre}",
+        ),
+      );
+      report += generator.text(
+        removeDiacritics(
+          "Estación: ${vmSettings.selectedEstacion!.descripcion}",
+        ),
+      );
+      report += generator.text("Fecha: ${Utilities.getDateDDMMYYYY()}");
+      report += generator.text("Origen de datos: ${Preferences.urlApi}");
+      report += generator.hr(); // Línea horizontal
+      report += generator.image(myLogo, align: PosAlign.center);
+      report += generator.text("Powered by", styles: center);
+      report += generator.text(Utilities.author.nombre, styles: center);
+      report += generator.text(Utilities.author.website, styles: center);
+
+      report += generator.text(
+        removeDiacritics("Versión: ${SplashViewModel.versionLocal}"),
+        styles: center,
+      );
+
+      report += generator.cut();
+
+      return true;
+    } catch (e) {
+      final ApiResModel res = ApiResModel(
+        succes: false,
+        response: e.toString(),
+        url: '',
+        storeProcedure: '',
+      );
+
+      NotificationService.showErrorView(context, res);
+
+      return false;
+    }
+  }
+
+  Future<bool> getReportTCPIP(BuildContext context) async {
+    try {
+      final LoginViewModel vmLogin = Provider.of<LoginViewModel>(
+        context,
+        listen: false,
+      );
+
+      final LocalSettingsViewModel vmSettings =
+          Provider.of<LocalSettingsViewModel>(context, listen: false);
+
+      final TmuUtils utils = TmuUtils();
+
+      final enterpriseLogo = await utils.getEnterpriseLogo(context);
+      final myLogo = await utils.getMyCompanyLogo();
+
+      final generator = Generator(
+        AppData.paperSize[80],
+        await CapabilityProfile.load(),
+      );
+
+      PosStyles center = const PosStyles(align: PosAlign.center);
+      PosStyles centerBold = const PosStyles(
+        align: PosAlign.center,
+        bold: true,
+      );
+
+      report = [];
+
+      report += generator.image(enterpriseLogo, align: PosAlign.center);
+
+      report += generator.hr();
+      report += generator.text(
+        removeDiacritics("PRUEBA DE IMPRESIÓN"),
+        styles: centerBold,
+      );
+      report += generator.hr();
+
+      report += generator.text("IP: ");
+
       report += generator.emptyLines(1);
       report += generator.text(
         removeDiacritics("*** Conexión exitosa ***"),

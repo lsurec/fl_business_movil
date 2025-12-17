@@ -2,6 +2,8 @@
 
 import 'package:fl_business/displays/report/utils/tmu_utils.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/displays/shr_local_config/models/empresa_model.dart';
+import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
@@ -31,6 +33,11 @@ class FacturaTMU {
         listen: false,
       );
 
+      final EmpresaModel empresa = Provider.of<LocalSettingsViewModel>(
+        context,
+        listen: false,
+      ).selectedEmpresa!;
+
       // Crear una instancia de NumberFormat para el formato de moneda
       final currencyFormat = NumberFormat.currency(
         symbol: vmHome
@@ -42,7 +49,7 @@ class FacturaTMU {
 
       final TmuUtils utils = TmuUtils();
 
-      final enterpriseLogo = await utils.getEnterpriseLogo(context);
+      final bool existImage = empresa.absolutePathPicture.isEmpty;
 
       List<int> bytes = [];
 
@@ -59,7 +66,11 @@ class FacturaTMU {
 
       bytes += generator.setGlobalCodeTable('CP1252');
 
-      bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+      if (!existImage) {
+        final enterpriseLogo = await utils.getEnterpriseLogo(context);
+
+        bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+      }
 
       bytes += generator.text(data.empresa.razonSocial, styles: center);
       bytes += generator.text(data.empresa.nombre, styles: center);
@@ -151,6 +162,9 @@ class FacturaTMU {
         styles: center,
       );
 
+      bytes += generator.text("Lugar de entrega:", styles: center);
+
+      bytes += generator.text(data.direccionEntrega ?? "", styles: center);
       bytes += generator.text(
         "Registros: ${data.items.length}",
         styles: center,

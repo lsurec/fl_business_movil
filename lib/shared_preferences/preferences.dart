@@ -21,10 +21,26 @@ class Preferences {
   static const String _logo = "logo";
   static const String _printer = "printer";
   static const String _paperSize = "paperSize";
+  static const String _order = "orderRest";
 
   //iniciar shared preferences
   static Future init() async {
     _prefs = await SharedPreferences.getInstance();
+  }
+
+  //guardar orden restaurante
+  static set order(List<String> value) {
+    _prefs.setStringList(_order, value);
+  }
+
+  //Recuperar orden restaurante
+  static List<String> get order {
+    return _prefs.getStringList(_order) ?? [];
+  }
+
+  //limpiar ordernes
+  static void clearOrders() {
+    _prefs.remove(_order);
   }
 
   //guardar tamaño de papel

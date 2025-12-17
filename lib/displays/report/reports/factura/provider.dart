@@ -237,6 +237,7 @@ class FacturaProvider {
       poweredBy: poweredBy,
       noDoc: encabezado.iDDocumentoRef ?? "",
       usuario: user,
+      direccionEntrega: encabezado.direccion1CuentaCta,
       procedimientoAlmacenado: resEncabezado.storeProcedure ?? "",
     );
 

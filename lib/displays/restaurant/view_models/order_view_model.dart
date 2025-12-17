@@ -3,6 +3,9 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:fl_business/displays/report/views/error_print.dart';
+import 'package:fl_business/displays/restaurant/view_models/select_account_view_model.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 // import 'package:flutter_pos_printer_platform/flutter_pos_printer_platform.dart';
@@ -17,6 +20,8 @@ import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/widgets/widgets.dart';
+import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
 
@@ -44,6 +49,64 @@ class OrderViewModel extends ChangeNotifier {
   final List<OrderModel> orders = [];
   final List<int> selectedTra = [];
 
+  saveOrder() {
+    final List<String> ordersStr = [];
+
+    ordersStr.addAll(orders.map((item) => item.toJson()).toList());
+
+    Preferences.order = ordersStr;
+  }
+
+  Future<void> loadOrder(BuildContext context) async {
+    final List<String> ordersStr = Preferences.order;
+
+    if (ordersStr.isEmpty) return;
+
+    if (orders.isNotEmpty) return;
+
+    //TODO:Agregar validaciones para que no siempre se genere la recuperacion
+
+    //TODO:dilogo de restarancion
+
+    //mostrar dialogo de confirmacion
+    bool? result = await showDialog(
+      context: context,
+      builder: (context) => AlertWidget(
+        title: AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'continuarDoc'),
+        description: AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'docSinConfirmar'),
+        onOk: () => Navigator.of(context).pop(true),
+        onCancel: () => Navigator.of(context).pop(false),
+        textCancel: "Inciar de nuevo",
+        textOk: "Cargar datos",
+      ),
+    );
+
+    if (result == null) return;
+
+    //si la opcion fie nuevo docummento llimpiar el documento de preferencias
+    if (!result) {
+      Preferences.clearOrders();
+      //limpiar pantalla documento
+      return;
+    }
+
+    orders.clear();
+    orders.addAll(
+      ordersStr.map((orderStr) => OrderModel.fromJson(orderStr)).toList(),
+    );
+
+    notifyListeners();
+
+    await Provider.of<TablesViewModel>(
+      context,
+      listen: false,
+    ).updateOrdersTable(context);
+  }
+
   navigatePermisionView(BuildContext context, int indexOrder) {
     final TablesViewModel tablesVM = Provider.of<TablesViewModel>(
       context,
@@ -69,6 +132,29 @@ class OrderViewModel extends ChangeNotifier {
     );
   }
 
+  Future<void> printStatus(BuildContext context, index) async {
+    final SelectAccountViewModel saVM = Provider.of<SelectAccountViewModel>(
+      context,
+      listen: false,
+    );
+
+    final OrderViewModel orderVM = Provider.of<OrderViewModel>(
+      context,
+      listen: false,
+    );
+
+    if (orderVM.orders[index].consecutivo == 0) {
+      NotificationService.showSnackbar(
+        "No se ha comandado ninguna transaccion",
+      );
+      return;
+    }
+
+    isLoading = true;
+    await saVM.printStatusAccount(context, orderVM.orders[index].consecutivo);
+    isLoading = false;
+  }
+
   Future<void> monitorPrint(BuildContext context, int indexOrder) async {
     final MenuViewModel menuVM = Provider.of<MenuViewModel>(
       context,
@@ -91,6 +177,8 @@ class OrderViewModel extends ChangeNotifier {
     String serieDocumento = homeResVM.serieSelect!.serieDocumento!;
     int empresa = localVM.selectedEmpresa!.empresa;
     int estacion = localVM.selectedEstacion!.estacionTrabajo;
+
+    //TODO:Verificar dispoinibilidad de la immpresora
 
     double traTotal = 0;
     final List<DocTransaccion> transactions = [];
@@ -319,8 +407,6 @@ class OrderViewModel extends ChangeNotifier {
     //   element.processed = true;
     // }
 
-    isLoading = false;
-
     // final RestaurantService restaurantService = RestaurantService();
 
     // SenOrderModel order = SenOrderModel(
@@ -336,7 +422,11 @@ class OrderViewModel extends ChangeNotifier {
 
     // NotificationService.showSnackbar(resPostComanda.response);
 
+    saveOrder();
+
     await printNetwork(context, indexOrder);
+
+    isLoading = false;
   }
 
   printNetwork(BuildContext context, int indexOrder) async {
@@ -394,6 +484,7 @@ class OrderViewModel extends ChangeNotifier {
             ipAdress: detalle.printerName,
             bodega: detalle.bodega,
             detalles: [detalle],
+            storedProcedure: res.storeProcedure ?? "",
           ),
         );
       } else {
@@ -414,6 +505,7 @@ class OrderViewModel extends ChangeNotifier {
               ipAdress: detalle.printerName,
               bodega: detalle.bodega,
               detalles: [detalle],
+              storedProcedure: res.storeProcedure ?? "",
             ),
           );
         } else {
@@ -422,7 +514,7 @@ class OrderViewModel extends ChangeNotifier {
       }
     }
 
-    int paperDefault = 80; //58 //72 //80
+    int paperDefault = Preferences.paperSize; //58 //72 //80
 
     PosStyles center = const PosStyles(align: PosAlign.center);
 
@@ -430,6 +522,9 @@ class OrderViewModel extends ChangeNotifier {
     // final Uint8List bytesImg = data.buffer.asUint8List();
     // final img.Image? image = decodeImage(bytesImg);
 
+    final List<ResComandaModel> formatsP = [];
+
+    //hacer formatos
     for (var element in formats) {
       try {
         List<int> bytes = [];
@@ -440,11 +535,8 @@ class OrderViewModel extends ChangeNotifier {
 
         bytes += generator.setGlobalCodeTable('CP1252');
 
-        // bytes += generator.image(
-        //   img.copyResize(image!, height: 200, width: 250),
-        // );
         bytes += generator.text(
-          element.detalles[0].desUbicacion,
+          "Ubicacion: ${element.detalles[0].desUbicacion}",
           styles: const PosStyles(
             bold: true,
             align: PosAlign.center,
@@ -454,8 +546,14 @@ class OrderViewModel extends ChangeNotifier {
 
         bytes += generator.text(
           "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'mesa')}: ${element.detalles[0].desMesa.toUpperCase()}",
-          styles: center,
+          styles: const PosStyles(
+            bold: true,
+            align: PosAlign.center,
+            height: PosTextSize.size2,
+          ),
         );
+
+        bytes += generator.text("Comanda:", styles: center);
 
         bytes += generator.text(
           "${element.detalles[0].desSerieDocumento} - ${element.detalles[0].iDDocumentoRef}",
@@ -466,55 +564,39 @@ class OrderViewModel extends ChangeNotifier {
           ),
         );
 
-        bytes += generator.emptyLines(1);
+        bytes += generator.text(
+          "Comensal: ${element.detalles[0].comensal}",
+          styles: const PosStyles(
+            bold: true,
+            align: PosAlign.center,
+            height: PosTextSize.size2,
+          ),
+        );
 
-        //Incio del formato
-        bytes += generator.row([
-          PosColumn(
-            text: AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.tiket, 'cantidad'),
-            width: 2,
-            styles: const PosStyles(align: PosAlign.right),
-          ),
-          PosColumn(
-            text: '',
-            width: 1,
-            styles: const PosStyles(align: PosAlign.left),
-          ),
-          PosColumn(
-            text: AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.general, 'descripcion'),
-            width: 9,
-            styles: const PosStyles(align: PosAlign.left),
-          ),
-        ]);
+        bytes += generator.text(element.detalles[0].bodega, styles: center);
+
+        bytes += generator.hr();
+        bytes += generator.text(
+          "Registros (${element.detalles.length})",
+          styles: center,
+        );
+
+        bytes += generator.hr();
 
         for (var tra in element.detalles) {
-          bytes += generator.row([
-            PosColumn(
-              text: "${tra.cantidad}",
-              width: 2,
-              styles: const PosStyles(
-                height: PosTextSize.size2,
-                align: PosAlign.right,
-              ),
-            ),
-            PosColumn(text: "", width: 1), // Anc/ Ancho 2
-            PosColumn(
-              text:
-                  "${tra.desProducto} ${tra.observacion.isNotEmpty ? '(${tra.observacion})' : ''}",
-              width: 9,
-              styles: const PosStyles(
-                height: PosTextSize.size2,
-                align: PosAlign.left,
-              ),
-            ), // Ancho 6
-          ]);
+          bytes += generator.text(
+            "Cant. ${tra.cantidad}",
+            styles: const PosStyles(height: PosTextSize.size2),
+          );
+          bytes += generator.text(
+            "${tra.desProducto} ${tra.observacion.isNotEmpty ? '(${tra.observacion})' : ''}",
+            styles: const PosStyles(height: PosTextSize.size2),
+          );
+          bytes += generator.text(
+            DateFormat('dd/MM/yyyy HH:mm:ss').format(tra.fechaHora),
+          );
+          bytes += generator.hr();
         }
-
-        bytes += generator.emptyLines(1);
 
         bytes += generator.text(
           "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'atencion')}: ${element.detalles[0].userName.toUpperCase()}",
@@ -527,8 +609,6 @@ class OrderViewModel extends ChangeNotifier {
           "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}:${now.second}",
           styles: center,
         );
-
-        bytes += generator.emptyLines(2);
 
         bytes += generator.hr();
 
@@ -545,65 +625,84 @@ class OrderViewModel extends ChangeNotifier {
           styles: center,
         );
 
+        bytes += generator.text(element.storedProcedure, styles: center);
+
         bytes += generator.cut();
 
-        // await PrinterManager.instance
-        //     .connect(
-        //       type: PrinterType.network,
-        //       model: TcpPrinterInput(
-        //         //TODO:Cambiar a ip de la base de datos
-        //         ipAddress: element.ipAdress,
-        //         // ipAddress: "192.168.0.10",
-        //       ),
-        //     )
-        //     .timeout(
-        //       const Duration(seconds: 5),
-        //       onTimeout: () {
-        //         throw TimeoutException(
-        //           'La conexión ha superado el tiempo de espera ${element.ipAdress}',
-        //         );
-        //       },
-        //     );
-
-        // await instanceManager
-        //     .send(type: PrinterType.network, bytes: bytes)
-        //     .timeout(
-        //       const Duration(seconds: 5),
-        //       onTimeout: () {
-        //         throw TimeoutException(
-        //           'La conexión ha superado el tiempo de espera ${element.ipAdress}',
-        //         );
-        //       },
-        //     );
-
-        //marcar como comandados
-        for (var traPend in orders[indexOrder].transacciones) {
-          if (traPend.consecutivo == element.traConsecutivo) {
-            traPend.processed = true;
-          }
-        }
-      } catch (e) {
-        isLoading = false;
-
-        NotificationService.showErrorView(
-          context,
-          ApiResModel(
-            succes: false,
-            response: e.toString(),
-            url: "",
-            storeProcedure: "",
-          ),
+        formatsP.add(
+          ResComandaModel(comanda: element, format: bytes, error: null),
         );
-
-        // NotificationService.showSnackbar(
-        //   AppLocalizations.of(context)!.translate(
-        //     BlockTranslate.notificacion,
-        //     'noImprimio',
-        //   ),
-        // );
-
-        return;
+      } catch (e) {
+        formatsP.add(
+          ResComandaModel(comanda: element, format: [], error: e.toString()),
+        );
       }
+    }
+
+    for (var element in formatsP) {
+      if (element.error == null) {
+        var printerManager = PrinterManager.instance;
+
+        try {
+          //TODO:Nueva metodología
+          final bool isConnect = await printerManager.connect(
+            type: PrinterType.network,
+            model: TcpPrinterInput(ipAddress: element.comanda.ipAdress),
+          );
+
+          if (!isConnect) {
+            isLoading = false;
+            element.error =
+                "Impresora ${element.comanda.ipAdress} no disponible";
+
+            continue;
+          }
+
+          final bool isSend = await printerManager.send(
+            type: PrinterType.network,
+            bytes: element.format,
+          );
+
+          if (!isSend) {
+            await printerManager.disconnect(type: PrinterType.network);
+
+            isLoading = false;
+            element.error =
+                "No se pudieron enviar los datos a la impresora ${element.comanda.ipAdress}]";
+            continue;
+          }
+
+          //marcar como comandados
+          for (var traPend in orders[indexOrder].transacciones) {
+            if (traPend.consecutivo == element.comanda.traConsecutivo) {
+              traPend.processed = true;
+            }
+          }
+
+          saveOrder();
+        } catch (e) {
+          element.error = e.toString();
+        }
+      }
+    }
+
+    //TODO:verificar si las comandas fueron enviadas
+    final List<ResComandaModel> errores = formatsP
+        .where((p) => p.error != null)
+        .toList();
+
+    if (errores.isNotEmpty) {
+      //mostrar pantalla con errores
+      isLoading = false;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ErrorPrintView(comandas: errores, indexOrder: indexOrder),
+        ),
+      );
+
+      return;
     }
 
     NotificationService.showSnackbar(
@@ -781,6 +880,7 @@ class OrderViewModel extends ChangeNotifier {
       }
     }
 
+    saveOrder();
     notifyListeners();
   }
 
@@ -789,7 +889,6 @@ class OrderViewModel extends ChangeNotifier {
         !orders[indexOrder].transacciones[indexTra].selected;
 
     notifyListeners();
-
     if (getSelectedItems(indexOrder) == 0) isSelectedMode = false;
   }
 
@@ -809,6 +908,7 @@ class OrderViewModel extends ChangeNotifier {
   //incrementa la cantidad de la transaccion
   increment(int indexOrder, int indexTra) {
     orders[indexOrder].transacciones[indexTra].cantidad++;
+    saveOrder();
 
     notifyListeners();
   }
@@ -817,10 +917,15 @@ class OrderViewModel extends ChangeNotifier {
   decrement(BuildContext context, int indexOrder, int indexTra) {
     if (orders[indexOrder].transacciones[indexTra].cantidad == 1) {
       delete(context, indexOrder, indexTra);
+      saveOrder();
+
       return;
     }
 
     orders[indexOrder].transacciones[indexTra].cantidad--;
+
+    saveOrder();
+
     notifyListeners();
   }
 
@@ -830,6 +935,8 @@ class OrderViewModel extends ChangeNotifier {
           !orders[indexOrder].transacciones[i].processed) {
         orders[indexOrder].transacciones.removeAt(i);
         deleteSelectRecursive(indexOrder);
+        saveOrder();
+
         break;
       }
     }
@@ -855,6 +962,8 @@ class OrderViewModel extends ChangeNotifier {
           }
 
           deleteSelectRecursive(indexOrder);
+
+          saveOrder();
 
           if (orders[indexOrder].transacciones.isEmpty) {
             Navigator.of(context).pop();
@@ -914,6 +1023,8 @@ class OrderViewModel extends ChangeNotifier {
             )!.translate(BlockTranslate.notificacion, 'traEliminada'),
           );
 
+          saveOrder();
+
           notifyListeners();
         },
         onCancel: () => Navigator.pop(context),
@@ -925,16 +1036,22 @@ class OrderViewModel extends ChangeNotifier {
     final vmTable = Provider.of<TablesViewModel>(context, listen: false);
     orders.add(item);
     vmTable.updateOrdersTable(context);
+    saveOrder();
+
     notifyListeners();
   }
 
   editTra(int indexOrder, int indexTra, TraRestaurantModel transaction) {
     orders[indexOrder].transacciones[indexTra] = transaction;
+    saveOrder();
+
     notifyListeners();
   }
 
   addTransactionFirst(TraRestaurantModel transaction, int indexOrder) {
-    orders[indexOrder].transacciones.add(transaction);
+    orders[indexOrder].transacciones.insert(0, transaction);
+    saveOrder();
+
     notifyListeners();
   }
 
@@ -943,13 +1060,15 @@ class OrderViewModel extends ChangeNotifier {
     TraRestaurantModel transaction,
     int idexOrder,
   ) {
-    orders[idexOrder].transacciones.add(transaction);
+    orders[idexOrder].transacciones.insert(0, transaction);
     Navigator.popUntil(context, ModalRoute.withName(AppRoutes.productsClass));
     NotificationService.showSnackbar(
       AppLocalizations.of(
         context,
       )!.translate(BlockTranslate.notificacion, 'productoAgregado'),
     );
+
+    saveOrder();
 
     notifyListeners();
   }

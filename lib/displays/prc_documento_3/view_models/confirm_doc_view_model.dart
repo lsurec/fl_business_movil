@@ -1,7 +1,9 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, library_prefixes, avoid_print
 import 'dart:convert';
+import 'package:diacritic/diacritic.dart';
 import 'package:fl_business/displays/report/reports/factura/provider.dart';
 import 'package:fl_business/displays/report/reports/factura/tmu.dart';
+import 'package:fl_business/displays/report/reports/test/tmu.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
@@ -17,6 +19,7 @@ import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_pos_printer_platform_image_3/flutter_pos_printer_platform_image_3.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
@@ -123,11 +126,31 @@ class ConfirmDocViewModel extends ChangeNotifier {
   }
 
   printNetwork(BuildContext context) async {
-    NotificationService.showSnackbar(
-      "Esta funcion no está disponible temporalmente",
-    );
+    // final TestTMU testTMU = TestTMU();
 
-    return;
+    // final isReport = await testTMU.getReportTCPIP(context);
+
+    // if (!isReport) return;
+
+    // await PrinterManager.instance.connect(
+    //   type: PrinterType.bluetooth,
+    //   model: BluetoothPrinterInput(
+    //     name: Preferences.printer!.name,
+    //     address:Preferences.printer!.address!,
+    //     isBle: true,
+    //     autoConnect: false,
+    //   ),
+    // );
+
+    // await PrinterManager.instance.connect(
+    //   type: PrinterType.network,
+    //   model: TcpPrinterInput(ipAddress: "192.168.0.10"),
+    // );
+
+    // await printerManager.send(type: PrinterType.network, bytes: testTMU.report);
+
+    // await printerManager.disconnect(type: PrinterType.network);
+
     //TODO:buscar libreria
     //Proveedor de datos externo
     final loginVM = Provider.of<LoginViewModel>(
@@ -169,6 +192,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
             ipAdress: detalle.printerName,
             bodega: detalle.bodega,
             detalles: [detalle],
+            storedProcedure: res.storeProcedure ?? "",
           ),
         );
       } else {
@@ -189,6 +213,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
               ipAdress: detalle.printerName,
               bodega: detalle.bodega,
               detalles: [detalle],
+              storedProcedure: res.storeProcedure ?? "",
             ),
           );
         } else {
@@ -316,12 +341,17 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
         bytes += generator.cut();
 
-        // await PrinterManager.instance.connect(
-        //   type: PrinterType.network,
-        //   model: TcpPrinterInput(ipAddress: element.ipAdress),
-        // );
+        var printerManager = PrinterManager.instance;
 
-        // await instanceManager.send(type: PrinterType.network, bytes: bytes);
+        //TODO:Nueva metodología
+        await printerManager.connect(
+          type: PrinterType.network,
+          model: TcpPrinterInput(ipAddress: element.ipAdress),
+        );
+
+        await printerManager.send(type: PrinterType.network, bytes: bytes);
+
+        await printerManager.disconnect(type: PrinterType.network);
       } catch (e) {
         print(e.toString());
         isLoading = false;

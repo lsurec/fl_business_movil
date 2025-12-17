@@ -61,7 +61,7 @@ class DocumentService {
         url: url.toString(),
         succes: true,
         response: detalles,
-        storeProcedure: null,
+        storeProcedure: res.storeProcedure,
       );
     } catch (e) {
       //respuesta incorrecta

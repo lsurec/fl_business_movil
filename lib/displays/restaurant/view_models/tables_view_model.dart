@@ -111,6 +111,7 @@ class TablesViewModel extends ChangeNotifier {
 
   restartTable() {
     table = tableCopy;
+
     notifyListeners();
   }
 
@@ -159,6 +160,10 @@ class TablesViewModel extends ChangeNotifier {
           tables[i].orders!.add(j);
         }
       }
+    }
+
+    if (vmOrder.orders.isNotEmpty) {
+      vmOrder.saveOrder();
     }
 
     notifyListeners();

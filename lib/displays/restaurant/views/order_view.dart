@@ -117,207 +117,250 @@ class OrderView extends StatelessWidget {
                         )!.translate(BlockTranslate.botones, 'trasladar'),
                       ),
                     ]
-                  : null,
+                  : [
+                      IconButton(
+                        onPressed: () => vm.printStatus(context, indexOrder),
+                        icon: const Icon(Icons.print_outlined),
+                        tooltip: "Imprimir",
+                      ),
+                    ],
             ),
             body: Padding(
               padding: const EdgeInsets.all(20),
-              child: ListView.builder(
-                itemCount: vm.orders[indexOrder].transacciones.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final TraRestaurantModel transaction =
-                      vm.orders[indexOrder].transacciones[index];
+              child: Column(
+                children: [
+                  RegisterCountWidget(
+                    count: vm.orders[indexOrder].transacciones.length,
+                  ),
+                  const SizedBox(height: 10),
 
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(
-                        onTap: () => vm.isSelectedMode
-                            ? vm.sleectedItem(indexOrder, index)
-                            : null,
-                        // vm.modifyTra(context, indexOrder, index),
-                        onLongPress: () => vm.onLongPress(indexOrder, index),
-                        child: Stack(
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: vm.orders[indexOrder].transacciones.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final TraRestaurantModel transaction =
+                            vm.orders[indexOrder].transacciones[index];
+
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                SizedBox(
-                                  height: 50,
-                                  width: 50,
-                                  child: _ProductImage(
-                                    url:
-                                        transaction.producto.objetoImagen !=
-                                                null ||
-                                            transaction.producto.objetoImagen !=
-                                                ""
-                                        ? transaction.producto.objetoImagen
-                                        : "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png",
-                                  ),
-                                ),
-                                const SizedBox(width: 20),
-                                Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                            InkWell(
+                              onTap: () => vm.isSelectedMode
+                                  ? vm.sleectedItem(indexOrder, index)
+                                  : null,
+                              // vm.modifyTra(context, indexOrder, index),
+                              onLongPress: () =>
+                                  vm.onLongPress(indexOrder, index),
+                              child: Stack(
+                                children: [
+                                  Row(
                                     children: [
-                                      Text(
-                                        transaction.producto.desProducto,
-                                        style: StyleApp.normal,
+                                      SizedBox(
+                                        height: 50,
+                                        width: 50,
+                                        child: _ProductImage(
+                                          url:
+                                              transaction
+                                                          .producto
+                                                          .objetoImagen !=
+                                                      null ||
+                                                  transaction
+                                                          .producto
+                                                          .objetoImagen !=
+                                                      ""
+                                              ? transaction
+                                                    .producto
+                                                    .objetoImagen
+                                              : "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Image_not_available.png/640px-Image_not_available.png",
+                                        ),
                                       ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        "${currencyFormat.format(transaction.precio.precioU)} C/U",
-                                        style: StyleApp.normal,
-                                      ),
-                                      const SizedBox(height: 5),
-                                      Text(
-                                        vm.getGuarniciones(indexOrder, index),
-                                        //tenia estil de la version
-                                        style: StyleApp.verMas,
-                                      ),
-                                      if (transaction.observacion.isNotEmpty)
-                                        Column(
+                                      const SizedBox(width: 20),
+                                      Expanded(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
+                                            Text(
+                                              transaction.producto.desProducto,
+                                              style: StyleApp.normal,
+                                            ),
                                             const SizedBox(height: 5),
-                                            TextsWidget(
-                                              title:
+                                            Text(
+                                              "${currencyFormat.format(transaction.precio.precioU)} C/U",
+                                              style: StyleApp.normal,
+                                            ),
+                                            const SizedBox(height: 5),
+                                            Text(
+                                              vm.getGuarniciones(
+                                                indexOrder,
+                                                index,
+                                              ),
+                                              //tenia estil de la version
+                                              style: StyleApp.verMas,
+                                            ),
+                                            if (transaction
+                                                .observacion
+                                                .isNotEmpty)
+                                              Column(
+                                                children: [
+                                                  const SizedBox(height: 5),
+                                                  TextsWidget(
+                                                    title:
+                                                        AppLocalizations.of(
+                                                          context,
+                                                        )!.translate(
+                                                          BlockTranslate
+                                                              .restaurante,
+                                                          'notas',
+                                                        ),
+                                                    text:
+                                                        transaction.observacion,
+                                                  ),
+                                                ],
+                                              ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 20),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        children: [
+                                          Text(
+                                            DateFormat(
+                                              'dd/MM/yyyy HH:mm:ss',
+                                            ).format(transaction.date),
+                                          ),
+                                          Text(
+                                            currencyFormat.format(
+                                              transaction.cantidad *
+                                                  transaction.precio.precioU,
+                                            ),
+                                            style: StyleApp.normalBold,
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Container(
+                                            height: 45,
+                                            width: 150,
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                color: AppTheme.border,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                IconButton(
+                                                  onPressed:
+                                                      vm
+                                                          .orders[indexOrder]
+                                                          .transacciones[index]
+                                                          .processed
+                                                      ? null
+                                                      : () => vm.decrement(
+                                                          context,
+                                                          indexOrder,
+                                                          index,
+                                                        ),
+                                                  icon:
+                                                      transaction.cantidad == 1
+                                                      ? const Icon(
+                                                          Icons.delete_outline,
+                                                        )
+                                                      : const Icon(
+                                                          Icons.remove,
+                                                        ),
+                                                ),
+                                                Text(
+                                                  "${transaction.cantidad}",
+                                                  style:
+                                                      vm
+                                                          .orders[indexOrder]
+                                                          .transacciones[index]
+                                                          .processed
+                                                      ? StyleApp.greyText
+                                                      : StyleApp.normalBold,
+                                                ),
+                                                IconButton(
+                                                  onPressed:
+                                                      vm
+                                                          .orders[indexOrder]
+                                                          .transacciones[index]
+                                                          .processed
+                                                      ? null
+                                                      : () => vm.increment(
+                                                          indexOrder,
+                                                          index,
+                                                        ),
+                                                  icon: const Icon(Icons.add),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          if (vm
+                                              .orders[indexOrder]
+                                              .transacciones[index]
+                                              .processed)
+                                            Column(
+                                              children: [
+                                                const SizedBox(height: 5),
+                                                Text(
                                                   AppLocalizations.of(
                                                     context,
                                                   )!.translate(
-                                                    BlockTranslate.restaurante,
-                                                    'notas',
+                                                    BlockTranslate.botones,
+                                                    'comandada',
                                                   ),
-                                              text: transaction.observacion,
+                                                  style: StyleApp.red,
+                                                ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                        ],
+                                      ),
                                     ],
                                   ),
-                                ),
-                                const SizedBox(width: 20),
-                                Column(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      currencyFormat.format(
-                                        transaction.cantidad *
-                                            transaction.precio.precioU,
-                                      ),
-                                      style: StyleApp.normalBold,
-                                    ),
-                                    const SizedBox(height: 5),
-                                    Container(
-                                      height: 45,
-                                      width: 150,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(
-                                          color: AppTheme.border,
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceAround,
-                                        children: [
-                                          IconButton(
-                                            onPressed:
-                                                vm
-                                                    .orders[indexOrder]
-                                                    .transacciones[index]
-                                                    .processed
-                                                ? null
-                                                : () => vm.decrement(
-                                                    context,
-                                                    indexOrder,
-                                                    index,
-                                                  ),
-                                            icon: transaction.cantidad == 1
-                                                ? const Icon(
-                                                    Icons.delete_outline,
-                                                  )
-                                                : const Icon(Icons.remove),
-                                          ),
-                                          Text(
-                                            "${transaction.cantidad}",
-                                            style:
-                                                vm
-                                                    .orders[indexOrder]
-                                                    .transacciones[index]
-                                                    .processed
-                                                ? StyleApp.greyText
-                                                : StyleApp.normalBold,
-                                          ),
-                                          IconButton(
-                                            onPressed:
-                                                vm
-                                                    .orders[indexOrder]
-                                                    .transacciones[index]
-                                                    .processed
-                                                ? null
-                                                : () => vm.increment(
-                                                    indexOrder,
-                                                    index,
-                                                  ),
-                                            icon: const Icon(Icons.add),
-                                          ),
-                                        ],
+                                  if (vm.isSelectedMode &&
+                                      vm
+                                          .orders[indexOrder]
+                                          .transacciones[index]
+                                          .selected)
+                                    const Positioned(
+                                      left: 40,
+                                      bottom: 0,
+                                      child: Icon(
+                                        Icons.check_circle,
+                                        color: AppTheme.verde,
                                       ),
                                     ),
-                                    if (vm
-                                        .orders[indexOrder]
-                                        .transacciones[index]
-                                        .processed)
-                                      Column(
-                                        children: [
-                                          const SizedBox(height: 5),
-                                          Text(
-                                            AppLocalizations.of(
-                                              context,
-                                            )!.translate(
-                                              BlockTranslate.botones,
-                                              'comandada',
-                                            ),
-                                            style: StyleApp.red,
-                                          ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            if (vm.isSelectedMode &&
-                                vm
-                                    .orders[indexOrder]
-                                    .transacciones[index]
-                                    .selected)
-                              const Positioned(
-                                left: 40,
-                                bottom: 0,
-                                child: Icon(
-                                  Icons.check_circle,
-                                  color: AppTheme.verde,
-                                ),
+                                  // if (vm.orders[indexOrder].transacciones[index]
+                                  //     .processed)
+                                  //   const Positioned(
+                                  //     left: 0,
+                                  //     bottom: 0,
+                                  //     child: Icon(
+                                  //       Icons.lock_outline,
+                                  //       color: Colors.red,
+                                  //     ),
+                                  //   ),
+                                ],
                               ),
-                            // if (vm.orders[indexOrder].transacciones[index]
-                            //     .processed)
-                            //   const Positioned(
-                            //     left: 0,
-                            //     bottom: 0,
-                            //     child: Icon(
-                            //       Icons.lock_outline,
-                            //       color: Colors.red,
-                            //     ),
-                            //   ),
+                            ),
+                            const SizedBox(height: 5),
+                            const Divider(),
                           ],
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      const Divider(),
-                    ],
-                  );
-                },
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
