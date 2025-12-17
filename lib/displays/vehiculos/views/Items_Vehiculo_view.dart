@@ -140,7 +140,6 @@ class _ItemsVehiculoView extends StatelessWidget {
                   ),
 
                   if ((vm.fotosPorItem[item.idProducto] ?? []).isNotEmpty)
-
                     SizedBox(
                       height: 80,
                       child: ListView(
@@ -152,7 +151,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                                   horizontal: 4,
                                 ),
                                 child: Image.file(
-                                  File(foto.path),
+                                  File(foto),
                                   width: 80,
                                   fit: BoxFit.cover,
                                 ),

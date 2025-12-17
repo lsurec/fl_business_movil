@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:fl_business/displays/vehiculos/services/ItemsVehiculo_service.dart';
 import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart'
     as api;
+import 'package:path_provider/path_provider.dart';
 
 class ItemsVehiculoViewModel extends ChangeNotifier {
   final ItemVehiculoService _service = ItemVehiculoService();
@@ -17,7 +18,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
   final Map<String, TextEditingController> controllers = {};
   final Map<String, bool> isChecked = {};
-  final Map<String, List<XFile>> fotosPorItem = {};
+  final Map<String, List<String>> fotosPorItem = {};
 
   final List<TraInternaModel> transaciciones = [];
 
@@ -49,8 +50,8 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
                   unidadMedida: item.unidadMedida,
                   productoId: item.idProducto,
                   desProducto: item.desProducto,
-                  desUnidadMedida: '',
-                  tipoProducto: 1,
+                  desUnidadMedida: item.desUnidadMedida,
+                  tipoProducto: item.tipoProducto,
                   orden: 0,
                   rows: 0,
                 ),
@@ -69,7 +70,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
                 operaciones: [],
                 bodega: BodegaProductoModel(
                   bodega: item.bodega,
-                  nombre: '',
+                  nombre: item.nomBodega,
                   existencia: 1,
                   poseeComponente: false,
                   orden: 1,
@@ -122,27 +123,28 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
     if (foto == null) return;
 
-    // Obtener objeto transacción según idProducto
+    // 📌 Directorio persistente de la app
+    final appDir = await getApplicationDocumentsDirectory();
+
+    // 📌 Crear nombre único
+    final String fileName = "${DateTime.now().millisecondsSinceEpoch}.jpg";
+    final String savedPath = "${appDir.path}/$fileName";
+
+    // 📌 Copiar la foto al directorio persistente
+    final File newImage = await File(foto.path).copy(savedPath);
+
+    // 📌 Guardar el path REAL en fotosPorItem
+    fotosPorItem[idProducto] ??= [];
+    fotosPorItem[idProducto]!.add(newImage.path);
+
+    // 📌 Guardarlo también en la transacción (si lo necesitas después)
     final index = transaciciones.indexWhere(
       (t) => t.producto.productoId == idProducto,
     );
 
-    if (index == -1) return;
-
-    // Ruta original de la foto
-    final String originalPath = foto.path;
-
-    // Crear un nombre único para almacenar el path
-    final String newPath = "${originalPath}_ref";
-
-    // Guardar solo el path dentro del modelo
-    transaciciones[index].files ??= [];
-    transaciciones[index].files!.add(newPath);
-
-    // Borrar archivo original
-    final file = File(originalPath);
-    if (await file.exists()) {
-      await file.delete();
+    if (index != -1) {
+      transaciciones[index].files ??= [];
+      transaciciones[index].files!.add(newImage.path);
     }
 
     notifyListeners();

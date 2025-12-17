@@ -6,8 +6,12 @@ class ItemVehiculoApi {
   final int moneda;
   final double precioUnidad;
   final int tipoTarifa;
+
   final String idProducto;
   final String desProducto;
+  final String desUnidadMedida;
+  final int tipoProducto;
+  final String nomBodega;
 
   ItemVehiculoApi({
     required this.bodega,
@@ -19,6 +23,9 @@ class ItemVehiculoApi {
     required this.tipoTarifa,
     required this.idProducto,
     required this.desProducto,
+    required this.desUnidadMedida,
+    required this.tipoProducto,
+    required this.nomBodega,
   });
 
   factory ItemVehiculoApi.fromJson(Map<String, dynamic> json) {
@@ -32,6 +39,9 @@ class ItemVehiculoApi {
       tipoTarifa: json['tipo_Tarifa'] ?? 0,
       idProducto: json['id_Producto']?.toString() ?? '',
       desProducto: json['des_Producto'] ?? '',
+      desUnidadMedida: json['des_Unidad_Medida'] ?? '',
+      tipoProducto: json['tipo_Producto'] ?? 0,
+      nomBodega: json['nom_Bodega'] ?? '',
     );
   }
 }

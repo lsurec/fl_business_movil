@@ -195,7 +195,7 @@ class DatosGuardadosScreen extends StatelessWidget {
                     return ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.file(
-                        File(foto.path),
+                        File(foto),
                         width: 100,
                         height: 100,
                         fit: BoxFit.cover,
@@ -270,7 +270,7 @@ class DatosGuardadosScreen extends StatelessWidget {
                     spacing: 6,
                     runSpacing: 6,
                     children: item.fotos.map((f) {
-                      final file = File(f.path);
+                      final file = File(f);
                       if (!file.existsSync()) return pw.Container();
                       final img = pw.MemoryImage(file.readAsBytesSync());
                       return pw.Image(img, width: 80, height: 80);

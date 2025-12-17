@@ -4,17 +4,14 @@ import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart';
 import 'package:http/http.dart' as http;
 
 class ItemVehiculoService {
-  /// Obtiene la lista de ítems del vehículo desde la API
   Future<List<ItemVehiculoApi>> getItemsVehiculo({
     required String tipoDocumento,
     required String serieDocumento,
     required String empresa,
     required String estacionTrabajo,
   }) async {
-    // ========== URL construida igual que EstadoService ==========
+ 
     final String url = "${Preferences.urlApi}v2/ItemsVehiculo/items";
-
-    // ========== Encabezados igual que EstadoService ==========
     final headers = {
       "Content-Type": "application/json",
       "Authorization": "bearer ${Preferences.token}",
@@ -45,7 +42,7 @@ class ItemVehiculoService {
         "Error HTTP ${response.statusCode}: ${response.reasonPhrase}\n${response.body}",
       );
     } catch (e) {
-      print("❌ Error en ItemVehiculoService.getItemsVehiculo(): $e");
+      print(" Error en ItemVehiculoService.getItemsVehiculo(): $e");
       return [];
     }
   }

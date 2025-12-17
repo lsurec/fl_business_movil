@@ -59,15 +59,15 @@ class ItemVehiculo {
   String detalle;
   bool completado;
 
-  // Lista de fotografías asociadas al ítem
-  List<XFile> fotos = [];
+  // Guardamos paths, no XFile
+  List<String> fotos;
 
   ItemVehiculo({
     required this.idProducto,
     required this.desProducto,
     this.detalle = '',
     this.completado = false,
-    List<XFile>? fotos,
+    List<String>? fotos,
   }) : fotos = fotos ?? [];
 }
 
@@ -198,6 +198,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final VehiculoService _vehiculoService = VehiculoService();
 
   Future<void> cargarDatosIniciales(BuildContext context) async {
+    isLoading = false;
     try {
       isLoading = true;
       notifyListeners();
@@ -209,7 +210,30 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         listen: false,
       );
 
-      loadSeries(context, vmMenu.documento!);
+      await loadSeries(context, vmMenu.documento!);
+
+      if (series.isEmpty) {
+        //TODO: Mostrar mensaje de que no hay series
+        NotificationService.showSnackbar('No hay series asigandas');
+        return;
+      }
+
+      for (var element in series) {
+        if (element.orden == 1) {
+          serieSelect = element;
+          break;
+        }
+      }
+
+      if (serieSelect == null) {
+        serieSelect = series.first;
+      }
+
+      await loadSellers(
+        context,
+        serieSelect!.serieDocumento!,
+        vmMenu.documento!,
+      );
 
       marcas = await _vehiculoService.obtenerMarcas();
       anios = await _vehiculoService.obtenerAnios();
@@ -287,17 +311,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     cc = ccController.text;
     cil = cilController.text;
 
-    debugPrint('Guardando datos del vehículo y cliente...');
-    debugPrint('NIT: $nit, Nombre: $nombre, Dirección: $direccion');
-    debugPrint(
-      'Marca: ${marcaSeleccionada?.descripcion}, Modelo: ${modeloSeleccionado?.descripcion}',
-    );
-    debugPrint(
-      'Año: ${anioSeleccionado?.anio}, Color: ${colorSeleccionado?.descripcion}',
-    );
-    debugPrint('Detalle: $detalleTrabajo, Celular: $celular, Email: $email');
-    debugPrint('KM: $kilometraje, CC: $cc, CIL: $cil');
-    debugPrint('Fecha recibido: $fechaRecibido, Fecha salida: $fechaSalida');
+    
 
     notifyListeners();
   }
@@ -306,37 +320,58 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   //                           LIMPIAR FORMULARIO COMPLETO
   // ============================================================================
   void cancelar() {
-    nit = '';
-    nombre = '';
-    direccion = '';
-    detalleTrabajo = '';
-    celular = '';
-    email = '';
-    kilometraje = '';
-    cc = '';
-    cil = '';
-    marcaSeleccionada = null;
-    modeloSeleccionado = null;
-    anioSeleccionado = null;
-    colorSeleccionado = null;
-    fechaRecibido = '';
-    fechaSalida = '';
+  //  Limpiar variables de cliente
+  clienteSelect = null;
+  nit = '';
+  nombre = '';
+  direccion = '';
+  celular = '';
+  email = '';
 
-    limpiarItems();
+  //  Limpiar detalle y datos de vehículo
+  detalleTrabajo = '';
+  kilometraje = '';
+  cc = '';
+  cil = '';
+  marcaSeleccionada = null;
+  modeloSeleccionado = null;
+  anioSeleccionado = null;
+  colorSeleccionado = null;
 
-    // Limpiar controladores
-    detalleTrabajoController.clear();
-    celularController.clear();
-    emailController.clear();
-    kilometrajeController.clear();
-    ccController.clear();
-    cilController.clear();
-    nitController.clear();
-    nombreController.clear();
-    direccionController.clear();
+  //  Limpiar fechas
+  fechaRecibido = '';
+  fechaSalida = '';
 
-    notifyListeners();
-  }
+  //  Limpiar lista o datos de items
+  limpiarItems();
+
+  //  Limpiar controllers
+  nitController.clear();
+  nombreController.clear();
+  direccionController.clear();
+  celularController.clear();
+  emailController.clear();
+  detalleTrabajoController.clear();
+  kilometrajeController.clear();
+  ccController.clear();
+  cilController.clear();
+
+  notifyListeners();
+}
+
+
+//validar campos llenos
+bool get formularioValido {
+  return clienteSelect != null &&                               // Cuenta seleccionada
+         marcaSeleccionada != null &&
+         modeloSeleccionado != null &&
+         anioSeleccionado != null &&
+         colorSeleccionado != null &&                            // Datos del vehículo
+         detalleTrabajoController.text.trim().isNotEmpty &&      // Detalle del trabajo
+         fechaRecibido.isNotEmpty &&
+         fechaSalida.isNotEmpty;                                 // Fechas
+}
+
 
   int idDocumentoRef = 0;
 
@@ -696,7 +731,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     //si son varias coicidencias navegar a pantalla seleccionar cliente
     Navigator.pushNamed(
       context,
-      "selectClient",
+      "slClientRecepcion",
       arguments: cuentasCorrentistas,
     );
   }
@@ -707,11 +742,26 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     clienteSelect = client;
 
+    // 🔥 Actualizar variables
+    nit = client.facturaNit;
+    nombre = client.facturaNombre;
+    direccion = client.cCDireccion ?? '';
+    celular = client.telefono ?? '';
+    email = client.eMail ?? '';
+
+    // 🔥 Y actualizar también los controllers (muy importante)
+    nitController.text = nit;
+    nombreController.text = nombre;
+    direccionController.text = direccion;
+    celularController.text = celular;
+    emailController.text = email;
+
     if (!vmFactura.editDoc) {
       DocumentService.saveDocumentLocal(context);
     }
 
     notifyListeners();
+
     if (back) Navigator.pop(context);
   }
 
@@ -965,7 +1015,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  //Seccion de serie
   Future<void> loadSellers(
     BuildContext context,
     String serie,
@@ -998,6 +1047,38 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       empresa, // empresa,
       token, // token,
     );
+
+    //valid succes response
+    if (!res.succes) {
+      //si algo salio mal mostrar alerta
+
+      await NotificationService.showErrorView(context, res);
+      return;
+    }
+
+    //agregar vendedores
+    cuentasCorrentistasRef.addAll(res.response);
+
+    //si solo hay un vendedor agregarlo por defecto
+    if (cuentasCorrentistasRef.length == 1) {
+      vendedorSelect = cuentasCorrentistasRef.first;
+      if (!vmFactura.editDoc) {
+        DocumentService.saveDocumentLocal(context);
+      }
+    }
+
+    if (cuentasCorrentistasRef.isNotEmpty) {
+      //Buscar y seleccionar el item con el numero menor en el campo orden
+      vendedorSelect = cuentasCorrentistasRef.reduce((prev, curr) {
+        return (curr.orden < prev.orden) ? curr : prev;
+      });
+
+      if (!vmFactura.editDoc) {
+        DocumentService.saveDocumentLocal(context);
+      }
+    }
+
+    notifyListeners();
   }
 
   //devuelve el tipo de transaccion que se va a usar
