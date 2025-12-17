@@ -153,7 +153,7 @@ class AppRoutes {
     tablero: (BuildContext context) => const PrincipalView(),
 
     printerView: (BuildContext context) => const PrinterView(),
-    vehiculos: (BuildContext context) => const CatalogoVehiculosView(),
+    vehiculos: (BuildContext context) => const InicioVehiculosView(),
     selecClientRecepcion: (BuildContext context) => const SelectClienteRecepcionView(),
   };
 
