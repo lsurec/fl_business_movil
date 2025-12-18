@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fl_business/displays/shr_local_config/models/models.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/services/picture_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,18 +34,20 @@ class TmuUtils {
   }
 
   Future<img.Image> getEnterpriseLogo(BuildContext context) async {
-    final EmpresaModel empresa = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEmpresa!;
+    // final EmpresaModel empresa = Provider.of<LocalSettingsViewModel>(
+    //   context,
+    //   listen: false,
+    // ).selectedEmpresa!;
 
-    PictureService pictureService = PictureService();
-    final ByteData logo = await pictureService.getLogo(
-      empresa.absolutePathPicture,
-    );
+    // PictureService pictureService = PictureService();
+    // final ByteData logo = await pictureService.getLogo(
+    //   empresa.absolutePathPicture,
+    // );
+
+    final File logo = Provider.of<LogoProvider>(context, listen: false).logo!;
 
     // Convertir ByteData a Uint8List
-    final Uint8List logoBytes = logo.buffer.asUint8List();
+    final Uint8List logoBytes = await logo.readAsBytes();
 
     final Uint8List pictureResize = await compressPicture(logoBytes);
 

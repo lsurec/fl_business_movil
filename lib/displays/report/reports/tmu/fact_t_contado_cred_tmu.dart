@@ -1,5 +1,6 @@
 import 'package:fl_business/displays/report/utils/tmu_utils.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
@@ -27,8 +28,6 @@ class FactTContadoCredTMU {
 
     final TmuUtils utils = TmuUtils();
 
-    final enterpriseLogo = await utils.getEnterpriseLogo(context);
-
     List<int> bytes = [];
 
     final generator = Generator(
@@ -38,7 +37,11 @@ class FactTContadoCredTMU {
 
     bytes += generator.setGlobalCodeTable('CP1252');
 
-    bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+    if (Provider.of<LogoProvider>(context, listen: false).logo != null) {
+      final enterpriseLogo = await utils.getEnterpriseLogo(context);
+
+      bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+    }
 
     //Reporte de xistencias
     // Encabezado
@@ -81,14 +84,6 @@ class FactTContadoCredTMU {
 
     bytes += generator.hr(); // Línea horizontal
 
-    for (var element in data.docs) {
-      bytes += generator.text("ID: ${element.id}");
-      bytes += generator.text("Monto: ${element.monto.toStringAsFixed(2)}");
-      bytes += generator.hr(); // Línea horizontal
-    }
-
-    bytes += generator.hr(); // Línea horizontal
-
     bytes += generator.text(
       "Total Contado (Venta):",
       styles: UtilitiesTMU.startBold,
@@ -118,7 +113,15 @@ class FactTContadoCredTMU {
       "   ${data.docs.length}",
       styles: UtilitiesTMU.startBold,
     );
+
     bytes += generator.hr(); // Línea horizontal
+
+    for (var element in data.docs) {
+      bytes += generator.text("ID: ${element.id}");
+      bytes += generator.text("Monto: ${element.monto.toStringAsFixed(2)}");
+      bytes += generator.hr(); // Línea horizontal
+    }
+
     // Información adicional
 
     bytes += generator.text("Powered by", styles: UtilitiesTMU.center);
@@ -140,7 +143,13 @@ class FactTContadoCredTMU {
 
     bytes += generator.text(data.storeProcedure, styles: UtilitiesTMU.center);
 
-    bytes += generator.cut();
+    if (!Preferences.paperCut) {
+      bytes += generator.emptyLines(3);
+    }
+
+    if (Preferences.paperCut) {
+      bytes += generator.cut();
+    }
 
     printerVM.printTMU(context, bytes, false);
   }

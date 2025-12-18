@@ -10,13 +10,13 @@ import 'package:fl_business/displays/shr_local_config/view_models/view_models.da
 import 'package:fl_business/displays/tablero_kanban/view_models/tablero_view_model.dart';
 import 'package:fl_business/displays/tareas/view_models/view_models.dart';
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/themes/themes.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
-import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/views/views.dart';
 import 'package:flutter/material.dart';
@@ -104,6 +104,7 @@ class AppState extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => PrinterViewModel()),
         ChangeNotifierProvider(create: (_) => ErrorPrintViewModel()),
+        ChangeNotifierProvider(create: (_) => LogoProvider()),
       ],
       child: const MyApp(),
     );
@@ -183,3 +184,27 @@ ThemeData aplicarTema(
   // Utilizamos la función auxiliar getThemeByColor para obtener el tema basado en idColorTema
   return vmTema.getThemeByColor(idColor, isDarkMode: isDarkMode);
 }
+
+// import 'package:fl_business/demos/printer/widgets/tabla_demo.dart';
+// import 'package:flutter/material.dart';
+
+// void main() {
+//   runApp(const MyApp());
+// }
+
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     // Método build que construye la UI
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       title: 'Demo Tabla',
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue, // Color primario de la app
+//       ),
+//       home: TablaDemoPage(), // Página inicial de la app: tabla demo
+//     );
+//   }
+// }

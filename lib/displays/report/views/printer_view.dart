@@ -26,6 +26,7 @@ class PrinterView extends StatelessWidget {
             height: 80,
             child: ElevatedButton(
               onPressed: () => vm.printTest(context),
+              // onPressed: () => vm.printTestV2(context),
               child: SizedBox(
                 width: double.infinity,
                 child: Center(
@@ -104,6 +105,43 @@ class PrinterView extends StatelessWidget {
                   ),
                 ),
                 const Divider(),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    "Cortar despues de imprimir",
+                    style: StyleApp.normal,
+                  ),
+                  value: Preferences.paperCut,
+                  onChanged: (value) => vm.cutPaper(context, value),
+                ),
+                const Divider(),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Desconectar en:", style: StyleApp.normal),
+                    IconButton(
+                      icon: Icon(
+                        Icons.remove,
+                        color: Preferences.secondsPrint == 10
+                            ? AppTheme.grey
+                            : AppTheme.primary,
+                      ),
+                      onPressed: Preferences.secondsPrint == 10
+                          ? null
+                          : () => vm.removeSeconds(),
+                    ),
+                    Text(
+                      '${Preferences.secondsPrint} s',
+                      style: StyleApp.normalBold,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, color: AppTheme.primary),
+                      onPressed: () => vm.addSeconds(),
+                    ),
+                  ],
+                ),
+                const Divider(),
+
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -100,7 +100,7 @@ class UtilitiesService {
       minHeight: 100,
       minWidth: 200,
       quality: 50, // Baja calidad para impresión
-      format: CompressFormat.jpeg,
+      format: CompressFormat.png,
     );
   }
 

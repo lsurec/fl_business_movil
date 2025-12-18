@@ -5,9 +5,12 @@ import 'dart:io';
 import 'package:fl_business/displays/shr_local_config/models/models.dart';
 import 'package:fl_business/displays/shr_local_config/services/services.dart';
 import 'package:fl_business/models/models.dart';
+import 'package:fl_business/models/url_pic_model.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:flutter/material.dart';
@@ -53,21 +56,20 @@ class LocalSettingsViewModel extends ChangeNotifier {
 
     final String user = loginVM.user;
     final String token = loginVM.token;
-    final PictureService pictureService = Provider.of<PictureService>(
-      context,
-      listen: false,
-    );
 
-    final urlPic = selectedEmpresa!.absolutePathPicture;
+    final urlPic = selectedEmpresa?.absolutePathPicture ?? "";
 
-    final String namePic = pictureService.getImageName(urlPic);
-
-    File? file = await pictureService.getSavedImage(namePic);
-
-    if (file == null) {
-      pictureService.fetchAndSaveImage(token, urlPic);
+    if (urlPic.isEmpty) {
+      NotificationService.showSnackbar("Logo de empresa no asignado");
     } else {
-      pictureService.loadSavedImage(namePic);
+      Uri uriPicture = Uri.parse(selectedEmpresa!.absolutePathPicture);
+
+      if (Preferences.logo != uriPicture.pathSegments.last) {
+        Provider.of<LogoProvider>(context, listen: false).loadLogo(
+          token,
+          UrlPicModel(url: selectedEmpresa!.absolutePathPicture),
+        );
+      }
     }
 
     //inicia de proceso

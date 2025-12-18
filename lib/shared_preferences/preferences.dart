@@ -22,10 +22,32 @@ class Preferences {
   static const String _printer = "printer";
   static const String _paperSize = "paperSize";
   static const String _order = "orderRest";
+  static const String _secondsPrint = "secondsPrint";
+  static const String _paperCut = "paperCut";
 
   //iniciar shared preferences
   static Future init() async {
     _prefs = await SharedPreferences.getInstance();
+  }
+
+  //Cortar papel despues de imprimir
+  static set paperCut(bool value) {
+    _prefs.setBool(_paperCut, value);
+  }
+
+  //Cortar papel despues de imprimir
+  static bool get paperCut {
+    return _prefs.getBool(_paperCut) ?? false;
+  }
+
+  //segundos de espra para desconectar la impresora
+  static set secondsPrint(int value) {
+    _prefs.setInt(_secondsPrint, value);
+  }
+
+  //segundos de espra para desconectar la impresora
+  static int get secondsPrint {
+    return _prefs.getInt(_secondsPrint) ?? 10;
   }
 
   //guardar orden restaurante

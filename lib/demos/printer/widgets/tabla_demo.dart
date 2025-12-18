@@ -1,6 +1,6 @@
-import 'package:fl_business/demos/print_demo/models/estado_cuenta.dart';
-import 'package:fl_business/demos/print_demo/utils/utils.dart';
-import 'package:fl_business/demos/print_demo/widgets/vista_previa.dart';
+import 'package:fl_business/demos/printer/models/estado_cuenta.dart';
+import 'package:fl_business/demos/printer/utils/utils.dart';
+import 'package:fl_business/demos/printer/widgets/vista_previa.dart';
 import 'package:flutter/material.dart';
 
 // Página de demostración de tabla

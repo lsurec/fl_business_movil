@@ -2,8 +2,7 @@
 
 import 'package:fl_business/displays/report/utils/tmu_utils.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
-import 'package:fl_business/displays/shr_local_config/models/empresa_model.dart';
-import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
@@ -33,11 +32,6 @@ class FacturaTMU {
         listen: false,
       );
 
-      final EmpresaModel empresa = Provider.of<LocalSettingsViewModel>(
-        context,
-        listen: false,
-      ).selectedEmpresa!;
-
       // Crear una instancia de NumberFormat para el formato de moneda
       final currencyFormat = NumberFormat.currency(
         symbol: vmHome
@@ -48,8 +42,6 @@ class FacturaTMU {
       final DocPrintModel data = FacturaProvider.data!;
 
       final TmuUtils utils = TmuUtils();
-
-      final bool existImage = empresa.absolutePathPicture.isEmpty;
 
       List<int> bytes = [];
 
@@ -66,7 +58,7 @@ class FacturaTMU {
 
       bytes += generator.setGlobalCodeTable('CP1252');
 
-      if (!existImage) {
+      if (Provider.of<LogoProvider>(context, listen: false).logo != null) {
         final enterpriseLogo = await utils.getEnterpriseLogo(context);
 
         bytes += generator.image(enterpriseLogo, align: PosAlign.center);
@@ -439,8 +431,13 @@ class FacturaTMU {
       );
 
       bytes += generator.text(data.procedimientoAlmacenado, styles: center);
+      if (!Preferences.paperCut) {
+        bytes += generator.emptyLines(3);
+      }
 
-      bytes += generator.cut();
+      if (Preferences.paperCut) {
+        bytes += generator.cut();
+      }
 
       printerVM.printTMU(context, bytes, false);
     } catch (e) {
