@@ -105,16 +105,16 @@ class PrinterView extends StatelessWidget {
                   ),
                 ),
                 const Divider(),
-                // SwitchListTile(
-                //   contentPadding: EdgeInsets.zero,
-                //   title: Text(
-                //     "Cortar despues de imprimir",
-                //     style: StyleApp.normal,
-                //   ),
-                //   value: Preferences.paperCut,
-                //   onChanged: (value) => vm.cutPaper(context, value),
-                // ),
-                // const Divider(),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    "Cortar despues de imprimir",
+                    style: StyleApp.normal,
+                  ),
+                  value: Preferences.paperCut,
+                  onChanged: (value) => vm.cutPaper(context, value),
+                ),
+                const Divider(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

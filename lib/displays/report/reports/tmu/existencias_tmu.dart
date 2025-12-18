@@ -102,8 +102,13 @@ class ExistenciasTMU {
     );
 
     bytes += generator.text(data.storeProcedure, styles: UtilitiesTMU.center);
+    if (!Preferences.paperCut) {
+      bytes += generator.emptyLines(3);
+    }
 
-    bytes += generator.emptyLines(3);
+    if (Preferences.paperCut) {
+      bytes += generator.cut();
+    }
 
     printerVM.printTMU(context, bytes, false);
   }

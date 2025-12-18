@@ -2,8 +2,6 @@
 
 import 'package:fl_business/displays/report/utils/tmu_utils.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
-import 'package:fl_business/displays/shr_local_config/models/empresa_model.dart';
-import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
@@ -33,11 +31,6 @@ class FacturaTMU {
         context,
         listen: false,
       );
-
-      final EmpresaModel empresa = Provider.of<LocalSettingsViewModel>(
-        context,
-        listen: false,
-      ).selectedEmpresa!;
 
       // Crear una instancia de NumberFormat para el formato de moneda
       final currencyFormat = NumberFormat.currency(
@@ -438,7 +431,13 @@ class FacturaTMU {
       );
 
       bytes += generator.text(data.procedimientoAlmacenado, styles: center);
-      bytes += generator.emptyLines(3);
+      if (!Preferences.paperCut) {
+        bytes += generator.emptyLines(3);
+      }
+
+      if (Preferences.paperCut) {
+        bytes += generator.cut();
+      }
 
       printerVM.printTMU(context, bytes, false);
     } catch (e) {

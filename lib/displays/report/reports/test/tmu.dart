@@ -109,7 +109,13 @@ class TestTMU {
         ),
       );
 
-      report.addAll(generator.emptyLines(3));
+      if (!Preferences.paperCut) {
+        report.addAll(generator.emptyLines(3));
+      }
+
+      if (Preferences.paperCut) {
+        report.addAll(generator.cut());
+      }
 
       return true;
     } catch (e) {

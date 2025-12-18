@@ -84,14 +84,6 @@ class FactTContadoCredTMU {
 
     bytes += generator.hr(); // Línea horizontal
 
-    for (var element in data.docs) {
-      bytes += generator.text("ID: ${element.id}");
-      bytes += generator.text("Monto: ${element.monto.toStringAsFixed(2)}");
-      bytes += generator.hr(); // Línea horizontal
-    }
-
-    bytes += generator.hr(); // Línea horizontal
-
     bytes += generator.text(
       "Total Contado (Venta):",
       styles: UtilitiesTMU.startBold,
@@ -121,7 +113,15 @@ class FactTContadoCredTMU {
       "   ${data.docs.length}",
       styles: UtilitiesTMU.startBold,
     );
+
     bytes += generator.hr(); // Línea horizontal
+
+    for (var element in data.docs) {
+      bytes += generator.text("ID: ${element.id}");
+      bytes += generator.text("Monto: ${element.monto.toStringAsFixed(2)}");
+      bytes += generator.hr(); // Línea horizontal
+    }
+
     // Información adicional
 
     bytes += generator.text("Powered by", styles: UtilitiesTMU.center);
@@ -143,7 +143,13 @@ class FactTContadoCredTMU {
 
     bytes += generator.text(data.storeProcedure, styles: UtilitiesTMU.center);
 
-    bytes += generator.emptyLines(3);
+    if (!Preferences.paperCut) {
+      bytes += generator.emptyLines(3);
+    }
+
+    if (Preferences.paperCut) {
+      bytes += generator.cut();
+    }
 
     printerVM.printTMU(context, bytes, false);
   }
