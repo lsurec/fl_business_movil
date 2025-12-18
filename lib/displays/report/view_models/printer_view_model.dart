@@ -52,6 +52,61 @@ class PrinterViewModel extends ChangeNotifier {
 
   final List<BluetoothDevice> devices = [];
 
+  cutPaper(BuildContext context, bool value) {
+    Preferences.paperCut = value;
+    notifyListeners();
+
+    if (!Preferences.paperCut) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Cortar papel automáticamente"),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Activa esta opción solo si tu impresora cuenta con guillotina. De lo contrario, pueden generarse errores o cortes incorrectos.",
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.botones, "cerrar"),
+              ),
+            ),
+            // TextButton(
+            //   onPressed: () {
+            //     // Aquí puedes agregar lógica adicional, como redirigir a la sección de soporte.
+            //     Navigator.of(context).pop();
+            //   },
+            //   child: Text('Contactar Soporte'),
+            // ),
+          ],
+        );
+      },
+    );
+  }
+
+  addSeconds() {
+    Preferences.secondsPrint++;
+    notifyListeners();
+  }
+
+  removeSeconds() {
+    if (Preferences.secondsPrint == 10) return;
+
+    Preferences.secondsPrint--;
+    notifyListeners();
+  }
+
   Future<void> getDevices() async {
     isLoadingDevices = true;
 
@@ -171,7 +226,7 @@ class PrinterViewModel extends ChangeNotifier {
       await bluetooth.writeBytes(Uint8List.fromList(report));
 
       // esperar a que termine de procesar la impresión
-      await Future.delayed(const Duration(seconds: 5));
+      await Future.delayed(Duration(seconds: Preferences.secondsPrint));
 
       //desconectar impresora
       await disconnectPrint();
