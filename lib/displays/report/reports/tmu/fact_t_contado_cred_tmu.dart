@@ -114,16 +114,15 @@ class FactTContadoCredTMU {
       styles: UtilitiesTMU.startBold,
     );
 
-    bytes += generator.hr(); // Línea horizontal
-
     for (var element in data.docs) {
-      bytes += generator.text("ID: ${element.id}");
-      bytes += generator.text("Monto: ${element.monto.toStringAsFixed(2)}");
-      bytes += generator.hr(); // Línea horizontal
+      bytes += generator.text(
+        "ID: ${element.id}; Monto: ${element.monto.toStringAsFixed(2)}",
+      );
     }
 
-    // Información adicional
+    bytes += generator.hr(); // Línea horizontal
 
+    // Información adicional
     bytes += generator.text("Powered by", styles: UtilitiesTMU.center);
 
     bytes += generator.text(
