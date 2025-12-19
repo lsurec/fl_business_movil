@@ -25,6 +25,7 @@ import 'package:fl_business/displays/prc_documento_3/view_models/document_view_m
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/vehiculos/models/recepcion_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculoYearModel.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculos_model.dart';
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
@@ -117,6 +118,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String kilometraje = '';
   String cc = '';
   String cil = '';
+  String placa = '';
+  String chasis = '';
 
   // ============================================================================
   //                          CONTROLADORES DE INPUT
@@ -131,6 +134,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final TextEditingController nitController = TextEditingController();
   final TextEditingController nombreController = TextEditingController();
   final TextEditingController direccionController = TextEditingController();
+  final TextEditingController placaController = TextEditingController();
+  final TextEditingController chasisController = TextEditingController();
+
   final List<SellerModel> cuentasCorrentistasRef = []; //cuenta correntisat ref
   final List<SerieModel> series = [];
   final List<ParametroModel> parametros = [];
@@ -300,76 +306,112 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   //                           GUARDAR INFORMACIÓN
   // ============================================================================
   /// Carga los valores de los TextControllers a las variables reales
-  void guardar() {
-    nit = nitController.text;
-    nombre = nombreController.text;
-    direccion = direccionController.text;
-    detalleTrabajo = detalleTrabajoController.text;
-    celular = celularController.text;
-    email = emailController.text;
-    kilometraje = kilometrajeController.text;
-    cc = ccController.text;
-    cil = cilController.text;
+  /// 
 
-    
+RecepcionVehiculoModel? recepcionGuardada;
 
-    notifyListeners();
-  }
+void guardar() {
+  recepcionGuardada = RecepcionVehiculoModel(
+    // --------------------
+    // Datos del cliente
+    // --------------------
+    nit: nitController.text.trim(),
+    nombre: nombreController.text.trim(),
+    direccion: direccionController.text.trim(),
+    celular: celularController.text.trim(),
+    email: emailController.text.trim(),
 
-  // ============================================================================
-  //                           LIMPIAR FORMULARIO COMPLETO
-  // ============================================================================
-  void cancelar() {
-  //  Limpiar variables de cliente
-  clienteSelect = null;
-  nit = '';
-  nombre = '';
-  direccion = '';
-  celular = '';
-  email = '';
+    // --------------------
+    // Datos del vehículo
+    // --------------------
+    placa: placaController.text.trim(),
+    chasis: chasisController.text.trim(),
+    marca: marcaSeleccionada?.descripcion ?? '',
+    modelo: modeloSeleccionado?.descripcion ?? '',
+    anio: anioSeleccionado?.anio ?? 0,
+    color: colorSeleccionado?.descripcion ?? '',
 
-  //  Limpiar detalle y datos de vehículo
-  detalleTrabajo = '';
-  kilometraje = '';
-  cc = '';
-  cil = '';
-  marcaSeleccionada = null;
-  modeloSeleccionado = null;
-  anioSeleccionado = null;
-  colorSeleccionado = null;
+    // --------------------
+    // Fechas
+    // --------------------
+    fechaRecibido: fechaRecibido,
+    fechaSalida: fechaSalida,
 
-  //  Limpiar fechas
-  fechaRecibido = '';
-  fechaSalida = '';
-
-  //  Limpiar lista o datos de items
-  limpiarItems();
-
-  //  Limpiar controllers
-  nitController.clear();
-  nombreController.clear();
-  direccionController.clear();
-  celularController.clear();
-  emailController.clear();
-  detalleTrabajoController.clear();
-  kilometrajeController.clear();
-  ccController.clear();
-  cilController.clear();
+    // --------------------
+    // Observaciones
+    // --------------------
+    detalleTrabajo: detalleTrabajoController.text.trim(),
+    kilometraje: kilometrajeController.text.trim(),
+    cc: ccController.text.trim(),
+    cil: cilController.text.trim(),
+  );
 
   notifyListeners();
 }
 
 
-//validar campos llenos
-bool get formularioValido {
-  return clienteSelect != null &&                               // Cuenta seleccionada
-         marcaSeleccionada != null &&
-         modeloSeleccionado != null &&
-         anioSeleccionado != null &&
-         colorSeleccionado != null &&                            // Datos del vehículo
-         detalleTrabajoController.text.trim().isNotEmpty &&      // Detalle del trabajo
-         fechaRecibido.isNotEmpty &&
-         fechaSalida.isNotEmpty;                                 // Fechas
+
+  // ============================================================================
+  //                           LIMPIAR FORMULARIO COMPLETO
+  // ============================================================================
+  void cancelar() {
+    recepcionGuardada = null;
+    //  Limpiar variables de cliente
+    clienteSelect = null;
+    nit = '';
+    nombre = '';
+    direccion = '';
+    celular = '';
+    email = '';
+
+    //  Limpiar detalle y datos de vehículo
+    detalleTrabajo = '';
+    kilometraje = '';
+    cc = '';
+    cil = '';
+    placa = '';
+    chasis = '';
+
+    marcaSeleccionada = null;
+    modeloSeleccionado = null;
+    anioSeleccionado = null;
+    colorSeleccionado = null;
+
+    //  Limpiar fechas
+    fechaRecibido = '';
+    fechaSalida = '';
+
+    //  Limpiar lista o datos de items
+    limpiarItems();
+
+    //  Limpiar controllers
+    nitController.clear();
+    nombreController.clear();
+    direccionController.clear();
+    celularController.clear();
+    emailController.clear();
+    detalleTrabajoController.clear();
+    kilometrajeController.clear();
+    ccController.clear();
+    cilController.clear();
+    placaController.clear();
+    chasisController.clear();
+
+    notifyListeners();
+  }
+
+  //validar campos llenos
+  bool get formularioValido {
+  return clienteSelect != null &&
+      marcaSeleccionada != null &&
+      modeloSeleccionado != null &&
+      anioSeleccionado != null &&
+      colorSeleccionado != null &&
+      detalleTrabajoController.text.trim().isNotEmpty &&
+      placaController.text.trim().isNotEmpty &&       
+      chasisController.text.trim().isNotEmpty &&      
+      fechaRecibido.isNotEmpty &&
+      fechaSalida.isNotEmpty;
 }
 
 

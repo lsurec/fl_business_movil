@@ -5,7 +5,10 @@ import 'package:fl_business/displays/prc_documento_3/services/location_service.d
 import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
+import 'package:fl_business/displays/vehiculos/model_views/vehiculos_catalogo_viewmodel.dart';
+import 'package:fl_business/displays/vehiculos/models/vehiculo_registrado_model.dart';
 import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
+import 'package:fl_business/displays/vehiculos/views/catalogo_vehiculos_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/language_service.dart';
@@ -66,11 +69,31 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             tooltip: 'Guardar',
             onPressed: vm.formularioValido
                 ? () {
-                    vm.guardar(); // ← tu lógica
+                    // 1️⃣ Guardar recepción
+                    vm.guardar();
 
+                    // 2️⃣ Obtener ViewModel del catálogo
+                    final catalogoVM = context
+                        .read<CatalogoVehiculosViewModel>();
+
+                    // 3️⃣ Convertir Recepción → Vehículo registrado
+                    final recepcion = vm.recepcionGuardada!;
+
+                    catalogoVM.agregarVehiculo(
+                      VehiculoRegistrado(
+                        placa: recepcion.placa,
+                        chasis: recepcion.chasis,
+                        marca: recepcion.marca,
+                        modelo: recepcion.modelo,
+                        anio: recepcion.anio,
+                        color: recepcion.color,
+                      ),
+                    );
+
+                    // 4️⃣ Feedback
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('✅ Datos del vehículo guardados'),
+                        content: Text('✅ Vehículo guardado en catálogo'),
                         behavior: SnackBarBehavior.floating,
                         duration: Duration(seconds: 2),
                       ),
@@ -477,6 +500,15 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       ],
                     ),
                   _buildModernSection(
+                    title: 'Identificación del Vehículo',
+                    icon: Icons.confirmation_number_outlined,
+                    children: [
+                      _buildTextField('Placa', vm.placaController),
+                      _buildTextField('Chasis', vm.chasisController),
+                    ],
+                  ),
+
+                  _buildModernSection(
                     title: 'Datos del Vehículo',
                     icon: Icons.directions_car_outlined,
                     children: [_buildTabsVehiculo(context, vm)],
@@ -504,10 +536,34 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 16),
+
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff134895),
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.directions_car, color: Colors.white),
+                    label: const Text(
+                      'Ver catálogo de vehículos',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CatalogoVehiculosView(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
                 ],
               ),
-
-        //seccioón de cuente
       ),
     );
   }

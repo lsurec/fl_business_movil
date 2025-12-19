@@ -45,6 +45,9 @@ class DatosGuardadosScreen extends StatelessWidget {
             // Datos del Vehículo
             // ---------------------------
             _titulo('Datos del Vehículo'),
+            _dato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
+            _dato('Placa', vm.recepcionGuardada?.placa ?? '—'),
+
             _dato('Marca', vm.marcaSeleccionada?.descripcion ?? '—'),
             _dato('Línea', vm.modeloSeleccionado?.descripcion ?? '—'),
             _dato('Modelo (Año)', vm.anioSeleccionado?.anio.toString() ?? '—'),
@@ -55,18 +58,28 @@ class DatosGuardadosScreen extends StatelessWidget {
             // Fechas
             // ---------------------------
             _titulo('📅 Fechas'),
-            _dato('Fecha recibido', vm.fechaRecibido.isEmpty ? '—' : vm.fechaRecibido),
-            _dato('Fecha salida', vm.fechaSalida.isEmpty ? '—' : vm.fechaSalida),
+            _dato(
+              'Fecha recibido',
+              vm.fechaRecibido.isEmpty ? '—' : vm.fechaRecibido,
+            ),
+            _dato(
+              'Fecha salida',
+              vm.fechaSalida.isEmpty ? '—' : vm.fechaSalida,
+            ),
             const SizedBox(height: 20),
 
             // ---------------------------
             // Observaciones
             // ---------------------------
             _titulo('Observaciones'),
-            _dato('Detalle del trabajo', vm.detalleTrabajo),
-            _dato('Kilometraje', vm.kilometraje),
-            _dato('CC', vm.cc),
-            _dato('CIL', vm.cil),
+            _dato(
+              'Detalle del trabajo',
+              vm.recepcionGuardada?.detalleTrabajo ?? '—',
+            ),
+            _dato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
+            _dato('CC', vm.recepcionGuardada?.cc ?? '—'),
+            _dato('CIL', vm.recepcionGuardada?.cil ?? '—'),
+
             const SizedBox(height: 30),
 
             // ---------------------------
@@ -164,7 +177,10 @@ class DatosGuardadosScreen extends StatelessWidget {
                 Expanded(
                   child: Text(
                     item.desProducto,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 if (item.completado)
@@ -172,17 +188,26 @@ class DatosGuardadosScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 4),
-            Text('ID: ${item.idProducto}', style: const TextStyle(color: Colors.black54)),
+            Text(
+              'ID: ${item.idProducto}',
+              style: const TextStyle(color: Colors.black54),
+            ),
 
             if (item.detalle.isNotEmpty) ...[
               const SizedBox(height: 8),
-              const Text('📝 Detalle:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                '📝 Detalle:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               Text(item.detalle),
             ],
 
             if (item.fotos.isNotEmpty) ...[
               const SizedBox(height: 8),
-              const Text('📷 Fotos:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                '📷 Fotos:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 6),
               SizedBox(
                 height: 100,
@@ -236,6 +261,8 @@ class DatosGuardadosScreen extends StatelessWidget {
           _pdfDato('Email', vm.email),
 
           pw.SizedBox(height: 20),
+          _pdfDato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
+          _pdfDato('Placa', vm.recepcionGuardada?.placa ?? '—'),
           _pdfDato('Marca', vm.marcaSeleccionada?.descripcion ?? '—'),
           _pdfDato('Línea', vm.modeloSeleccionado?.descripcion ?? '—'),
           _pdfDato('Modelo (Año)', vm.anioSeleccionado?.anio.toString() ?? '—'),
@@ -246,23 +273,30 @@ class DatosGuardadosScreen extends StatelessWidget {
           _pdfDato('Fecha salida', vm.fechaSalida),
 
           pw.SizedBox(height: 20),
-          _pdfDato('Detalle del trabajo', vm.detalleTrabajo),
-          _pdfDato('Kilometraje', vm.kilometraje),
-          _pdfDato('CC', vm.cc),
-          _pdfDato('CIL', vm.cil),
+          _pdfDato('Detalle del trabajo', vm.recepcionGuardada?.detalleTrabajo ?? '—'),
+          _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
+          _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
+          _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
 
           pw.SizedBox(height: 25),
 
-          pw.Text('🧩 Ítems del Vehículo', style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            '🧩 Ítems del Vehículo',
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+          ),
           pw.Divider(),
 
           ...vm.itemsAsignados.map((item) {
             return pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                pw.Text(item.desProducto, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.Text(
+                  item.desProducto,
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
                 pw.Text('ID: ${item.idProducto}'),
-                if (item.detalle.isNotEmpty) pw.Text('Detalle: ${item.detalle}'),
+                if (item.detalle.isNotEmpty)
+                  pw.Text('Detalle: ${item.detalle}'),
                 pw.SizedBox(height: 5),
 
                 if (item.fotos.isNotEmpty)
@@ -290,9 +324,9 @@ class DatosGuardadosScreen extends StatelessWidget {
     await file.writeAsBytes(await pdf.save());
     await OpenFilex.open(file.path);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('PDF generado: ${file.path}')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('PDF generado: ${file.path}')));
   }
 
   pw.Widget _pdfDato(String titulo, String valor) {
