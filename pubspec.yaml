@@ -33,7 +33,7 @@ dependencies:
     path: ./packages/blue_thermal_printer
   clipboard: ^2.0.2
   cupertino_icons: ^1.0.8
-  device_info_plus: ^12.1.0
+  device_info_plus: ^11.2.2
   diacritic: ^0.1.6
   dropdown_button2: ^2.3.9
   equatable: ^2.0.7
