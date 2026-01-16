@@ -18,7 +18,7 @@ class ElementoAsignadoModel {
   int pagina;
   int orden;
   int objSecuencia;
-  bool? opcDetalle; // se cambio para prueba de vehiculos
+  bool? opcDetalle; // ✅ nullable
   int? marca;
   DateTime? modeloFecha;
   int? seccion;
@@ -46,7 +46,7 @@ class ElementoAsignadoModel {
     required this.pagina,
     required this.orden,
     required this.objSecuencia,
-    this.opcDetalle, // se cambio para pruebas de modulo de vehiculos
+    this.opcDetalle, // ✅ ya no required
     this.marca,
     this.modeloFecha,
     this.seccion,
@@ -81,44 +81,41 @@ class ElementoAsignadoModel {
         pagina: json["pagina"],
         orden: json["orden"],
         objSecuencia: json["obj_Secuencia"],
-        opcDetalle: json["opc_Detalle"] as bool?,// se cambio para pruebas
-
+        opcDetalle: json["opc_Detalle"] as bool?, // ✅ CLAVE
         marca: json["marca"],
         modeloFecha: json["modelo_Fecha"] == null
             ? null
             : DateTime.parse(json["modelo_Fecha"]),
         seccion: json["seccion"],
         cuentaCorrentista: json["cuenta_Correntista"],
-
         color: json["color"]?.toString(),
         placa: json["placa"]?.toString(),
         chasis: json["chasis"]?.toString(),
         modelo: json["modelo"],
-
       );
 
   Map<String, dynamic> toMap() => {
-    "elemento_Asignado": elementoAsignado,
-    "descripcion": descripcion,
-    "elemento_Id": elementoId,
-    "empresa": empresa,
-    "raiz": raiz,
-    "nivel": nivel,
-    "elemento_Asignado_Padre": elementoAsignadoPadre,
-    "estado": estado,
-    "fecha_Hora": fechaHora.toIso8601String(),
-    "userName": userName,
-    "color_Disponible": colorDisponible,
-    "color_Abierto": colorAbierto,
-    "obj_Vertical": objVertical,
-    "obj_Horizontal": objHorizontal,
-    "pagina": pagina,
-    "orden": orden,
-    "obj_Secuencia": objSecuencia,
-    "opc_Detalle": opcDetalle,
-    "marca": marca,
-    "modelo_Fecha": modeloFecha?.toIso8601String(),
-    "seccion": seccion,
-    "cuenta_Correntista": cuentaCorrentista,
-  };
+        "elemento_Asignado": elementoAsignado,
+        "descripcion": descripcion,
+        "elemento_Id": elementoId,
+        "empresa": empresa,
+        "raiz": raiz,
+        "nivel": nivel,
+        "elemento_Asignado_Padre": elementoAsignadoPadre,
+        "estado": estado,
+        "fecha_Hora": fechaHora.toIso8601String(),
+        "userName": userName,
+        "color_Disponible": colorDisponible,
+        "color_Abierto": colorAbierto,
+        "obj_Vertical": objVertical,
+        "obj_Horizontal": objHorizontal,
+        "pagina": pagina,
+        "orden": orden,
+        "obj_Secuencia": objSecuencia,
+        "opc_Detalle": opcDetalle,
+        "marca": marca,
+        "modelo_Fecha": modeloFecha?.toIso8601String(),
+        "seccion": seccion,
+        "cuenta_Correntista": cuentaCorrentista,
+      };
 }

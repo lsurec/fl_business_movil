@@ -25,14 +25,17 @@ import 'package:fl_business/displays/prc_documento_3/view_models/document_view_m
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/recepcion_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculoYearModel.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculos_model.dart';
+import 'package:fl_business/displays/vehiculos/services/CatalogoVehiculosService.dart';
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
 import 'package:fl_business/fel/models/credencial_model.dart';
 import 'package:fl_business/models/api_res_model.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
 import 'package:fl_business/view_models/home_view_model.dart';
@@ -41,6 +44,7 @@ import 'package:fl_business/view_models/menu_view_model.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
 import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as context;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -71,6 +75,9 @@ class ItemVehiculo {
     List<String>? fotos,
   }) : fotos = fotos ?? [];
 }
+
+final CatalogoVehiculosService _catalogoVehiculosService =
+    CatalogoVehiculosService();
 
 /// ============================================================================
 ///                           VIEWMODEL PRINCIPAL
@@ -306,50 +313,48 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   //                           GUARDAR INFORMACIÓN
   // ============================================================================
   /// Carga los valores de los TextControllers a las variables reales
-  /// 
+  ///
 
-RecepcionVehiculoModel? recepcionGuardada;
+  RecepcionVehiculoModel? recepcionGuardada;
 
-void guardar() {
-  recepcionGuardada = RecepcionVehiculoModel(
-    // --------------------
-    // Datos del cliente
-    // --------------------
-    nit: nitController.text.trim(),
-    nombre: nombreController.text.trim(),
-    direccion: direccionController.text.trim(),
-    celular: celularController.text.trim(),
-    email: emailController.text.trim(),
+  void guardar() {
+    recepcionGuardada = RecepcionVehiculoModel(
+      // --------------------
+      // Datos del cliente
+      // --------------------
+      nit: nitController.text.trim(),
+      nombre: nombreController.text.trim(),
+      direccion: direccionController.text.trim(),
+      celular: celularController.text.trim(),
+      email: emailController.text.trim(),
 
-    // --------------------
-    // Datos del vehículo
-    // --------------------
-    placa: placaController.text.trim(),
-    chasis: chasisController.text.trim(),
-    marca: marcaSeleccionada?.descripcion ?? '',
-    modelo: modeloSeleccionado?.descripcion ?? '',
-    anio: anioSeleccionado?.anio ?? 0,
-    color: colorSeleccionado?.descripcion ?? '',
+      // --------------------
+      // Datos del vehículo
+      // --------------------
+      placa: placaController.text.trim(),
+      chasis: chasisController.text.trim(),
+      marca: marcaSeleccionada?.descripcion ?? '',
+      modelo: modeloSeleccionado?.descripcion ?? '',
+      anio: anioSeleccionado?.anio ?? 0,
+      color: colorSeleccionado?.descripcion ?? '',
 
-    // --------------------
-    // Fechas
-    // --------------------
-    fechaRecibido: fechaRecibido,
-    fechaSalida: fechaSalida,
+      // --------------------
+      // Fechas
+      // --------------------
+      fechaRecibido: fechaRecibido,
+      fechaSalida: fechaSalida,
 
-    // --------------------
-    // Observaciones
-    // --------------------
-    detalleTrabajo: detalleTrabajoController.text.trim(),
-    kilometraje: kilometrajeController.text.trim(),
-    cc: ccController.text.trim(),
-    cil: cilController.text.trim(),
-  );
+      // --------------------
+      // Observaciones
+      // --------------------
+      detalleTrabajo: detalleTrabajoController.text.trim(),
+      kilometraje: kilometrajeController.text.trim(),
+      cc: ccController.text.trim(),
+      cil: cilController.text.trim(),
+    );
 
-  notifyListeners();
-}
-
-
+    notifyListeners();
+  }
 
   // ============================================================================
   //                           LIMPIAR FORMULARIO COMPLETO
@@ -402,18 +407,81 @@ void guardar() {
 
   //validar campos llenos
   bool get formularioValido {
-  return clienteSelect != null &&
-      marcaSeleccionada != null &&
-      modeloSeleccionado != null &&
-      anioSeleccionado != null &&
-      colorSeleccionado != null &&
-      detalleTrabajoController.text.trim().isNotEmpty &&
-      placaController.text.trim().isNotEmpty &&       
-      chasisController.text.trim().isNotEmpty &&      
-      fechaRecibido.isNotEmpty &&
-      fechaSalida.isNotEmpty;
+    return clienteSelect != null &&
+        marcaSeleccionada != null &&
+        modeloSeleccionado != null &&
+        anioSeleccionado != null &&
+        colorSeleccionado != null &&
+        detalleTrabajoController.text.trim().isNotEmpty &&
+        placaController.text.trim().isNotEmpty &&
+        chasisController.text.trim().isNotEmpty &&
+        fechaRecibido.isNotEmpty &&
+        fechaSalida.isNotEmpty;
+  }
+
+  String get descripcionVehiculo {
+    final marca = marcaSeleccionada?.descripcion;
+    final modelo = modeloSeleccionado?.descripcion;
+    final anio = anioSeleccionado?.anio;
+
+    return [
+      marca,
+      modelo,
+      anio != null ? anio.toString() : null,
+    ].where((e) => e != null && e.toString().isNotEmpty).join(' ');
+  }
+
+ String? _fechaRecibidoParaCatalogoApi() {
+  if (fechaRecibido.isEmpty) return null;
+
+  try {
+    return DateTime.parse(fechaRecibido).toIso8601String();
+  } catch (_) {
+    return null;
+  }
 }
 
+
+  //enviar datos del vehiculo al catalogo
+  Future<bool> guardarVehiculoEnCatalogo() async {
+    if (!formularioValido) return false;
+
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      // 1️⃣ Guardar recepción local
+      guardar();
+
+      // 2️⃣ Construir modelo para API
+      final model = CatalogoVehiculosModel(
+        descripcion: descripcionVehiculo, // ← "Honda Fit 2001"
+        elementoId: placaController.text.trim(),
+        empresa: 1,
+        marca: marcaSeleccionada!.id,
+        modelo: modeloSeleccionado!.id,
+        modeloFecha: _fechaRecibidoParaCatalogoApi(),
+        motor: ccController.text.trim(),
+        chasis: chasisController.text.trim(),
+        color: colorSeleccionado!.descripcion,
+        placa: placaController.text.trim(),
+        centimetrosCubicos: ccController.text.trim(),
+        cilindros: cilController.text.trim(),
+        userName: Preferences.userName,
+      );
+
+      // 3️⃣ Llamar API
+      await _catalogoVehiculosService.crearVehiculo(model);
+
+      return true;
+    } catch (e) {
+      error = e.toString();
+      return false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
 
   int idDocumentoRef = 0;
 
@@ -784,14 +852,14 @@ void guardar() {
 
     clienteSelect = client;
 
-    // 🔥 Actualizar variables
+    // Actualizar variables
     nit = client.facturaNit;
     nombre = client.facturaNombre;
     direccion = client.cCDireccion ?? '';
     celular = client.telefono ?? '';
     email = client.eMail ?? '';
 
-    // 🔥 Y actualizar también los controllers (muy importante)
+    // Y actualizar también los controllers (muy importante)
     nitController.text = nit;
     nombreController.text = nombre;
     direccionController.text = direccion;

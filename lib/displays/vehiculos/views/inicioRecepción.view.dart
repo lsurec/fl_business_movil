@@ -68,34 +68,17 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             ),
             tooltip: 'Guardar',
             onPressed: vm.formularioValido
-                ? () {
-                    // 1️⃣ Guardar recepción
-                    vm.guardar();
+                ? () async {
+                    final ok = await vm.guardarVehiculoEnCatalogo();
 
-                    // 2️⃣ Obtener ViewModel del catálogo
-                    final catalogoVM = context
-                        .read<CatalogoVehiculosViewModel>();
-
-                    // 3️⃣ Convertir Recepción → Vehículo registrado
-                    final recepcion = vm.recepcionGuardada!;
-
-                    catalogoVM.agregarVehiculo(
-                      VehiculoRegistrado(
-                        placa: recepcion.placa,
-                        chasis: recepcion.chasis,
-                        marca: recepcion.marca,
-                        modelo: recepcion.modelo,
-                        anio: recepcion.anio,
-                        color: recepcion.color,
-                      ),
-                    );
-
-                    // 4️⃣ Feedback
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('✅ Vehículo guardado en catálogo'),
+                      SnackBar(
+                        content: Text(
+                          ok
+                              ? 'Vehículo guardado correctamente'
+                              : 'Error al guardar vehículo',
+                        ),
                         behavior: SnackBarBehavior.floating,
-                        duration: Duration(seconds: 2),
                       ),
                     );
                   }
