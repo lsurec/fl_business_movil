@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/report/reports/documento_conversion/provider.dart';
+import 'package:fl_business/displays/report/reports/documento_conversion/tmu.dart';
 import 'package:fl_business/displays/report/utils/pdf_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/models.dart';
@@ -17,6 +19,9 @@ import 'package:provider/provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 class DetailsDestinationDocViewModel extends ChangeNotifier {
+  //llave global del scaffold
+  GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+
   //controlar procesos
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -99,16 +104,24 @@ class DetailsDestinationDocViewModel extends ChangeNotifier {
     return false;
   }
 
-  //imprimir docuemnto
-  printDoc(BuildContext context, DocDestinationModel document) {
-    //navegar a pantalla de impresion
-    // TODO: imprimir documento conversion
+  Future<void> printDoc(DocDestinationModel document) async {
+    final DocumentoConversionProvider docConversionProvider =
+        DocumentoConversionProvider();
 
-    // Navigator.pushNamed(
-    //   context,
-    //   AppRoutes.printer,
-    //   arguments: PrintDocSettingsModel(opcion: 3, destination: document),
-    // );
+    final DocumentoConversionTMU docConversionTMU = DocumentoConversionTMU();
+
+    isLoading = true;
+
+    //cragar datos del reporte
+    bool loadData = await docConversionProvider.loaData(
+      scaffoldKey.currentContext!,
+      document,
+    );
+
+    isLoading = false;
+    if (!loadData) return;
+
+    await docConversionTMU.getReport(scaffoldKey.currentContext!);
   }
 
   Future shareDoc(BuildContext contextP, DocDestinationModel document) async {

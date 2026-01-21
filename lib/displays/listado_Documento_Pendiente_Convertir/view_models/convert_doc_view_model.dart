@@ -284,7 +284,7 @@ class ConvertDocViewModel extends ChangeNotifier {
         token,
         element
             .detalle
-            .transaccionConsecutivoInterno, //TODO:Preguntar // consecutivo, // .consecutivoInterno
+            .relacionConsecutivoInterno, //TODO:Preguntar // consecutivo, // .consecutivoInterno
         element.disponibleMod, // cantidad,
       );
 

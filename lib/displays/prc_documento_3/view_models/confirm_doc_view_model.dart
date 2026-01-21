@@ -392,10 +392,6 @@ class ConfirmDocViewModel extends ChangeNotifier {
     isLoading = false;
     if (!loadData) return;
 
-    final ImpresionTicket impresionTicket = ImpresionTicket();
-
-    // await impresionTicket.getReport(context);
-
     await facturaTMU.getReport(scaffoldKey.currentContext!);
 
     if (docVm.valueParametro(48)) {

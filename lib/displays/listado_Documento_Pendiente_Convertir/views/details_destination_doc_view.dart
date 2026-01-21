@@ -23,6 +23,7 @@ class DetailsDestinationDocView extends StatelessWidget {
       child: Stack(
         children: [
           Scaffold(
+            key: vm.scaffoldKey,
             bottomNavigationBar: _PrintActions(document: document),
             appBar: AppBar(
               title: Text(
@@ -176,7 +177,7 @@ class _PrintActions extends StatelessWidget {
           ),
           Expanded(
             child: GestureDetector(
-              onTap: () => vm.printDoc(context, document),
+              onTap: () => vm.printDoc(document),
               child: Container(
                 margin: const EdgeInsets.only(top: 10, bottom: 10, left: 10),
                 color: vmTheme.colorPref(AppTheme.idColorTema),
