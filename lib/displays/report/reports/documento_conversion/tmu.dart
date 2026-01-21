@@ -1,9 +1,11 @@
-import 'package:fl_business/displays/report/reports/factura/provider.dart';
+import 'package:fl_business/displays/report/reports/documento_conversion/provider.dart';
 import 'package:fl_business/displays/report/reports/tmu/utilities_tmu.dart';
+import 'package:fl_business/displays/report/utils/tmu_utils.dart';
 import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:fl_business/libraries/app_data.dart' as AppData;
 import 'package:fl_business/models/api_res_model.dart';
 import 'package:fl_business/models/print_model.dart';
+import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -37,7 +39,9 @@ class DocumentoConversionTMU {
         decimalDigits: 2, // Número de decimales a mostrar
       );
 
-      final data = FacturaProvider.data!;
+      final TmuUtils utils = TmuUtils();
+
+      final data = DocumentoConversionProvider.data!;
 
       List<int> bytes = [];
       final generator = Generator(
@@ -53,6 +57,12 @@ class DocumentoConversionTMU {
 
       bytes += generator.setGlobalCodeTable('CP1252');
 
+      if (Provider.of<LogoProvider>(context, listen: false).logo != null) {
+        final enterpriseLogo = await utils.getEnterpriseLogo(context);
+
+        bytes += generator.image(enterpriseLogo, align: PosAlign.center);
+      }
+
       bytes += generator.text(data.empresa.razonSocial, styles: center);
       bytes += generator.text(data.empresa.nombre, styles: center);
 
@@ -60,10 +70,7 @@ class DocumentoConversionTMU {
 
       bytes += generator.text("NIT: ${data.empresa.nit}", styles: center);
 
-      bytes += generator.text(
-        "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, "noVinculada")} ${data.empresa.tel}",
-        styles: center,
-      );
+      bytes += generator.text("TEL: ${data.empresa.tel}", styles: center);
 
       bytes += generator.emptyLines(1);
 
@@ -102,124 +109,34 @@ class DocumentoConversionTMU {
         styles: center,
       );
 
-      bytes += generator.emptyLines(1);
-
-      bytes += generator.row([
-        PosColumn(text: "Pre Repo.", width: 2),
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tiket, 'cantidad'),
-          width: 2,
-        ), // Ancho 2
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.general, 'descripcion'),
-          width: 4,
-        ), // Ancho 6
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tiket, 'precioU'),
-          width: 3,
-          styles: const PosStyles(align: PosAlign.right),
-        ), // Ancho 4
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tiket, 'monto'),
-          width: 3,
-          styles: const PosStyles(align: PosAlign.right),
-        ), // Ancho 4
-      ]);
+      bytes += generator.hr();
 
       for (var transaction in data.items) {
-        bytes += generator.row([
-          PosColumn(text: "${transaction.cantidad}", width: 2), // Ancho 2
-          PosColumn(text: transaction.descripcion, width: 4), // Ancho 6
-          PosColumn(
-            text: transaction.unitario,
-            width: 3,
-            styles: const PosStyles(align: PosAlign.right),
-          ), // Ancho 4
-          PosColumn(
-            text: transaction.total,
-            width: 3,
-            styles: const PosStyles(align: PosAlign.right),
-          ), // Ancho 4
-        ]);
+        bytes += generator.text("Cant. ${transaction.cantidad}");
+        bytes += generator.text("Desc.: ${transaction.descripcion}");
+        bytes += generator.text("Precio U.: ${transaction.unitario}");
+        bytes += generator.text("Total: ${transaction.total}");
       }
 
-      bytes += generator.emptyLines(1);
+      bytes += generator.hr();
 
-      bytes += generator.row([
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tiket, 'subTotal'),
-          width: 6,
-          styles: const PosStyles(bold: true),
-        ),
-        PosColumn(
-          text: currencyFormat.format(data.montos.subtotal),
-          styles: const PosStyles(align: PosAlign.right),
-          width: 6,
-        ),
-      ]);
+      bytes += generator.text(
+        "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'subTotal')}: ${currencyFormat.format(data.montos.subtotal)}",
+      );
 
-      bytes += generator.row([
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tiket, 'cargos'),
-          width: 6,
-          styles: const PosStyles(bold: true),
-        ),
-        PosColumn(
-          text: currencyFormat.format(data.montos.cargos),
-          styles: const PosStyles(align: PosAlign.right),
-          width: 6,
-        ),
-      ]);
+      bytes += generator.text(
+        "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'cargos')}: ${currencyFormat.format(data.montos.cargos)} ",
+      );
 
-      bytes += generator.row([
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tiket, 'descuentos'),
-          width: 6,
-          styles: const PosStyles(bold: true),
-        ),
-        PosColumn(
-          text: currencyFormat.format(data.montos.descuentos),
-          styles: const PosStyles(align: PosAlign.right),
-          width: 6,
-        ),
-      ]);
+      bytes += generator.text(
+        "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'descuentos')}: ${currencyFormat.format(data.montos.descuentos)}",
+      );
 
-      bytes += generator.emptyLines(1);
+      bytes += generator.hr();
 
-      bytes += generator.row([
-        PosColumn(
-          text: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tiket, 'totalT'),
-          styles: const PosStyles(bold: true, width: PosTextSize.size2),
-          width: 6,
-          containsChinese: false,
-        ),
-        PosColumn(
-          text: currencyFormat.format(data.montos.total),
-          styles: const PosStyles(
-            bold: true,
-            align: PosAlign.right,
-            width: PosTextSize.size2,
-            underline: true,
-          ),
-          width: 6,
-        ),
-      ]);
+      bytes += generator.text(
+        "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'totalT')}: ${currencyFormat.format(data.montos.total)}",
+      );
 
       bytes += generator.text(data.montos.totalLetras, styles: centerBold);
 
