@@ -9,20 +9,23 @@ class CatalogoVehiculosViewModel extends ChangeNotifier {
 
   List<VehiculoModel> marcas = [];
   List<VehiculoModel> modelos = [];
-bool cargandoModelos = false;
+  bool cargandoModelos = false;
 
-Future<String> obtenerDescripcionModeloPorId(int marcaId, int modeloId) async {
-  try {
-    final modelos = await _vehiculoService.obtenerModelos(marcaId);
-    final modelo = modelos.firstWhere(
-      (m) => m.id == modeloId,
-      orElse: () => VehiculoModel(id: 0, descripcion: ''),
-    );
-    return modelo.descripcion;
-  } catch (_) {
-    return '';
+  Future<String> obtenerDescripcionModeloPorId(
+    int marcaId,
+    int modeloId,
+  ) async {
+    try {
+      final modelos = await _vehiculoService.obtenerModelos(marcaId);
+      final modelo = modelos.firstWhere(
+        (m) => m.id == modeloId,
+        orElse: () => VehiculoModel(id: 0, descripcion: ''),
+      );
+      return modelo.descripcion;
+    } catch (_) {
+      return '';
+    }
   }
-}
 
   Future<void> cargarMarcas() async {
     marcas = await _vehiculoService.obtenerMarcas();
@@ -30,20 +33,16 @@ Future<String> obtenerDescripcionModeloPorId(int marcaId, int modeloId) async {
   }
 
   Future<void> cargarModelos(int marcaId) async {
-  cargandoModelos = true;
-  notifyListeners();
+    cargandoModelos = true;
+    notifyListeners();
 
+    modelos = await _vehiculoService.obtenerModelos(marcaId);
 
-  modelos = await _vehiculoService.obtenerModelos(marcaId);
+    for (final m in modelos) {}
 
-  for (final m in modelos) {
-    
+    cargandoModelos = false;
+    notifyListeners();
   }
-
-  cargandoModelos = false;
-  notifyListeners();
-}
-
 
   String obtenerDescripcionMarca(int? id) {
     if (id == null) return '';
@@ -53,26 +52,22 @@ Future<String> obtenerDescripcionModeloPorId(int marcaId, int modeloId) async {
           orElse: () => VehiculoModel(id: 0, descripcion: ''),
         )
         .descripcion;
-        
   }
-  
 
   String obtenerDescripcionModelo(int? id) {
-  if (id == null) return '';
+    if (id == null) return '';
 
-  if (cargandoModelos || modelos.isEmpty) {
-    return ''; // o 'Cargando...'
+    if (cargandoModelos || modelos.isEmpty) {
+      return ''; // o 'Cargando...'
+    }
+
+    return modelos
+        .firstWhere(
+          (m) => m.id == id,
+          orElse: () => VehiculoModel(id: 0, descripcion: ''),
+        )
+        .descripcion;
   }
-
-  return modelos
-      .firstWhere(
-        (m) => m.id == id,
-        orElse: () => VehiculoModel(id: 0, descripcion: ''),
-      )
-      .descripcion;
-}
-
-
 
   // 🔹 Lista de vehículos guardados
   final List<VehiculoRegistrado> _vehiculos = [];
@@ -89,23 +84,23 @@ Future<String> obtenerDescripcionModeloPorId(int marcaId, int modeloId) async {
   }
 
   // 🔹 Seleccionar desde el Drawer
- Future<void> seleccionarVehiculo(VehiculoRegistrado vehiculo) async {
-  vehiculoSeleccionado = vehiculo;
+  Future<void> seleccionarVehiculo(VehiculoRegistrado vehiculo) async {
+    vehiculoSeleccionado = vehiculo;
 
-  // ⚠️ aquí está la diferencia
-  final marcaId = marcas
-      .firstWhere((m) => m.descripcion == vehiculo.marca)
-      .id;
+    // ⚠️ aquí está la diferencia
+    final marcaId = marcas
+        .firstWhere((m) => m.descripcion == vehiculo.marca)
+        .id;
 
-  await cargarModelos(marcaId);
+    await cargarModelos(marcaId);
 
-  notifyListeners();
-}
-
-
+    notifyListeners();
+  }
 
   void limpiarSeleccion() {
     vehiculoSeleccionado = null;
+    modelos.clear(); // limpia modelos seleccionados
+    cargandoModelos = false; // resetea estado de carga
     notifyListeners();
   }
 }

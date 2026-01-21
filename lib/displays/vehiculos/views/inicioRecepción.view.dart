@@ -482,12 +482,19 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ),
                       ],
                     ),
+
                   _buildModernSection(
                     title: 'Identificación del Vehículo',
                     icon: Icons.confirmation_number_outlined,
                     children: [
                       _buildTextField('Placa', vm.placaController),
                       _buildTextField('Chasis', vm.chasisController),
+
+                      if (vm.marcaSeleccionada != null &&
+                              vm.modeloSeleccionado != null ||
+                          vm.anioSeleccionado != null ||
+                          vm.colorSeleccionado != null)
+                        _buildVehiculoSeleccionado(vm),
                     ],
                   ),
 
@@ -547,6 +554,64 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                   const SizedBox(height: 24),
                 ],
               ),
+      ),
+    );
+  }
+
+  Widget _buildVehiculoSeleccionado(InicioVehiculosViewModel vm) {
+    Widget item(String label, String value) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 90,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xff134895),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value.isEmpty ? '—' : value,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF4F6F7),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFD5DBDB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Vehículo seleccionado',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xff134895),
+            ),
+          ),
+          const Divider(),
+
+          item('Marca', vm.marcaSeleccionada?.descripcion ?? ''),
+          item('Línea', vm.modeloSeleccionado?.descripcion ?? ''),
+          item('Modelo', vm.anioSeleccionado?.anio.toString() ?? ''),
+          item('Color', vm.colorSeleccionado?.descripcion ?? ''),
+        ],
       ),
     );
   }
@@ -867,10 +932,17 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
               color: Color(0xFF0D47A1),
             ),
             onPressed: () async {
+              final now = DateTime.now();
+              final hoy = DateTime(
+                now.year,
+                now.month,
+                now.day,
+              ); // 🔒 sin horas
+
               final fechaSeleccionada = await showDatePicker(
                 context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
+                initialDate: hoy,
+                firstDate: hoy, // ⛔ NO permite fechas anteriores a hoy
                 lastDate: DateTime(2100),
                 builder: (context, child) {
                   return Theme(

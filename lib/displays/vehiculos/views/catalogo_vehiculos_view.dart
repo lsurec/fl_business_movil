@@ -24,7 +24,6 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final vehiculoVM = context.read<CatalogoVehiculosViewModel>();
-
       await vehiculoVM.cargarMarcas();
 
       final elemento = context.read<ElementoAsigandoViewModel>().elemento;
@@ -36,12 +35,10 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
 
   @override
   Widget build(BuildContext context) {
-    final ElementoAsigandoViewModel vm = Provider.of<ElementoAsigandoViewModel>(
-      context,
-    );
+    final ElementoAsigandoViewModel vm =
+        Provider.of<ElementoAsigandoViewModel>(context);
 
     final vehiculoVM = context.watch<CatalogoVehiculosViewModel>();
-
     final elemento = vm.elemento;
 
     return Scaffold(
@@ -56,34 +53,12 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
             icon: const Icon(Icons.clear),
             onPressed: () {
               context.read<CatalogoVehiculosViewModel>().limpiarSeleccion();
+              context.read<ElementoAsigandoViewModel>().limpiarElemento();
             },
           ),
         ],
       ),
 
-      // 🔹 BARRA LATERAL DERECHA
-      endDrawer: Drawer(
-        child: Column(
-          children: const [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Color(0xff134895)),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Text(
-                  'Vehículos registrados',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-
-      // 🔹 CONTENIDO PRINCIPAL
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -94,27 +69,21 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
               controller: vm.buscarElementoAsignado,
               onFieldSubmitted: (_) => vm.getElementoAsignado(context),
               decoration: InputDecoration(
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppTheme.grey),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                labelText: AppLocalizations.of(
-                  context,
-                )!.translate(BlockTranslate.tareas, 'buscar'),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: AppTheme.grey),
-                  borderRadius: BorderRadius.circular(10),
-                ),
+                labelText: AppLocalizations.of(context)!
+                    .translate(BlockTranslate.tareas, 'buscar'),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search, color: AppTheme.grey),
                   onPressed: () => vm.getElementoAsignado(context),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: const BorderSide(color: AppTheme.grey),
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
 
             const SizedBox(height: 10),
 
-            // 🔢 CONTADOR
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -127,19 +96,18 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
 
             const Divider(),
 
-            // 📋 LISTA DE ELEMENTOS
+            // 📋 LISTA
             ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: vm.elementos.length,
               itemBuilder: (context, index) {
-                final ElementoAsignadoModel item = vm.elementos[index];
-
+                final item = vm.elementos[index];
                 return CardWidget(
-                  raidus: 5,
+                  raidus: 6,
                   borderColor: Colors.grey,
                   elevation: 0,
-                  margin: const EdgeInsets.symmetric(vertical: 2.5),
+                  margin: const EdgeInsets.symmetric(vertical: 3),
                   child: ListTile(
                     onTap: () => vm.selectRef(context, item, false),
                     title: Text(
@@ -151,7 +119,7 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // 🧾 HEADER
             Container(
@@ -170,110 +138,95 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
 
             const SizedBox(height: 16),
 
-            Table(
-              columnWidths: const {
-                0: FixedColumnWidth(120),
-                1: FixedColumnWidth(300),
-              },
-              children: [
-                _buildTableRow('Descripcion', elemento?.descripcion ?? ''),
-                _buildTableRow('Elemento ID', elemento?.elementoId ?? ''),
-                _buildTableRow(
-                  'Marca',
-                  vehiculoVM.obtenerDescripcionMarca(elemento?.marca),
-                ),
-
-                // 🔹 Modelo con FutureBuilder
-                if (elemento != null &&
-                    elemento.marca != null &&
-                    elemento.modelo != null)
-                  TableRow(
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          'Modelo',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
-                        ),
-                        child: Container(
-                          height: 32,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: FutureBuilder<String>(
-                            future: vehiculoVM.obtenerDescripcionModeloPorId(
-                              elemento.marca!,
-                              elemento.modelo!,
-                            ),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Text('Cargando...');
-                              } else if (snapshot.hasError) {
-                                return const Text('—');
-                              } else {
-                                final nombre = snapshot.data ?? '';
-                                return Text(nombre.isEmpty ? '—' : nombre);
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  _buildTableRow('Modelo', ''),
-
-                _buildTableRow('Color', elemento?.color ?? ''),
-                _buildTableRow('Placa', elemento?.placa ?? ''),
-                _buildTableRow('Chasis', elemento?.elementoId ?? ''),
-                _buildTableRow(
-                  'Fecha y Hora',
-                  elemento?.fechaHora != null
-                      ? Utilities.formatearFechaHora(elemento!.fechaHora!)
-                      : '',
-                ),
-              ],
-            ),
+            if (elemento != null)
+              _buildVehiculoCard(context, elemento, vehiculoVM)
+            else
+              const Text('Seleccione un vehículo'),
           ],
         ),
       ),
     );
   }
 
-  TableRow _buildTableRow(String label, String value) {
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Text(
-            label,
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-          child: Container(
-            height: 32,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(4),
+  // 🚗 CARD MODERNA DEL VEHÍCULO
+  Widget _buildVehiculoCard(
+    BuildContext context,
+    ElementoAsignadoModel elemento,
+    CatalogoVehiculosViewModel vehiculoVM,
+  ) {
+    Widget item(String label, String value) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 90,
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xff134895),
+                ),
+              ),
             ),
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(value.isEmpty ? '—' : value),
-          ),
+            Expanded(
+              child: Text(
+                value.isEmpty ? '—' : value,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ),
+          ],
         ),
-      ],
+      );
+    }
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              elemento.descripcion ?? 'Vehículo',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xff134895),
+              ),
+            ),
+            const Divider(),
+
+            item(
+              'Marca',
+              vehiculoVM.obtenerDescripcionMarca(elemento.marca),
+            ),
+
+            // 🔹 MODELO (async)
+            FutureBuilder<String>(
+              future: (elemento.marca != null && elemento.modelo != null)
+                  ? vehiculoVM.obtenerDescripcionModeloPorId(
+                      elemento.marca!,
+                      elemento.modelo!,
+                    )
+                  : Future.value(''),
+              builder: (_, snap) =>
+                  item('Modelo', snap.data ?? ''),
+            ),
+
+            item('Color', elemento.color ?? ''),
+            item('Placa', elemento.placa ?? ''),
+            item('Chasis', elemento.elementoId ?? ''),
+            item(
+              'Fecha',
+              elemento.fechaHora != null
+                  ? Utilities.formatearFechaHora(elemento.fechaHora!)
+                  : '',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

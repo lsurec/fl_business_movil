@@ -25,6 +25,7 @@ import 'package:fl_business/displays/prc_documento_3/view_models/document_view_m
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/recepcion_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculoYearModel.dart';
@@ -33,6 +34,8 @@ import 'package:fl_business/displays/vehiculos/services/CatalogoVehiculosService
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
 import 'package:fl_business/fel/models/credencial_model.dart';
 import 'package:fl_business/models/api_res_model.dart';
+import 'package:fl_business/models/elemento_asignado_model.dart';
+import 'package:fl_business/services/elemento_asignado_service.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -152,6 +155,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   //Controlador input buscar cliente
   final TextEditingController client = TextEditingController();
   final List<ClientModel> cuentasCorrentistas = []; //cunetas correntisat
+  final hoy = DateTime.now();
+  late final fechaMinima = DateTime(hoy.year, hoy.month, hoy.day);
 
   // ============================================================================
   //                          FECHAS
@@ -257,6 +262,31 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     } finally {
       isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> placaExiste(String placa) async {
+    try {
+      final token = Preferences.token; // asumiendo que guardas el token
+      final user = Preferences.userName; // o el usuario que corresponda
+      final empresa = 1; // o la empresa correspondiente
+
+      final res = await ElementoAsignadoService().getElementoAsignado(
+        empresa,
+        placa,
+        user,
+        token,
+      );
+
+      // Si la data tiene al menos un elemento, significa que ya existe
+      if (res.data != null && (res.data as List).isNotEmpty) {
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      print('Error al verificar placa: $e');
+      return false;
     }
   }
 
@@ -431,16 +461,15 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     ].where((e) => e != null && e.toString().isNotEmpty).join(' ');
   }
 
- String? _fechaRecibidoParaCatalogoApi() {
-  if (fechaRecibido.isEmpty) return null;
+  String? _fechaRecibidoParaCatalogoApi() {
+    if (fechaRecibido.isEmpty) return null;
 
-  try {
-    return DateTime.parse(fechaRecibido).toIso8601String();
-  } catch (_) {
-    return null;
+    try {
+      return DateTime.parse(fechaRecibido).toIso8601String();
+    } catch (_) {
+      return null;
+    }
   }
-}
-
 
   //enviar datos del vehiculo al catalogo
   Future<bool> guardarVehiculoEnCatalogo() async {
@@ -450,13 +479,23 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      // 1️⃣ Guardar recepción local
-      guardar();
+      guardar(); // guardamos la recepción local
 
-      // 2️⃣ Construir modelo para API
+      final placa = placaController.text.trim();
+
+      // 🔹 Verificamos si la placa ya existe
+      final existe = await placaExiste(placa);
+      if (existe) {
+        NotificationService.showSnackbar(
+          'La placa $placa ya existe en el catálogo',
+        );
+        return false; // no hacemos POST
+      }
+
+      // 🔹 Si no existe, construimos el modelo y hacemos POST
       final model = CatalogoVehiculosModel(
-        descripcion: descripcionVehiculo, // ← "Honda Fit 2001"
-        elementoId: placaController.text.trim(),
+        descripcion: descripcionVehiculo,
+        elementoId: placa,
         empresa: 1,
         marca: marcaSeleccionada!.id,
         modelo: modeloSeleccionado!.id,
@@ -464,13 +503,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         motor: ccController.text.trim(),
         chasis: chasisController.text.trim(),
         color: colorSeleccionado!.descripcion,
-        placa: placaController.text.trim(),
+        placa: placa,
         centimetrosCubicos: ccController.text.trim(),
         cilindros: cilController.text.trim(),
         userName: Preferences.userName,
       );
 
-      // 3️⃣ Llamar API
       await _catalogoVehiculosService.crearVehiculo(model);
 
       return true;
@@ -481,6 +519,67 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  //llamar a los datos del vehiculo seleccionado en el catalogo
+  Future<void> cargarDesdeElementoAsignado(
+    BuildContext context,
+    ElementoAsignadoModel elemento,
+  ) async {
+    // ---------------------------
+    // TEXTOS
+    // ---------------------------
+    placaController.text = elemento.placa ?? '';
+    chasisController.text = elemento.chasis ?? '';
+    ccController.text = elemento.centimetrosCubicos ?? '';
+    cilController.text = elemento.cilindros ?? '';
+
+    // ---------------------------
+    // VARIABLES
+    // ---------------------------
+    placa = placaController.text;
+    chasis = chasisController.text;
+    cc = ccController.text;
+    cil = cilController.text;
+
+    // ---------------------------
+    // MARCA
+    // ---------------------------
+    final marca = marcas.firstWhere(
+      (m) => m.id == elemento.marca,
+      orElse: () => VehiculoModel(id: 0, descripcion: ''),
+    );
+
+    if (marca.id != 0) {
+      await seleccionarMarca(marca);
+    }
+
+    // ---------------------------
+    // MODELO (depende de marca)
+    // ---------------------------
+    final modelo = modelos.firstWhere(
+      (m) => m.id == elemento.modelo,
+      orElse: () => VehiculoModel(id: 0, descripcion: ''),
+    );
+
+    if (modelo.id != 0) {
+      seleccionarModelo(modelo);
+    }
+
+    // ---------------------------
+    // COLOR
+    // ---------------------------
+    final color = colores.firstWhere(
+      (c) =>
+          c.descripcion.toUpperCase() == (elemento.color ?? '').toUpperCase(),
+      orElse: () => VehiculoModel(id: 0, descripcion: ''),
+    );
+
+    if (color.id != 0) {
+      seleccionarColor(color);
+    }
+
+    notifyListeners();
   }
 
   int idDocumentoRef = 0;
@@ -1229,7 +1328,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     final menuVM = Provider.of<MenuViewModel>(context, listen: false);
     final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
-    final detailsVM = Provider.of<DetailsViewModel>(context, listen: false);
+    final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
     final paymentVM = Provider.of<PaymentViewModel>(context, listen: false);
 
     final ReferenciaViewModel refVM = Provider.of<ReferenciaViewModel>(
@@ -1252,7 +1351,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     int empresa = localVM.selectedEmpresa!.empresa;
     int estacion = localVM.selectedEstacion!.estacionTrabajo;
     List<AmountModel> amounts = paymentVM.amounts;
-    List<TraInternaModel> products = detailsVM.traInternas;
+    List<TraInternaModel> products = itemsVM.transaciciones
+        .where((t) => t.isChecked == true)
+        .toList();
 
     //pagos agregados
     final List<DocCargoAbono> payments = [];
@@ -1400,6 +1501,22 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     DateTime myDateTime = DateTime.now();
     String serializedDateTime = myDateTime.toIso8601String();
     //Objeto documento estrucutra
+    if (clienteSelect == null) {
+      throw Exception('Cliente no seleccionado');
+    }
+
+    if (serieSelect == null) {
+      throw Exception('Serie no seleccionada');
+    }
+
+    if (products.isEmpty) {
+      throw Exception('No hay transacciones seleccionadas');
+    }
+
+    if (payments.isEmpty && docVM.printFel()) {
+      throw Exception('Documento FEL requiere pagos');
+    }
+
     docGlobal = DocEstructuraModel(
       docVersionApp: SplashViewModel.versionLocal,
       docConfirmarOrden:

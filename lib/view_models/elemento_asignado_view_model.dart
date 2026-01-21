@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/displays/tareas/models/models.dart';
@@ -25,10 +26,27 @@ class ElementoAsigandoViewModel extends ChangeNotifier {
   List<ElementoAsignadoModel> elementos = [];
   ElementoAsignadoModel? elemento;
 
-  selectRef(BuildContext context, ElementoAsignadoModel? value, bool back) {
+  Future<void> selectRef(
+    BuildContext context,
+    ElementoAsignadoModel? value,
+    bool back,
+  ) async {
     elemento = value;
     notifyListeners();
-    if (back) Navigator.pop(context);
+
+    if (value != null) {
+      // 🔹 PUENTE HACIA EL FORMULARIO DE VEHÍCULOS
+      final inicioVM = Provider.of<InicioVehiculosViewModel>(
+        context,
+        listen: false,
+      );
+
+      await inicioVM.cargarDesdeElementoAsignado(context, value);
+    }
+
+    if (back) {
+      Navigator.pop(context);
+    }
   }
 
   //Buscar Id Referencia
@@ -84,5 +102,13 @@ class ElementoAsigandoViewModel extends ChangeNotifier {
       NotificationService.showSnackbar("No hay coincidencias");
       return;
     }
+  }
+
+  // para el apartado de vehiculos
+  void limpiarElemento() {
+    elemento = null;
+    elementos.clear(); // opcional si quieres limpiar la lista
+    buscarElementoAsignado.clear(); // MUY IMPORTANTE
+    notifyListeners();
   }
 }

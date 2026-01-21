@@ -27,6 +27,8 @@ class ElementoAsignadoModel {
   String? placa;
   String? chasis;
   int? modelo;
+  String? centimetrosCubicos;
+  String? cilindros;
 
   ElementoAsignadoModel({
     required this.elementoAsignado,
@@ -55,6 +57,8 @@ class ElementoAsignadoModel {
     this.placa,
     this.chasis,
     this.modelo,
+    this.centimetrosCubicos,
+    this.cilindros,
   });
 
   factory ElementoAsignadoModel.fromJson(String str) =>
@@ -81,7 +85,7 @@ class ElementoAsignadoModel {
         pagina: json["pagina"],
         orden: json["orden"],
         objSecuencia: json["obj_Secuencia"],
-        opcDetalle: json["opc_Detalle"] as bool?,// se cambio para pruebas
+        opcDetalle: json["opc_Detalle"] as bool?, // se cambio para pruebas
 
         marca: json["marca"],
         modeloFecha: json["modelo_Fecha"] == null
@@ -94,7 +98,8 @@ class ElementoAsignadoModel {
         placa: json["placa"]?.toString(),
         chasis: json["chasis"]?.toString(),
         modelo: json["modelo"],
-
+        centimetrosCubicos: json["centimetros_Cubicos"]?.toString(),
+        cilindros: json["cilindros"]?.toString(),
       );
 
   Map<String, dynamic> toMap() => {
