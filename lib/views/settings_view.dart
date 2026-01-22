@@ -1,3 +1,4 @@
+import 'package:fl_business/utilities/utilities.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/routes/app_routes.dart';
@@ -116,6 +117,8 @@ class SettingsView extends StatelessWidget {
                 onTap: () => vm.navigatePrint(context),
               ),
               ListTile(
+                onLongPress: () =>
+                    Utilities.copyToClipboard(context, Preferences.urlApi),
                 leading: const Icon(Icons.vpn_lock_outlined),
                 title: Text(
                   AppLocalizations.of(
@@ -149,6 +152,15 @@ class SettingsView extends StatelessWidget {
                 ),
                 trailing: const Icon(Icons.arrow_right),
                 onTap: () => Navigator.pushNamed(context, AppRoutes.help),
+              ),
+              ListTile(
+                onLongPress: () => Utilities.copyToClipboard(
+                  context,
+                  SplashViewModel.idDevice,
+                ),
+                leading: const Icon(Icons.perm_device_info_outlined),
+                title: Text("Id Dispositivo"),
+                subtitle: Text(SplashViewModel.idDevice),
               ),
               ListTile(
                 leading: const Icon(Icons.cloud_outlined),
