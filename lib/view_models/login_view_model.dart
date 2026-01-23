@@ -50,7 +50,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   void showCustomDialog(BuildContext context) async {
-    String idDevice = await getDeviceId();
+    String idDevice = SplashViewModel.idDevice;
 
     showDialog(
       context: context,
