@@ -6,7 +6,6 @@ import 'package:fl_business/models/models.dart';
 import 'package:fl_business/models/url_pic_model.dart';
 import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
-import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/utilities.dart';
