@@ -5,8 +5,8 @@ import 'package:fl_business/displays/prc_documento_3/services/location_service.d
 import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
-import 'package:fl_business/displays/vehiculos/model_views/vehiculos_catalogo_viewmodel.dart';
-import 'package:fl_business/displays/vehiculos/models/vehiculo_registrado_model.dart';
+import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart'
+    as model;
 import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
 import 'package:fl_business/displays/vehiculos/views/catalogo_vehiculos_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
@@ -69,18 +69,18 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             tooltip: 'Guardar',
             onPressed: vm.formularioValido
                 ? () async {
-                    final ok = await vm.guardarVehiculoEnCatalogo();
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          ok
-                              ? 'Vehículo guardado correctamente'
-                              : 'Error al guardar vehículo',
-                        ),
-                        behavior: SnackBarBehavior.floating,
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ItemsVehiculoScreen(),
                       ),
                     );
+
+                    final ok = await vm.guardarVehiculoEnCatalogo();
+
+                    if (!context.mounted) return;
+
+                    
                   }
                 : null,
           ),
@@ -102,23 +102,23 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
               );
             },
           ),
-          IconButton(
-            icon: Icon(
-              Icons.car_repair_rounded,
-              color: vm.formularioValido ? Colors.white : Colors.white54,
-            ),
-            tooltip: 'Ver ítems de vehículo',
-            onPressed: vm.formularioValido
-                ? () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ItemsVehiculoScreen(),
-                      ),
-                    );
-                  }
-                : null, // Deshabilita el botón
-          ),
+          // IconButton(
+          //   icon: Icon(
+          //     Icons.car_repair_rounded,
+          //     color: vm.formularioValido ? Colors.white : Colors.white54,
+          //   ),
+          //   tooltip: 'Ver ítems de vehículo',
+          //   onPressed: vm.formularioValido
+          //       ? () {
+          //           Navigator.push(
+          //             context,
+          //             MaterialPageRoute(
+          //               builder: (context) => const ItemsVehiculoScreen(),
+          //             ),
+          //           );
+          //         }
+          //       : null,
+          // ),
         ],
       ),
 
@@ -482,6 +482,28 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ),
                       ],
                     ),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xff134895),
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(Icons.directions_car, color: Colors.white),
+                    label: const Text(
+                      'Ver catálogo de vehículos',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CatalogoVehiculosView(),
+                        ),
+                      );
+                    },
+                  ),
 
                   _buildModernSection(
                     title: 'Identificación del Vehículo',
@@ -527,29 +549,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     ],
                   ),
                   const SizedBox(height: 16),
-
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff134895),
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    icon: const Icon(Icons.directions_car, color: Colors.white),
-                    label: const Text(
-                      'Ver catálogo de vehículos',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CatalogoVehiculosView(),
-                        ),
-                      );
-                    },
-                  ),
 
                   const SizedBox(height: 24),
                 ],
@@ -822,7 +821,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     );
   }
 
-  // 🔍 Selector con buscador
   Widget _buildScrollableSelector<T>(
     BuildContext context,
     String label,
@@ -933,11 +931,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             ),
             onPressed: () async {
               final now = DateTime.now();
-              final hoy = DateTime(
-                now.year,
-                now.month,
-                now.day,
-              ); // 🔒 sin horas
+              final hoy = DateTime(now.year, now.month, now.day);
 
               final fechaSeleccionada = await showDatePicker(
                 context: context,

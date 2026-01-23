@@ -1,4 +1,5 @@
 import 'package:fl_business/displays/vehiculos/model_views/vehiculos_catalogo_viewmodel.dart';
+import 'package:fl_business/displays/vehiculos/views/inicioRecepci%C3%B3n.view.dart';
 import 'package:fl_business/models/elemento_asignado_model.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
@@ -35,8 +36,9 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
 
   @override
   Widget build(BuildContext context) {
-    final ElementoAsigandoViewModel vm =
-        Provider.of<ElementoAsigandoViewModel>(context);
+    final ElementoAsigandoViewModel vm = Provider.of<ElementoAsigandoViewModel>(
+      context,
+    );
 
     final vehiculoVM = context.watch<CatalogoVehiculosViewModel>();
     final elemento = vm.elemento;
@@ -69,8 +71,9 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
               controller: vm.buscarElementoAsignado,
               onFieldSubmitted: (_) => vm.getElementoAsignado(context),
               decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!
-                    .translate(BlockTranslate.tareas, 'buscar'),
+                labelText: AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.tareas, 'buscar'),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search, color: AppTheme.grey),
                   onPressed: () => vm.getElementoAsignado(context),
@@ -135,12 +138,36 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
 
-            if (elemento != null)
-              _buildVehiculoCard(context, elemento, vehiculoVM)
-            else
+            if (elemento != null) ...[
+              _buildVehiculoCard(context, elemento, vehiculoVM),
+
+              const SizedBox(height: 20),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Aceptar', style: TextStyle(fontSize: 16)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xff134895),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const InicioVehiculosView(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ] else
               const Text('Seleccione un vehículo'),
           ],
         ),
@@ -198,10 +225,7 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
             ),
             const Divider(),
 
-            item(
-              'Marca',
-              vehiculoVM.obtenerDescripcionMarca(elemento.marca),
-            ),
+            item('Marca', vehiculoVM.obtenerDescripcionMarca(elemento.marca)),
 
             // 🔹 MODELO (async)
             FutureBuilder<String>(
@@ -211,13 +235,12 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
                       elemento.modelo!,
                     )
                   : Future.value(''),
-              builder: (_, snap) =>
-                  item('Modelo', snap.data ?? ''),
+              builder: (_, snap) => item('Modelo', snap.data ?? ''),
             ),
 
             item('Color', elemento.color ?? ''),
             item('Placa', elemento.placa ?? ''),
-            item('Chasis', elemento.elementoId ?? ''),
+            item('Chasis', elemento.chasis ?? ''),
             item(
               'Fecha',
               elemento.fechaHora != null

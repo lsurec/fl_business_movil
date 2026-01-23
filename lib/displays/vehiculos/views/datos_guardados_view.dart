@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:provider/provider.dart';
 
 // ViewModel
 import '../model_views/inicio_model_view.dart';
@@ -100,6 +101,7 @@ class DatosGuardadosScreen extends StatelessWidget {
               ),
 
             const SizedBox(height: 30),
+            
 
             // ---------------------------
             // Botón Generar PDF
@@ -240,6 +242,10 @@ class DatosGuardadosScreen extends StatelessWidget {
   // Generación de PDF
   // ----------------------------
   Future<void> _generarPdf(BuildContext context) async {
+
+
+    // await Provider.of<InicioVehiculosViewModel>(context, listen: false).sendDocument(context);
+
     final pdf = pw.Document();
 
     pdf.addPage(

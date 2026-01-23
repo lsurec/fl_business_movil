@@ -1576,11 +1576,16 @@ class InicioVehiculosViewModel extends ChangeNotifier {
           ? refVM.referencia!.referencia
           : null,
     );
+    final estructuraJson = docGlobal!.toJson();
+
+    debugPrint('===== DOC ESTRUCTURA JSON =====');
+    debugPrint(jsonEncode(estructuraJson));
+
 
     //objeto enviar documento
     PostDocumentModel document = PostDocumentModel(
       estructura: docGlobal!.toJson(),
-      user: user,
+      user: loginVM.user,
       estado: docVM.printFel() ? 1 : 11,
     );
 
@@ -1592,4 +1597,5 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     return res;
   }
+  
 }
