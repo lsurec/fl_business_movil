@@ -49,6 +49,22 @@ class ElementoAsigandoViewModel extends ChangeNotifier {
     }
   }
 
+  bool mostrarResultados = false;
+
+  void ocultarResultados() {
+    mostrarResultados = false;
+    notifyListeners();
+  }
+  void mostrarLista() {
+  mostrarResultados = true;
+  notifyListeners();
+}
+
+void ocultarLista() {
+  mostrarResultados = false;
+  notifyListeners();
+}
+
   //Buscar Id Referencia
   Future<void> getElementoAsignado(BuildContext context) async {
     elementos.clear(); //Limpiar lista de idReferencia

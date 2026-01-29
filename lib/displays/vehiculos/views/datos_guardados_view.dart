@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -54,6 +55,41 @@ class DatosGuardadosScreen extends StatelessWidget {
             _dato('Modelo (Año)', vm.anioSeleccionado?.anio.toString() ?? '—'),
             _dato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
             const SizedBox(height: 20),
+            if (vm.imagenTipoVehiculo != null) ...[
+              const SizedBox(height: 12),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: VehiculoMarcadoWidget(
+                      imagePath: vm.imagenTipoVehiculo!,
+                      marcas: vm.marcasVehiculo,
+                      onTap: (x, y) => vm.agregarMarca(x, y),
+                    ),
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.undo, color: Colors.red),
+                    tooltip: 'Quitar última marca',
+                    onPressed: vm.marcasVehiculo.isNotEmpty
+                        ? vm.eliminarUltimaMarca
+                        : null,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_forever),
+                    tooltip: 'Limpiar marcas',
+                    onPressed: vm.marcasVehiculo.isNotEmpty
+                        ? vm.limpiarMarcas
+                        : null,
+                  ),
+                ],
+              ),
+            ],
 
             // ---------------------------
             // Fechas
@@ -101,7 +137,6 @@ class DatosGuardadosScreen extends StatelessWidget {
               ),
 
             const SizedBox(height: 30),
-            
 
             // ---------------------------
             // Botón Generar PDF
@@ -238,15 +273,23 @@ class DatosGuardadosScreen extends StatelessWidget {
     );
   }
 
+  //helper para cargar imagenes
+  Future<pw.Image?> _cargarImagenPdf(BuildContext context) async {
+    final path = vm.imagenTipoVehiculo;
+    if (path == null) return null;
+
+    final bytes = await DefaultAssetBundle.of(context).load(path);
+    return pw.Image(pw.MemoryImage(bytes.buffer.asUint8List()), height: 100);
+  }
+
   // ----------------------------
   // Generación de PDF
   // ----------------------------
   Future<void> _generarPdf(BuildContext context) async {
-
-
     // await Provider.of<InicioVehiculosViewModel>(context, listen: false).sendDocument(context);
 
     final pdf = pw.Document();
+    final imagenVehiculoPdf = await _cargarImagenPdf(context);
 
     pdf.addPage(
       pw.MultiPage(
@@ -273,13 +316,20 @@ class DatosGuardadosScreen extends StatelessWidget {
           _pdfDato('Línea', vm.modeloSeleccionado?.descripcion ?? '—'),
           _pdfDato('Modelo (Año)', vm.anioSeleccionado?.anio.toString() ?? '—'),
           _pdfDato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
+          if (imagenVehiculoPdf != null) ...[
+            pw.Center(child: imagenVehiculoPdf),
+            pw.SizedBox(height: 60),
+          ],
 
           pw.SizedBox(height: 20),
           _pdfDato('Fecha recibido', vm.fechaRecibido),
           _pdfDato('Fecha salida', vm.fechaSalida),
 
           pw.SizedBox(height: 20),
-          _pdfDato('Detalle del trabajo', vm.recepcionGuardada?.detalleTrabajo ?? '—'),
+          _pdfDato(
+            'Detalle del trabajo',
+            vm.recepcionGuardada?.detalleTrabajo ?? '—',
+          ),
           _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
           _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
           _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),

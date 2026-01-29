@@ -27,10 +27,13 @@ import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_mo
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
+import 'package:fl_business/displays/vehiculos/models/TipoVehiculoModel.dart';
+import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/models/recepcion_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculoYearModel.dart';
 import 'package:fl_business/displays/vehiculos/models/vehiculos_model.dart';
 import 'package:fl_business/displays/vehiculos/services/CatalogoVehiculosService.dart';
+import 'package:fl_business/displays/vehiculos/services/TipoVehiculoService.dart';
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
 import 'package:fl_business/fel/models/credencial_model.dart';
 import 'package:fl_business/models/api_res_model.dart';
@@ -158,6 +161,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final hoy = DateTime.now();
   late final fechaMinima = DateTime(hoy.year, hoy.month, hoy.day);
 
+  final TipoVehiculoService _service = TipoVehiculoService();
+
   // ============================================================================
   //                          FECHAS
   // ============================================================================
@@ -172,6 +177,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   List<VehiculoYearModel> anios = [];
   List<VehiculoModel> colores = [];
 
+  /// tipo de Vehiculo
+  final TipoVehiculoService _tipoVehiculoService = TipoVehiculoService();
+  List<TipoVehiculoModel> tiposVehiculo = [];
+  TipoVehiculoModel? tipoVehiculoSeleccionado;
+
+  bool cargandoTiposVehiculo = false;
   // ============================================================================
   //                          SELECCIONES DEL USUARIO
   // ============================================================================
@@ -216,10 +227,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final VehiculoService _vehiculoService = VehiculoService();
 
   Future<void> cargarDatosIniciales(BuildContext context) async {
-    isLoading = false;
     try {
       isLoading = true;
       notifyListeners();
+
+      // 👇 PRIMERO tipos de vehículo
+      await cargarTiposVehiculo();
 
       setIdDocumentoRef();
 
@@ -231,21 +244,14 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       await loadSeries(context, vmMenu.documento!);
 
       if (series.isEmpty) {
-        //TODO: Mostrar mensaje de que no hay series
-        NotificationService.showSnackbar('No hay series asigandas');
+        NotificationService.showSnackbar('No hay series asignadas');
         return;
       }
 
-      for (var element in series) {
-        if (element.orden == 1) {
-          serieSelect = element;
-          break;
-        }
-      }
-
-      if (serieSelect == null) {
-        serieSelect = series.first;
-      }
+      serieSelect = series.firstWhere(
+        (e) => e.orden == 1,
+        orElse: () => series.first,
+      );
 
       await loadSellers(
         context,
@@ -581,6 +587,56 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  //Funcion para obtener tipo de Vehiculo
+  Future<void> cargarTiposVehiculo() async {
+    cargandoTiposVehiculo = true;
+    notifyListeners();
+
+    tiposVehiculo = await _tipoVehiculoService.getTiposVehiculo();
+
+    cargandoTiposVehiculo = false;
+    notifyListeners();
+  }
+
+  void seleccionarTipoVehiculo(TipoVehiculoModel? value) {
+    tipoVehiculoSeleccionado = value;
+    notifyListeners();
+  }
+
+  String? get imagenTipoVehiculo {
+    final key = tipoVehiculoSeleccionado?.consecutivoInterno?.toString();
+    if (key == null) return null;
+    return imagenPorTipoVehiculo[key];
+  }
+
+  // String o int, usa el tipo real de tu modelo
+  final Map<String, String> imagenPorTipoVehiculo = {
+    '1': 'assets/TiposdeVehiculos/Sedan.jpg',
+    '2': 'assets/TiposdeVehiculos/Hatchback.png',
+    '3': 'assets/TiposdeVehiculos/Convertible.jpg',
+    '4': 'assets/TiposdeVehiculos/SUV.png',
+    '5': 'assets/TiposdeVehiculos/PickUp.png',
+    '6': 'assets/TiposdeVehiculos/Camioneta.jpg',
+    '7': 'assets/TiposdeVehiculos/Panel.jpg',
+  };
+  // marcar areas del vehiculo
+  List<MarcaVehiculo> marcasVehiculo = [];
+  void agregarMarca(double x, double y) {
+    marcasVehiculo.add(MarcaVehiculo(x: x, y: y));
+    notifyListeners();
+  }
+
+  void limpiarMarcas() {
+    marcasVehiculo.clear();
+    notifyListeners();
+  }
+  void eliminarUltimaMarca() {
+  if (marcasVehiculo.isNotEmpty) {
+    marcasVehiculo.removeLast();
+    notifyListeners();
+  }
+}
 
   int idDocumentoRef = 0;
 
@@ -1581,7 +1637,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     debugPrint('===== DOC ESTRUCTURA JSON =====');
     debugPrint(jsonEncode(estructuraJson));
 
-
     //objeto enviar documento
     PostDocumentModel document = PostDocumentModel(
       estructura: docGlobal!.toJson(),
@@ -1597,5 +1652,4 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     return res;
   }
-  
 }

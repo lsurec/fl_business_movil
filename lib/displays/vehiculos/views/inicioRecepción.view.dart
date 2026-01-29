@@ -50,6 +50,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     final vmTheme = Provider.of<ThemeViewModel>(context);
     final ElementoAsigandoViewModel elVM =
         Provider.of<ElementoAsigandoViewModel>(context);
+    final inicioVM = context.read<InicioVehiculosViewModel>();
 
     return Scaffold(
       appBar: AppBar(
@@ -79,8 +80,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     final ok = await vm.guardarVehiculoEnCatalogo();
 
                     if (!context.mounted) return;
-
-                    
                   }
                 : null,
           ),
@@ -482,41 +481,138 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ),
                       ],
                     ),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff134895),
-                      minimumSize: const Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    icon: const Icon(Icons.directions_car, color: Colors.white),
-                    label: const Text(
-                      'Ver catálogo de vehículos',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CatalogoVehiculosView(),
-                        ),
-                      );
-                    },
-                  ),
+                  const SizedBox(height: 15),
 
+                  // ElevatedButton.icon(
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: const Color(0xff134895),
+                  //     minimumSize: const Size(double.infinity, 48),
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(10),
+                  //     ),
+                  //   ),
+                  //   icon: const Icon(Icons.directions_car, color: Colors.white),
+                  //   label: const Text(
+                  //     'Ver catálogo de vehículos',
+                  //     style: TextStyle(color: Colors.white, fontSize: 16),
+                  //   ),
+                  //   onPressed: () async {
+                  //     final elVM = context.read<ElementoAsigandoViewModel>();
+                  //     final inicioVM = context.read<InicioVehiculosViewModel>();
+
+                  //     await Navigator.push(
+                  //       context,
+                  //       MaterialPageRoute(
+                  //         builder: (_) => const CatalogoVehiculosView(),
+                  //       ),
+                  //     );
+
+                  //     //   AQUÍ MISMO
+                  //     if (elVM.elemento != null) {
+                  //       await inicioVM.cargarDesdeElementoAsignado(
+                  //         context,
+                  //         elVM.elemento!,
+                  //       );
+                  //     }
+                  //   },
+                  // ),
                   _buildModernSection(
                     title: 'Identificación del Vehículo',
                     icon: Icons.confirmation_number_outlined,
                     children: [
-                      _buildTextField('Placa', vm.placaController),
-                      _buildTextField('Chasis', vm.chasisController),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: elVM.buscarElementoAsignado,
+                            decoration: InputDecoration(
+                              labelText: 'Placa',
+                              suffixIcon: IconButton(
+                                icon: const Icon(Icons.search),
+                                onPressed: () async {
+                                  FocusScope.of(
+                                    context,
+                                  ).unfocus(); // 👈 cierra teclado a propósito
 
-                      if (vm.marcaSeleccionada != null &&
+                                  if (elVM.buscarElementoAsignado.text
+                                      .trim()
+                                      .isEmpty)
+                                    return;
+
+                                  await elVM.getElementoAsignado(context);
+                                  elVM.mostrarLista();
+                                },
+                              ),
+                            ),
+                          ),
+
+                          //   DESPLIEGUE DE COINCIDENCIAS
+                          if (elVM.mostrarResultados)
+                            Container(
+                              constraints: const BoxConstraints(maxHeight: 250),
+                              margin: const EdgeInsets.only(top: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: elVM.elementos.length,
+                                itemBuilder: (_, index) {
+                                  final item = elVM.elementos[index];
+                                  return ListTile(
+                                    title: Text(
+                                      "${item.descripcion} (${item.elementoAsignado})",
+                                    ),
+                                    onTap: () async {
+                                      //   1. Escribir la placa en el input
+                                      elVM.buscarElementoAsignado.text = item
+                                          .placa
+                                          .toString();
+
+                                      // (opcional) mover cursor al final
+                                      elVM.buscarElementoAsignado.selection =
+                                          TextSelection.fromPosition(
+                                            TextPosition(
+                                              offset: elVM
+                                                  .buscarElementoAsignado
+                                                  .text
+                                                  .length,
+                                            ),
+                                          );
+
+                                      //   2. Guardar selección
+                                      elVM.selectRef(context, item, false);
+
+                                      //   3. Ocultar resultados
+                                      elVM.ocultarLista();
+
+                                      //   4. Cargar datos relacionados
+                                      await inicioVM
+                                          .cargarDesdeElementoAsignado(
+                                            context,
+                                            item,
+                                          );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+
+                          const SizedBox(height: 12),
+
+                          _buildTextField('Chasis', vm.chasisController),
+
+                          if (vm.marcaSeleccionada != null ||
                               vm.modeloSeleccionado != null ||
-                          vm.anioSeleccionado != null ||
-                          vm.colorSeleccionado != null)
-                        _buildVehiculoSeleccionado(vm),
+                              vm.anioSeleccionado != null ||
+                              vm.colorSeleccionado != null)
+                            _buildVehiculoSeleccionado(vm),
+                          
+                            _buildTipoVehiculoDropdown(vm),
+                        ],
+                      ),
                     ],
                   ),
 
@@ -556,7 +652,48 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       ),
     );
   }
+Widget _buildTipoVehiculoDropdown(InicioVehiculosViewModel vm) {
+  if (vm.cargandoTiposVehiculo) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Center(child: CircularProgressIndicator()),
+    );
+  }
 
+  if (vm.tiposVehiculo.isEmpty) {
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 12),
+      child: Text(
+        'No se encontraron tipos de vehículo',
+        style: TextStyle(color: Colors.grey),
+      ),
+    );
+  }
+
+  return Padding(
+    padding: const EdgeInsets.only(top: 16),
+    child: DropdownButtonFormField(
+      isExpanded: true,
+      value: vm.tipoVehiculoSeleccionado,
+      decoration: InputDecoration(
+        labelText: 'Tipo de vehículo',
+        filled: true,
+        fillColor: const Color(0xFFF8F9F9),
+        border: OutlineInputBorder( 
+
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      items: vm.tiposVehiculo.map((tipo) {
+        return DropdownMenuItem(
+          value: tipo,
+          child: Text(tipo.descripcion ?? ''),
+        );
+      }).toList(),
+      onChanged: vm.seleccionarTipoVehiculo,
+    ),
+  );
+}
   Widget _buildVehiculoSeleccionado(InicioVehiculosViewModel vm) {
     Widget item(String label, String value) {
       return Padding(
@@ -801,8 +938,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       vm.colores,
                       vm.colorSeleccionado,
                       (v) => v.descripcion,
-                      (v) {
+                      (v) async {
                         vm.seleccionarColor(v);
+                        await vm.cargarTiposVehiculo(); // 👈 AQUÍ
                         ScaffoldMessenger.of(tabContext).showSnackBar(
                           const SnackBar(
                             content: Text('Datos del vehículo completos'),

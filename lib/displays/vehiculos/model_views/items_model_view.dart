@@ -151,6 +151,32 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   }
 
   // ================================
+  //   ELIMINAR FOTO
+  // ================================
+  Future<void> eliminarFoto(String idProducto, String pathFoto) async {
+    // Quitar del mapa principal
+    fotosPorItem[idProducto]?.remove(pathFoto);
+
+    // Quitar de la transacción
+    final index = transaciciones.indexWhere(
+      (t) => t.producto.productoId == idProducto,
+    );
+
+    if (index != -1) {
+      transaciciones[index].files?.remove(pathFoto);
+    }
+
+    // Borrar archivo físico (si existe)
+    final file = File(pathFoto);
+    if (await file.exists()) {
+      await file.delete();
+    }
+
+    notifyListeners();
+    
+  }
+
+  // ================================
   //   ACTUALIZAR CHECKBOX
   // ================================
   void toggleCheck(String idProducto, bool value) {
