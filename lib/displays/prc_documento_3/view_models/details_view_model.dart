@@ -14,6 +14,7 @@ import 'package:fl_business/themes/themes.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
+import 'package:fl_business/views/barcode_scan_view.dart';
 import 'package:fl_business/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -677,10 +678,19 @@ class DetailsViewModel extends ChangeNotifier {
 
   //Obtener y escanear codico de barras
   Future<void> scanBarcode(BuildContext context) async {
-    //TODO:Reemplazar libreria
-    NotificationService.showSnackbar(
-      "Esta funcion no está disponible temporalmente",
+    final String? barcodeScanRes = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BarcodeScanView()),
     );
+
+    // Cancelado
+    if (barcodeScanRes == null) return;
+
+    // Asignar código escaneado
+    searchController.text = barcodeScanRes;
+
+    // Buscar producto
+    performSearch(context);
 
     //Escanear codigo de barras
     // String barcodeScanRes = await FlutterBarcodeScanner.scanBarcode(
