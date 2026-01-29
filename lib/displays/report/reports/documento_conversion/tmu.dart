@@ -79,10 +79,16 @@ class DocumentoConversionTMU {
       bytes += generator.text(data.documento.descripcion, styles: centerBold);
 
       bytes += generator.emptyLines(1);
+
       bytes += generator.text(
         "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'interno')} ${data.documento.noInterno}",
         styles: center,
       );
+      bytes += generator.text(
+        "${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'serie')} ${data.documento.serieInterna}",
+        styles: center,
+      );
+
       bytes += generator.emptyLines(1);
       bytes += generator.text(
         AppLocalizations.of(

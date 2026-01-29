@@ -81,14 +81,16 @@ class DocumentoConversionProvider {
     Documento documento = Documento(
       consecutivoInterno: 0,
       titulo: encabezado.tipoDocumento!,
-      descripcion: AppLocalizations.of(
-        context,
-      )!.translate(BlockTranslate.tiket, "generico"),
+      descripcion:
+          encabezado.documentoNombre ??
+          AppLocalizations.of(
+            context,
+          )!.translate(BlockTranslate.tiket, "generico"),
       fechaCert: "",
       serie: "",
       no: "",
       autorizacion: "",
-      noInterno: encabezado.refIdDocumento ?? "",
+      noInterno: encabezado.idDocumento ?? "",
       serieInterna: encabezado.serieDocumento ?? "",
     );
 
