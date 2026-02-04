@@ -119,7 +119,9 @@ class DocumentoConversionTMU {
 
       for (var transaction in data.items) {
         bytes += generator.text("Cant. ${transaction.cantidad}");
-        bytes += generator.text("Desc.: ${transaction.descripcion}");
+        bytes += generator.text(
+          "Desc.: ${utils.normalizarParaPrinter(transaction.descripcion)}",
+        );
         bytes += generator.text("Precio U.: ${transaction.unitario}");
         bytes += generator.text("Total: ${transaction.total}");
       }
