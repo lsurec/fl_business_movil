@@ -97,6 +97,15 @@ final CatalogoVehiculosService _catalogoVehiculosService =
 /// - Guardar la información
 /// - Limpiar todos los datos
 class InicioVehiculosViewModel extends ChangeNotifier {
+
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  set isLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
   /// Servicio que obtiene datos desde la API
   //Cliente selecciinado
   ClientModel? clienteSelect;
@@ -111,7 +120,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
   //                          ESTADO GENERAL Y ERRORES
   // ============================================================================
-  bool isLoading = false;
   String? error;
   SerieModel? serieSelect;
   SellerModel? vendedorSelect;
@@ -358,11 +366,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       // Datos del cliente
       // --------------------
-      nit: nitController.text.trim(),
-      nombre: nombreController.text.trim(),
-      direccion: direccionController.text.trim(),
-      celular: celularController.text.trim(),
-      email: emailController.text.trim(),
+      nit: clienteSelect?.facturaNit ?? "",
+      nombre: clienteSelect?.facturaNombre ?? "",
+      direccion: clienteSelect?.facturaDireccion ?? "",
+      celular: clienteSelect?.telefono ?? "",
+      email: clienteSelect?.eMail ?? "",
 
       // --------------------
       // Datos del vehículo
@@ -404,6 +412,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     direccion = '';
     celular = '';
     email = '';
+    
+    
 
     //  Limpiar detalle y datos de vehículo
     detalleTrabajo = '';
@@ -437,7 +447,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     cilController.clear();
     placaController.clear();
     chasisController.clear();
-
+    
+    
     notifyListeners();
   }
 

@@ -10,10 +10,18 @@ import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart'
 import 'package:path_provider/path_provider.dart';
 
 class ItemsVehiculoViewModel extends ChangeNotifier {
+   bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  set isLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+
   final ItemVehiculoService _service = ItemVehiculoService();
 
   List<api.ItemVehiculoApi> items = [];
-  bool isLoading = false;
   String? error;
 
   final Map<String, TextEditingController> controllers = {};

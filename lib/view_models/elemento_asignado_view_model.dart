@@ -123,8 +123,14 @@ void ocultarLista() {
   // para el apartado de vehiculos
   void limpiarElemento() {
     elemento = null;
-    elementos.clear(); // opcional si quieres limpiar la lista
-    buscarElementoAsignado.clear(); // MUY IMPORTANTE
+    elementos.clear(); 
+    buscarElementoAsignado.clear(); 
     notifyListeners();
   }
+  void cancelar() {
+
+    buscarElementoAsignado.clear();
+    
+
+      }
 }
