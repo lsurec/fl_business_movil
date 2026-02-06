@@ -51,7 +51,7 @@ class ReferenciaService {
         status: false,
         message: "Excepcion no controlada",
         error: e.toString(),
-        storeProcedure: "",
+        storedProcedure: "",
         parameters: null,
         data: [],
         timestamp: DateTime.now(),

@@ -1,14 +1,11 @@
 // ignore_for_file: use_build_context_synchronously, avoid_print
 
-import 'dart:io';
-
 import 'package:fl_business/displays/shr_local_config/services/services.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/models/models.dart';
 import 'package:fl_business/models/url_pic_model.dart';
 import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
-import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/view_models/view_models.dart';
@@ -34,6 +31,7 @@ class SplashViewModel extends ChangeNotifier {
 
     if (existing != null && existing.isNotEmpty) {
       idDevice = existing;
+      return;
     }
 
     final newUuid = _uuid.v4();
