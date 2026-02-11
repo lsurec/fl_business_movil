@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:fl_business/displays/prc_documento_3/models/amount_model.dart';
@@ -52,24 +53,22 @@ import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as context;
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
-/// ============================================================================
-///                               MODELO DEL ÍTEM
-/// ============================================================================
+
 /// Representa un ítem a revisar en el vehículo.
 /// Cada ítem puede tener:
 /// - ID y descripción
 /// - Detalle adicional
 /// - Estado de completado
 /// - Varias fotos tomadas desde la cámara
+
 class ItemVehiculo {
   final String idProducto;
   final String desProducto;
-
   String detalle;
   bool completado;
-
   // Guardamos paths, no XFile
   List<String> fotos;
 
@@ -80,13 +79,33 @@ class ItemVehiculo {
     this.completado = false,
     List<String>? fotos,
   }) : fotos = fotos ?? [];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'idProducto': idProducto,
+      'desProducto': desProducto,
+      'detalle': detalle,
+      'completado': completado,
+      'fotos': fotos,
+    };
+  }
+
+  factory ItemVehiculo.fromJson(Map<String, dynamic> json) {
+    return ItemVehiculo(
+      idProducto: json['idProducto'] ?? '',
+      desProducto: json['desProducto'] ?? '',
+      detalle: json['detalle'] ?? '',
+      completado: json['completado'] ?? false,
+      fotos: List<String>.from(json['fotos'] ?? []),
+    );
+  }
 }
 
 final CatalogoVehiculosService _catalogoVehiculosService =
     CatalogoVehiculosService();
 
 /// ============================================================================
-///                           VIEWMODEL PRINCIPAL
+/// VIEWMODEL PRINCIPAL
 /// ============================================================================
 /// Controla y almacena toda la información del formulario
 /// de ingreso del vehículo, datos del cliente y los ítems revisados.
@@ -96,35 +115,104 @@ final CatalogoVehiculosService _catalogoVehiculosService =
 /// - Seleccionar valores
 /// - Guardar la información
 /// - Limpiar todos los datos
+
 class InicioVehiculosViewModel extends ChangeNotifier {
-
-
   bool _isLoading = false;
+
   bool get isLoading => _isLoading;
 
   set isLoading(bool value) {
     _isLoading = value;
     notifyListeners();
   }
+
+  void setLoading(bool value) {
+    isLoading = value;
+    notifyListeners();
+  }
+
+  final ValueNotifier<int?> tabVehiculoDestino = ValueNotifier(null);
+
+  // Guardado de documento
+  static const _draftFileName = 'recepcion_vehiculo_draft.json';
+
+  Future<void> saveDraft() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/$_draftFileName');
+    final data = {
+      'recepcion': recepcionGuardada?.toJson(),
+      'marca': marcaSeleccionada?.toJson(),
+      'modelo': modeloSeleccionado?.toJson(),
+      'anio': anioSeleccionado?.toJson(),
+      'color': colorSeleccionado?.toJson(),
+      'items': itemsAsignados.map((e) => e.toJson()).toList(),
+      'marcasVehiculo': marcasVehiculo.map((e) => e.toJson()).toList(),
+      'imagenTipoVehiculo': imagenTipoVehiculo,
+      'fechaRecibido': fechaRecibido,
+      'fechaSalida': fechaSalida,
+    };
+    await file.writeAsString(jsonEncode(data));
+  }
+
+  Future<bool> loadDraft() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/$_draftFileName');
+    if (!await file.exists()) return false;
+
+    final jsonData = jsonDecode(await file.readAsString());
+    recepcionGuardada = jsonData['recepcion'] != null
+        ? RecepcionVehiculoModel.fromJson(jsonData['recepcion'])
+        : null;
+    marcaSeleccionada = jsonData['marca'] != null
+        ? VehiculoModel.fromJson(jsonData['marca'])
+        : null;
+    modeloSeleccionado = jsonData['modelo'] != null
+        ? VehiculoModel.fromJson(jsonData['modelo'])
+        : null;
+    anioSeleccionado = jsonData['anio'] != null
+        ? VehiculoYearModel.fromJson(jsonData['anio'])
+        : null;
+    colorSeleccionado = jsonData['color'] != null
+        ? VehiculoModel.fromJson(jsonData['color'])
+        : null;
+
+    itemsAsignados = (jsonData['items'] as List)
+        .map((e) => ItemVehiculo.fromJson(e))
+        .toList();
+    marcasVehiculo = (jsonData['marcasVehiculo'] as List)
+        .map((e) => MarcaVehiculo.fromJson(e))
+        .toList();
+    fechaRecibido = jsonData['fechaRecibido'];
+    fechaSalida = jsonData['fechaSalida'];
+
+    notifyListeners();
+    return true;
+  }
+
   /// Servicio que obtiene datos desde la API
   //Cliente selecciinado
   ClientModel? clienteSelect;
+
   //Key for form
   GlobalKey<FormState> formKeyClient = GlobalKey<FormState>();
+
   //Seleccionar consummidor final
   bool cf = false;
 
   //cinsecutivo para obtener plantilla (impresion)
   int consecutivoDoc = 0;
   DocEstructuraModel? docGlobal;
+
   // ============================================================================
-  //                          ESTADO GENERAL Y ERRORES
+  // ESTADO GENERAL Y ERRORES
   // ============================================================================
   String? error;
+
   SerieModel? serieSelect;
   SellerModel? vendedorSelect;
+
   // ============================================================================
-  //                          DATOS DEL CLIENTE
+  // DATOS DEL CLIENTE
   // ============================================================================
   String nit = '';
   String nombre = '';
@@ -133,7 +221,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String email = '';
 
   // ============================================================================
-  //                          OBSERVACIONES DEL VEHÍCULO
+  // OBSERVACIONES DEL VEHÍCULO
   // ============================================================================
   String detalleTrabajo = '';
   String kilometraje = '';
@@ -143,7 +231,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String chasis = '';
 
   // ============================================================================
-  //                          CONTROLADORES DE INPUT
+  // CONTROLADORES DE INPUT
   // ============================================================================
   final TextEditingController detalleTrabajoController =
       TextEditingController();
@@ -163,22 +251,24 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final List<ParametroModel> parametros = [];
   final List<TipoReferenciaModel> referencias = [];
   final List<TipoTransaccionModel> tiposTransaccion = [];
+
   //Controlador input buscar cliente
   final TextEditingController client = TextEditingController();
+
   final List<ClientModel> cuentasCorrentistas = []; //cunetas correntisat
+
   final hoy = DateTime.now();
   late final fechaMinima = DateTime(hoy.year, hoy.month, hoy.day);
-
   final TipoVehiculoService _service = TipoVehiculoService();
 
   // ============================================================================
-  //                          FECHAS
+  // FECHAS
   // ============================================================================
   String fechaRecibido = '';
   String fechaSalida = '';
 
   // ============================================================================
-  //                          LISTAS OBTENIDAS DE API
+  // LISTAS OBTENIDAS DE API
   // ============================================================================
   List<VehiculoModel> marcas = [];
   List<VehiculoModel> modelos = [];
@@ -189,10 +279,10 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final TipoVehiculoService _tipoVehiculoService = TipoVehiculoService();
   List<TipoVehiculoModel> tiposVehiculo = [];
   TipoVehiculoModel? tipoVehiculoSeleccionado;
-
   bool cargandoTiposVehiculo = false;
+
   // ============================================================================
-  //                          SELECCIONES DEL USUARIO
+  // SELECCIONES DEL USUARIO
   // ============================================================================
   VehiculoModel? marcaSeleccionada;
   VehiculoModel? modeloSeleccionado;
@@ -200,7 +290,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   VehiculoModel? colorSeleccionado;
 
   // ============================================================================
-  //                          LISTA DE ÍTEMS DEL VEHÍCULO
+  // LISTA DE ÍTEMS DEL VEHÍCULO
   // ============================================================================
   List<ItemVehiculo> itemsAsignados = [];
 
@@ -211,14 +301,14 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   /// Actualiza un ítem específico por ID
-  void actualizarItem(String idProducto, {String? detalle, bool? completado}) {
-    final index = itemsAsignados.indexWhere((e) => e.idProducto == idProducto);
+  void actualizarItem(String idProducto,
+      {String? detalle, bool? completado}) {
+    final index =
+        itemsAsignados.indexWhere((e) => e.idProducto == idProducto);
     if (index != -1) {
       final item = itemsAsignados[index];
-
       if (detalle != null) item.detalle = detalle;
       if (completado != null) item.completado = completado;
-
       notifyListeners();
     }
   }
@@ -230,7 +320,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   // ============================================================================
-  //                          CARGA INICIAL DESDE API
+  // CARGA INICIAL DESDE API
   // ============================================================================
   final VehiculoService _vehiculoService = VehiculoService();
 
@@ -241,7 +331,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
       // 👇 PRIMERO tipos de vehículo
       await cargarTiposVehiculo();
-
       setIdDocumentoRef();
 
       final MenuViewModel vmMenu = Provider.of<MenuViewModel>(
@@ -250,7 +339,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       );
 
       await loadSeries(context, vmMenu.documento!);
-
       if (series.isEmpty) {
         NotificationService.showSnackbar('No hay series asignadas');
         return;
@@ -284,19 +372,17 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       final token = Preferences.token; // asumiendo que guardas el token
       final user = Preferences.userName; // o el usuario que corresponda
       final empresa = 1; // o la empresa correspondiente
-
       final res = await ElementoAsignadoService().getElementoAsignado(
-        empresa,
-        placa,
-        user,
-        token,
-      );
+            empresa,
+            placa,
+            user,
+            token,
+          );
 
       // Si la data tiene al menos un elemento, significa que ya existe
       if (res.data != null && (res.data as List).isNotEmpty) {
         return true;
       }
-
       return false;
     } catch (e) {
       print('Error al verificar placa: $e');
@@ -305,8 +391,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   // ============================================================================
-  //                               SELECCIÓN DE DATOS
+  // SELECCIÓN DE DATOS
   // ============================================================================
+
   /// Selecciona la marca y carga los modelos asociados
   Future<void> seleccionarMarca(VehiculoModel marca) async {
     marcaSeleccionada = marca;
@@ -354,11 +441,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   // ============================================================================
-  //                           GUARDAR INFORMACIÓN
+  // GUARDAR INFORMACIÓN
   // ============================================================================
-  /// Carga los valores de los TextControllers a las variables reales
-  ///
 
+  /// Carga los valores de los TextControllers a las variables reales
+  /// 
   RecepcionVehiculoModel? recepcionGuardada;
 
   void guardar() {
@@ -396,26 +483,25 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       cc: ccController.text.trim(),
       cil: cilController.text.trim(),
     );
-
     notifyListeners();
   }
 
   // ============================================================================
-  //                           LIMPIAR FORMULARIO COMPLETO
+  // LIMPIAR FORMULARIO COMPLETO
   // ============================================================================
   void cancelar() {
     recepcionGuardada = null;
-    //  Limpiar variables de cliente
+
+    // Limpiar variables de cliente
     clienteSelect = null;
+    tipoVehiculoSeleccionado = null;
     nit = '';
     nombre = '';
     direccion = '';
     celular = '';
     email = '';
-    
-    
 
-    //  Limpiar detalle y datos de vehículo
+    // Limpiar detalle y datos de vehículo
     detalleTrabajo = '';
     kilometraje = '';
     cc = '';
@@ -428,14 +514,14 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     anioSeleccionado = null;
     colorSeleccionado = null;
 
-    //  Limpiar fechas
+    // Limpiar fechas
     fechaRecibido = '';
     fechaSalida = '';
 
-    //  Limpiar lista o datos de items
+    // Limpiar lista o datos de items
     limpiarItems();
 
-    //  Limpiar controllers
+    // Limpiar controllers
     nitController.clear();
     nombreController.clear();
     direccionController.clear();
@@ -447,8 +533,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     cilController.clear();
     placaController.clear();
     chasisController.clear();
-    
-    
+
     notifyListeners();
   }
 
@@ -466,6 +551,70 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         fechaSalida.isNotEmpty;
   }
 
+  ApiResModel? validarDocumentoCompleto(BuildContext context) {
+    // 1. Cliente
+    if (clienteSelect == null) {
+      return ApiResModel(
+        typeError: 0,
+        succes: false,
+        response: 'Seleccione un cliente',
+        url: 'LOCAL',
+        storeProcedure: null,
+      );
+    }
+
+    // 2. Vehículo básico
+    if (marcaSeleccionada == null ||
+        modeloSeleccionado == null ||
+        anioSeleccionado == null ||
+        colorSeleccionado == null) {
+      return ApiResModel(
+        typeError: 0,
+        succes: false,
+        response: 'Complete todos los datos del vehículo',
+        url: 'LOCAL',
+        storeProcedure: null,
+      );
+    }
+
+    // 3. Fechas
+    if (fechaRecibido.isEmpty || fechaSalida.isEmpty) {
+      return ApiResModel(
+        typeError: 0,
+        succes: false,
+        response: 'Complete las fechas de recibido y salida',
+        url: 'LOCAL',
+        storeProcedure: null,
+      );
+    }
+
+    // 4. Placa y Chasis (requeridos)
+    if (placaController.text.trim().isEmpty ||
+        chasisController.text.trim().isEmpty) {
+      return ApiResModel(
+        typeError: 0,
+        succes: false,
+        response: 'Placa y chasis son obligatorios',
+        url: 'LOCAL',
+        storeProcedure: null,
+      );
+    }
+
+    // 5. Serie
+    if (serieSelect == null) {
+      return ApiResModel(
+        typeError: 0,
+        succes: false,
+        response: 'Seleccione una serie',
+        url: 'LOCAL',
+        storeProcedure: null,
+      );
+    }
+
+    // 6. Transacciones (se valida después de sincronizar)
+    return null; // Todo OK
+  }
+
   String get descripcionVehiculo {
     final marca = marcaSeleccionada?.descripcion;
     final modelo = modeloSeleccionado?.descripcion;
@@ -480,7 +629,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   String? _fechaRecibidoParaCatalogoApi() {
     if (fechaRecibido.isEmpty) return null;
-
     try {
       return DateTime.parse(fechaRecibido).toIso8601String();
     } catch (_) {
@@ -497,11 +645,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       notifyListeners();
 
       guardar(); // guardamos la recepción local
-
       final placa = placaController.text.trim();
 
       // 🔹 Verificamos si la placa ya existe
       final existe = await placaExiste(placa);
+
       if (existe) {
         NotificationService.showSnackbar(
           'La placa $placa ya existe en el catálogo',
@@ -527,7 +675,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       );
 
       await _catalogoVehiculosService.crearVehiculo(model);
-
       return true;
     } catch (e) {
       error = e.toString();
@@ -587,8 +734,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     // COLOR
     // ---------------------------
     final color = colores.firstWhere(
-      (c) =>
-          c.descripcion.toUpperCase() == (elemento.color ?? '').toUpperCase(),
+      (c) => c.descripcion.toUpperCase() == (elemento.color ?? '').toUpperCase(),
       orElse: () => VehiculoModel(id: 0, descripcion: ''),
     );
 
@@ -631,8 +777,10 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     '6': 'assets/TiposdeVehiculos/Camioneta.jpg',
     '7': 'assets/TiposdeVehiculos/Panel.jpg',
   };
+
   // marcar areas del vehiculo
   List<MarcaVehiculo> marcasVehiculo = [];
+
   void agregarMarca(double x, double y) {
     marcasVehiculo.add(MarcaVehiculo(x: x, y: y));
     notifyListeners();
@@ -642,24 +790,23 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     marcasVehiculo.clear();
     notifyListeners();
   }
+
   void eliminarUltimaMarca() {
-  if (marcasVehiculo.isNotEmpty) {
-    marcasVehiculo.removeLast();
-    notifyListeners();
+    if (marcasVehiculo.isNotEmpty) {
+      marcasVehiculo.removeLast();
+      notifyListeners();
+    }
   }
-}
 
   int idDocumentoRef = 0;
 
   void setIdDocumentoRef() {
     DateTime date = DateTime.now();
-
     final random = Random();
     int numeroAleatorio = 100 + random.nextInt(900); // 100 a 999
 
     // Combinar los dos números para formar uno de 14 dígitos
-    String combinedStr =
-        numeroAleatorio.toString() +
+    String combinedStr = numeroAleatorio.toString() +
         date.day.toString().padLeft(2, '0') +
         date.month.toString().padLeft(2, '0') +
         date.year.toString() +
@@ -675,7 +822,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   //agregar consumidor final
   changeCF(BuildContext context, bool value) {
     final vmFactura = Provider.of<DocumentoViewModel>(context, listen: false);
-
     cf = value;
 
     //si cf es verdadero
@@ -698,11 +844,13 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         desGrupoCuenta: null,
         grupoCuenta: 0,
       );
+
       //Mensaje de confirmacion
       NotificationService.showSnackbar(
         AppLocalizations.of(
           context,
-        )!.translate(BlockTranslate.notificacion, 'clienteSelec'),
+        )!
+            .translate(BlockTranslate.notificacion, 'clienteSelec'),
       );
 
       if (!vmFactura.editDoc) {
@@ -711,37 +859,35 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     } else {
       //no seleccionar
       clienteSelect = null;
+
       if (!vmFactura.editDoc) {
         DocumentService.saveDocumentLocal(context);
       }
     }
-
     notifyListeners();
   }
 
   //Cliente
-
   String getTextCuenta(BuildContext context) {
     String fileName = AppLocalizations.of(
       context,
-    )!.translate(BlockTranslate.factura, 'cuenta');
+    )!
+        .translate(BlockTranslate.factura, 'cuenta');
 
     for (var i = 0; i < parametros.length; i++) {
       final ParametroModel param = parametros[i];
 
       //buscar nombre del campo en el parametro 57
       if (param.parametro == 57) {
-        fileName =
-            param.paCaracter ??
+        fileName = param.paCaracter ??
             AppLocalizations.of(
               context,
-            )!.translate(BlockTranslate.factura, 'cuenta');
+            )!
+                .translate(BlockTranslate.factura, 'cuenta');
         break;
       }
     }
-
     fileName = capitalizeFirstLetter(fileName);
-
     return fileName;
   }
 
@@ -768,7 +914,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
     final vmFactura = Provider.of<DocumentoViewModel>(context, listen: false);
-    final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
+    final localVM =
+        Provider.of<LocalSettingsViewModel>(context, listen: false);
     final MenuViewModel menuVM = Provider.of<MenuViewModel>(
       context,
       listen: false,
@@ -800,12 +947,10 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     );
 
     //Stop process
-
     //valid succes response
     if (!res.succes) {
       //si algo salio mal mostrar alerta
       vmFactura.isLoading = false;
-
       await NotificationService.showErrorView(context, res);
       return;
     }
@@ -816,22 +961,19 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     // si no se encontró nada mostrar mensaje
     if (cuentasCorrentistas.isEmpty) {
       //buscar nit cui en sat
-
       final docVM = Provider.of<DocumentViewModel>(context, listen: false);
-
       if (!docVM.printFel()) {
         vmFactura.isLoading = false;
-
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!.translate(BlockTranslate.notificacion, 'sinRegistros'),
+          )!
+              .translate(BlockTranslate.notificacion, 'sinRegistros'),
         );
         return;
       }
 
       final FelService felService = FelService();
-
       final ApiResModel resCredenciales = await felService.getCredenciales(
         1, //TODO:Parametrizar certificador
         empresa,
@@ -842,7 +984,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       if (!resCredenciales.succes) {
         //si algo salio mal mostrar alerta
         vmFactura.isLoading = false;
-
         NotificationService.showErrorView(context, resCredenciales);
         return;
       }
@@ -856,7 +997,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         switch (credencial.campoNombre) {
           case "LlaveApi":
             llaveApi = credencial.campoValor;
-
             break;
           case "UsuarioApi":
             usuarioApi = credencial.campoValor;
@@ -879,18 +1019,17 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       if (!resRecpetor.succes) {
         //si algo salio mal mostrar alerta
         vmFactura.isLoading = false;
-
         NotificationService.showErrorView(context, resRecpetor);
         return;
       }
 
       if (resRecpetor.response.toString().isEmpty) {
         vmFactura.isLoading = false;
-
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!.translate(BlockTranslate.notificacion, 'sinRegistros'),
+          )!
+              .translate(BlockTranslate.notificacion, 'sinRegistros'),
         );
         return;
       }
@@ -918,7 +1057,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       if (!resNewAccount.succes) {
         //si algo salio mal mostrar alerta
         vmFactura.isLoading = false;
-
         NotificationService.showErrorView(context, resNewAccount);
         return;
       }
@@ -934,13 +1072,13 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       //validar respuesta del servico, si es incorrecta
       if (!resClient.succes) {
         vmFactura.isLoading = false;
-
         await NotificationService.showErrorView(context, resClient);
-
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!.translate(BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
+          )!
+              .translate(
+                  BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
         );
         return;
       }
@@ -949,29 +1087,29 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
       if (clients.isEmpty) {
         vmFactura.isLoading = false;
-
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!.translate(BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
+          )!
+              .translate(
+                  BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
         );
         return;
       }
 
       if (clients.length == 1) {
         vmFactura.isLoading = false;
-
         selectClient(false, clients.first, context);
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!.translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
+          )!
+              .translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
         );
 
         if (!vmFactura.editDoc) {
           DocumentService.saveDocumentLocal(context);
         }
-
         return;
       }
 
@@ -989,14 +1127,14 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       NotificationService.showSnackbar(
         AppLocalizations.of(
           context,
-        )!.translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
+        )!
+            .translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
       );
     }
 
     //Si solo hay un cliente seleccionarlo por defecto
     if (cuentasCorrentistas.length == 1) {
       vmFactura.isLoading = false;
-
       clienteSelect = cuentasCorrentistas.first;
       notifyListeners();
       return;
@@ -1042,7 +1180,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   //numero de serie
-
   bool valueParametro(int param) {
     bool value = false;
 
@@ -1050,10 +1187,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     if (serieSelect == null) return false;
 
     //validar que exista el parametro
-
     for (var i = 0; i < parametros.length; i++) {
       final ParametroModel parametro = parametros[i];
-
       if (parametro.parametro == param) {
         value = true;
         break;
@@ -1067,9 +1202,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   obtenerReferencias(BuildContext context) async {
     final vmLogin = Provider.of<LoginViewModel>(context, listen: false);
-
     final vmHome = Provider.of<HomeViewModel>(context, listen: false);
-
     final String user = vmLogin.user;
     final String token = vmLogin.token;
 
@@ -1096,7 +1229,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       //agregar formas de pago encontradas
       referencias.addAll(resTiposRef.response);
       notifyListeners();
-
       vmHome.isLoading = false;
     }
   }
@@ -1108,10 +1240,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     if (serieSelect == null) return false;
 
     //validar que exista el parametro
-
     for (var i = 0; i < tiposTransaccion.length; i++) {
       final TipoTransaccionModel transaccion = tiposTransaccion[i];
-
       if (transaccion.tipo == tipoTra) {
         value = true;
         break;
@@ -1123,8 +1253,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   Future<void> loadParametros(BuildContext context) async {
     parametros.clear();
-    ParametroService parametroService = ParametroService();
 
+    ParametroService parametroService = ParametroService();
     final menuVM = Provider.of<MenuViewModel>(context, listen: false);
     final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
@@ -1148,7 +1278,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     //valid succes response
     if (!res.succes) {
       //si algo salio mal mostrar alerta
-
       await NotificationService.showErrorView(context, res);
       return;
     }
@@ -1186,7 +1315,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     //valid succes response
     if (!res.succes) {
       //si algo salio mal mostrar alerta
-
       await NotificationService.showErrorView(context, res);
       return;
     }
@@ -1209,6 +1337,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     //limpiar serie seleccionada
     serieSelect = null;
+
     //simpiar lista serie
     series.clear();
 
@@ -1227,7 +1356,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     //valid succes response
     if (!res.succes) {
       //si algo salio mal mostrar alerta
-
       await NotificationService.showErrorView(context, res);
       return;
     }
@@ -1237,13 +1365,13 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     //Para realizar pruebas con una sola serie
     // if (series.length > 1) {
-    //   if (series.length > 1) {
-    //     series.removeRange(
-    //       1,
-    //       series.length,
-    //     ); // Borra todos los elementos excepto el primero
-    //   }
-    //   serieSelect = series.first;
+    // if (series.length > 1) {
+    //   series.removeRange(
+    //     1,
+    //     series.length,
+    //   ); // Borra todos los elementos excepto el primero
+    // }
+    // serieSelect = series.first;
     // }
 
     // si sololo hay una serie seleccionarla por defecto
@@ -1271,17 +1399,20 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     vmFactura.isLoading = true;
 
     //Buscar vendedores de la serie
-    await loadSellers(context, serieSelect!.serieDocumento!, vmMenu.documento!);
+    await loadSellers(
+        context, serieSelect!.serieDocumento!, vmMenu.documento!);
     await loadTipoTransaccion(context);
     await loadParametros(context);
-    await obtenerReferencias(context); //cargar las referencias
+    await obtenerReferencias(context);
     await vmPayment.loadPayments(context);
     vmDoc.restaurarFechas();
+
     //finalizar proceso
     vmFactura.isLoading = false;
 
     if (valueParametro(318)) {
-      Provider.of<LocationService>(context, listen: false).getLocation(context);
+      Provider.of<LocationService>(context, listen: false)
+          .getLocation(context);
     }
 
     if (!vmFactura.editDoc) {
@@ -1327,7 +1458,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     //valid succes response
     if (!res.succes) {
       //si algo salio mal mostrar alerta
-
       await NotificationService.showErrorView(context, res);
       return;
     }
@@ -1363,7 +1493,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     for (var i = 0; i < docVM.tiposTransaccion.length; i++) {
       final TipoTransaccionModel tipoTra = docVM.tiposTransaccion[i];
-
       if (tipo == tipoTra.tipo) {
         return tipoTra.tipoTransaccion;
       }
@@ -1379,25 +1508,23 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   //Docestructura/////////////////////////////////////////////////////////
+
   //enviar el odcumento
   Future<ApiResModel> sendDocument(BuildContext context) async {
     //view models ecternos
-
     final LocationService vmLocation = Provider.of<LocationService>(
       context,
       listen: false,
     );
-
     final docVM = Provider.of<DocumentViewModel>(context, listen: false);
-
-    final elVM = Provider.of<ElementoAsigandoViewModel>(context, listen: false);
-
+    final elVM =
+        Provider.of<ElementoAsigandoViewModel>(context, listen: false);
     final menuVM = Provider.of<MenuViewModel>(context, listen: false);
     final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
-    final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
+    final itemsVM =
+        Provider.of<ItemsVehiculoViewModel>(context, listen: false);
     final paymentVM = Provider.of<PaymentViewModel>(context, listen: false);
-
     final ReferenciaViewModel refVM = Provider.of<ReferenciaViewModel>(
       context,
       listen: false,
@@ -1424,6 +1551,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     //pagos agregados
     final List<DocCargoAbono> payments = [];
+
     //transaciciones agregadas
     final List<DocTransaccion> transactions = [];
 
@@ -1431,11 +1559,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     // Generar dos números aleatorios de 7 dígitos cada uno
     int firstPart = random.nextInt(10000000);
-
     int consectivo = 1;
+
     //Objeto transaccion documento para estructura documento
     for (var transaction in products) {
       int padre = consectivo;
+
       final List<DocTransaccion> cargos = [];
       final List<DocTransaccion> descuentos = [];
 
@@ -1471,7 +1600,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         //Descuento
         if (operacion.descuento != 0) {
           consectivo++;
-
           descuentos.add(
             DocTransaccion(
               traMontoDias: null,
@@ -1510,12 +1638,10 @@ class InicioVehiculosViewModel extends ChangeNotifier {
           traCantidad: transaction.cantidad,
           traTipoCambio: menuVM.tipoCambio,
           traMoneda: transaction.precio!.moneda,
-          traTipoPrecio: transaction.precio!.precio
-              ? transaction.precio!.id
-              : null,
-          traFactorConversion: !transaction.precio!.precio
-              ? transaction.precio!.id
-              : null,
+          traTipoPrecio:
+              transaction.precio!.precio ? transaction.precio!.id : null,
+          traFactorConversion:
+              !transaction.precio!.precio ? transaction.precio!.id : null,
           traTipoTransaccion: resolveTipoTransaccion(
             transaction.producto.tipoProducto,
             context,
@@ -1537,6 +1663,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
 
     int consecutivoPago = 1;
+
     //objeto cargo abono para documento cargo abono
     for (var payment in amounts) {
       payments.add(
@@ -1555,18 +1682,17 @@ class InicioVehiculosViewModel extends ChangeNotifier {
           cuentaBancaria: payment.account?.idCuentaBancaria,
         ),
       );
-
       consecutivoPago++;
     }
 
     double totalCA = 0;
-
     for (var amount in amounts) {
       totalCA += amount.amount;
     }
 
     DateTime myDateTime = DateTime.now();
     String serializedDateTime = myDateTime.toIso8601String();
+
     //Objeto documento estrucutra
     if (clienteSelect == null) {
       throw Exception('Cliente no seleccionado');
@@ -1576,8 +1702,19 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       throw Exception('Serie no seleccionada');
     }
 
+    for (var t in itemsVM.transaciciones) {
+      debugPrint(
+          'Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
+    }
+
     if (products.isEmpty) {
-      throw Exception('No hay transacciones seleccionadas');
+      return ApiResModel(
+        typeError: 0,
+        succes: false,
+        response: 'Debe seleccionar al menos una transacción',
+        url: 'LOCAL',
+        storeProcedure: null,
+      );
     }
 
     if (payments.isEmpty && docVM.printFel()) {
@@ -1586,8 +1723,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     docGlobal = DocEstructuraModel(
       docVersionApp: SplashViewModel.versionLocal,
-      docConfirmarOrden:
-          false, //TODO:parametrizar segun valor si es cotiacion de ALfa y Omega
+      docConfirmarOrden: false,
       docComanda: null,
       docMesa: null,
       docUbicacion: null,
@@ -1596,7 +1732,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       consecutivoInterno: firstPart,
       docTraMonto: 0,
       docCaMonto: 0,
-      docIdCertificador: 1, //TODO: Agrgar certificador
+      docIdCertificador: 1,
       docCuentaVendedor: null,
       docIdDocumentoRef: idDocumentoRef,
       docFelNumeroDocumento: null,
@@ -1614,7 +1750,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docEstacionTrabajo: estacion,
       docUserName: user,
       docObservacion1: "",
-      docTipoPago: 1, //TODO: preguntar
+      docTipoPago: 1,
       docElementoAsignado: docVM.valueParametro(259)
           ? elVM.elemento!.elementoAsignado
           : null,
@@ -1622,7 +1758,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docCargoAbono: payments,
       docRefTipoReferencia: docVM.valueParametro(58)
           ? docVM.referenciaSelect?.tipoReferencia
-          : null, //TODO:Si es ilgua buscar en otra parte
+          : null,
       docFechaIni: docVM.valueParametro(44) ? docVM.fechaInicial : null,
       docFechaFin: docVM.valueParametro(44) ? docVM.fechaFinal : null,
       docRefFechaIni: docVM.valueParametro(381) ? docVM.fechaRefIni : null,
@@ -1639,14 +1775,61 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docRefObservacion3: docVM.valueParametro(386)
           ? docVM.refDirecEntregaParam386.text
           : null,
-      docReferencia: docVM.valueParametro(58)
-          ? refVM.referencia!.referencia
-          : null,
-    );
-    final estructuraJson = docGlobal!.toJson();
+      docReferencia:
+          docVM.valueParametro(58) ? refVM.referencia!.referencia : null,
 
+      // --------------------
+      // Datos del cliente
+      // --------------------
+      nit: recepcionGuardada?.nit,
+      nombreCliente: recepcionGuardada?.nombre,
+      direccionCliente: recepcionGuardada?.direccion,
+      celularCliente: recepcionGuardada?.celular,
+      emailCliente: recepcionGuardada?.email,
+
+      // --------------------
+      // Datos del vehículo
+      // --------------------
+      placa: recepcionGuardada?.placa,
+      chasis: recepcionGuardada?.chasis,
+      marca: recepcionGuardada?.marca,
+      modelo: recepcionGuardada?.modelo,
+      anio: recepcionGuardada?.anio.toString(),
+
+      color: recepcionGuardada?.color,
+
+      // --------------------
+      // Fechas
+      // --------------------
+      fechaRecibido: recepcionGuardada?.fechaRecibido != null
+          ? DateTime.parse(recepcionGuardada!.fechaRecibido!)
+          : null,
+      fechaSalida: recepcionGuardada?.fechaSalida != null
+          ? DateTime.parse(recepcionGuardada!.fechaSalida!)
+          : null,
+
+      // --------------------
+      // Observaciones técnicas
+      // --------------------
+      detalleTrabajo: recepcionGuardada?.detalleTrabajo,
+      kilometraje: recepcionGuardada?.kilometraje,
+      cc: recepcionGuardada?.cc,
+      cil: recepcionGuardada?.cil,
+    );
+
+    final estructuraJson = docGlobal!.toJson();
     debugPrint('===== DOC ESTRUCTURA JSON =====');
     debugPrint(jsonEncode(estructuraJson));
+
+    for (var t in itemsVM.transaciciones) {
+      debugPrint('Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
+    }
+
+    for (var t in itemsVM.transaciciones) {
+      debugPrint(
+        'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
+      );
+    }
 
     //objeto enviar documento
     PostDocumentModel document = PostDocumentModel(
@@ -1660,7 +1843,63 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     //consumo del api
     ApiResModel res = await documentService.postDocument(document, tokenUser);
-
     return res;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'clienteSelect': clienteSelect?.toJson(),
+      'recepcionGuardada': recepcionGuardada?.toJson(),
+      'marcaSeleccionada': marcaSeleccionada?.toJson(),
+      'modeloSeleccionado': modeloSeleccionado?.toJson(),
+      'anioSeleccionado': anioSeleccionado?.toJson(),
+      'colorSeleccionado': colorSeleccionado?.toJson(),
+      'itemsAsignados': itemsAsignados.map((e) => e.toJson()).toList(),
+      'marcasVehiculo': marcasVehiculo.map((e) => e.toJson()).toList(),
+      'fechaRecibido': fechaRecibido,
+      'fechaSalida': fechaSalida,
+      'imagenTipoVehiculo': imagenTipoVehiculo,
+    };
+  }
+
+  Future<void> sincronizarTransacciones(BuildContext context) async {
+    final itemsVM =
+        Provider.of<ItemsVehiculoViewModel>(context, listen: false);
+
+    // 🔹 PRIMERO: Resetear todos a false
+    for (var transaccion in itemsVM.transaciciones) {
+      transaccion.isChecked = false;
+      transaccion.observacion = '';
+    }
+
+    // 🔹 SEGUNDO: Marcar solo los que el usuario seleccionó
+    for (var item in itemsAsignados) {
+      // Buscar por ID del producto
+      final index = itemsVM.transaciciones.indexWhere(
+        (t) => t.producto.productoId == item.idProducto,
+      );
+
+      if (index != -1) {
+        // Solo marcar si el ítem tiene detalle o fue explícitamente marcado
+        // Depende de tu lógica de negocio:
+        // Opción 1: Marcar si tiene detalle
+        if (item.detalle.isNotEmpty) {
+          itemsVM.transaciciones[index].isChecked = true;
+          itemsVM.transaciciones[index].observacion = item.detalle;
+        }
+        // Opción 2: Usar un campo "completado" o "seleccionado" en ItemVehiculo
+        // if (item.completado) { ... }
+        // Opción 3: Marcar siempre (como ahora, pero está mal)
+      }
+    }
+
+    itemsVM.notifyListeners();
+
+    // DEBUG
+    final seleccionados =
+        itemsVM.transaciciones.where((t) => t.isChecked).length;
+    print(
+      '✅ Transacciones sincronizadas: $seleccionados de ${itemsVM.transaciciones.length}',
+    );
   }
 }

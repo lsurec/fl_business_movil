@@ -6,7 +6,9 @@ class VehiculoYearModel {
   VehiculoYearModel({required this.anio});
 
   factory VehiculoYearModel.fromJson(Map<String, dynamic> json) {
-    return VehiculoYearModel(anio: json['anio'] ?? json['year'] ?? 0);
+    return VehiculoYearModel(
+      anio: json['anio'] ?? json['year'] ?? 0,
+    );
   }
 
   static List<VehiculoYearModel> fromJsonList(String str) {
@@ -22,6 +24,12 @@ class VehiculoYearModel {
     }
 
     throw Exception('Formato de JSON inesperado para VehiculoYearModel');
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'anio': anio,
+    };
   }
 
   @override

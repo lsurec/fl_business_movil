@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
 import 'package:fl_business/themes/app_theme.dart';
+import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
@@ -44,7 +46,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   Widget build(BuildContext context) {
     final vm = context.watch<InicioVehiculosViewModel>();
     final items = vm.itemsAsignados;
-
     return Stack(
       children: [
         Scaffold(
@@ -68,20 +69,21 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 _dato('Dirección', vm.clienteSelect?.facturaDireccion ?? ""),
                 _dato('Celular', vm.clienteSelect?.telefono ?? ""),
                 _dato('Email', vm.clienteSelect?.eMail ?? ""),
-        
                 const SizedBox(height: 20),
-        
+
                 // ================= DATOS VEHÍCULO =================
                 _titulo('Datos del Vehículo'),
                 _dato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
                 _dato('Placa', vm.recepcionGuardada?.placa ?? '—'),
                 _dato('Marca', vm.marcaSeleccionada?.descripcion ?? '—'),
                 _dato('Línea', vm.modeloSeleccionado?.descripcion ?? '—'),
-                _dato('Modelo (Año)', vm.anioSeleccionado?.anio.toString() ?? '—'),
+                _dato(
+                  'Modelo (Año)',
+                  vm.anioSeleccionado?.anio.toString() ?? '—',
+                ),
                 _dato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
-        
                 const SizedBox(height: 20),
-        
+
                 // ================= VEHÍCULO MARCADO =================
                 if (vm.imagenTipoVehiculo != null) ...[
                   VehiculoMarcadoWidget(
@@ -89,9 +91,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     marcas: vm.marcasVehiculo,
                     onTap: vm.agregarMarca, // 👈 edición activa
                   ),
-        
                   const SizedBox(height: 12),
-        
+
                   // ================= BOTONES MARCAS =================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -117,16 +118,14 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     ],
                   ),
                 ],
-        
                 const SizedBox(height: 20),
-        
+
                 // ================= FECHAS =================
                 _titulo('📅 Fechas'),
                 _dato('Fecha recibido', vm.fechaRecibido),
                 _dato('Fecha estimada de entrega', vm.fechaSalida),
-        
                 const SizedBox(height: 20),
-        
+
                 // ================= OBSERVACIONES =================
                 _titulo('Observaciones'),
                 _dato(
@@ -136,9 +135,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 _dato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
                 _dato('CC', vm.recepcionGuardada?.cc ?? '—'),
                 _dato('CIL', vm.recepcionGuardada?.cil ?? '—'),
-        
                 const SizedBox(height: 30),
-        
+
                 // ================= ÍTEMS =================
                 _titulo('Ítems del Vehículo'),
                 if (items.isEmpty)
@@ -150,22 +148,17 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     itemCount: items.length,
                     itemBuilder: (_, i) => _itemCard(items[i]),
                   ),
-        
                 const SizedBox(height: 30),
-        
+
                 // ================= FIRMAS =================
-                _titulo('✍️ Firmas'),
-        
+                _titulo(' Firmas'),
                 const Text('Firma del Mecánico'),
                 _firmaBox(_firmaMecanico),
-        
                 const SizedBox(height: 20),
-        
                 const Text('Firma del Dueño'),
                 _firmaBox(_firmaCliente),
-        
                 const SizedBox(height: 30),
-        
+
                 // ================= PDF =================
                 Center(
                   child: ElevatedButton.icon(
@@ -182,6 +175,28 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                       'Generar PDF',
                       style: TextStyle(color: Colors.white),
                     ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 14,
+                      ),
+                    ),
+                    icon: const Icon(Icons.send, color: Colors.white),
+                    label: const Text(
+                      'Enviar Documento',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onPressed: vm.isLoading
+                        ? null
+                        : () async {
+                            await _enviarDocumento(context);
+                          },
                   ),
                 ),
               ],
@@ -224,10 +239,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   /// Carga la imagen del vehículo (asset) y la convierte en ImageProvider para PDF
   Future<pw.ImageProvider?> _cargarImagenPdf(BuildContext context) async {
     final vm = context.read<InicioVehiculosViewModel>();
-
     final path = vm.imagenTipoVehiculo;
     if (path == null) return null;
-
     final bytes = await DefaultAssetBundle.of(context).load(path);
     return pw.MemoryImage(bytes.buffer.asUint8List());
   }
@@ -242,7 +255,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
     // 🔹 Ratio REAL de la imagen
     final double imageRatio = imagen.width! / imagen.height!;
-
     double imageWidth;
     double imageHeight;
 
@@ -281,7 +293,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             ...marcas.map((m) {
               final double dx = offsetX + (m.x * imageWidth);
               final double dy = offsetY + (m.y * imageHeight);
-
               return pw.Positioned(
                 left: dx - 6,
                 top: dy - 6,
@@ -309,13 +320,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   }) async {
     final vm = context.read<InicioVehiculosViewModel>();
     final pdf = pw.Document();
-
     final imagenVehiculoPdf = await _cargarImagenPdf(context);
-
     final pw.ImageProvider? firmaMecanicoPdf = firmaMecanico != null
         ? pw.MemoryImage(firmaMecanico)
         : null;
-
     final pw.ImageProvider? firmaClientePdf = firmaCliente != null
         ? pw.MemoryImage(firmaCliente)
         : null;
@@ -369,7 +377,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           pw.Center(
             child: pw.Text(
               'DETALLE DEL TRABAJO',
-              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(
+                fontSize: 16,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
           ),
           pw.SizedBox(height: 15),
@@ -386,12 +397,12 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 return [
                   item.detalle.isEmpty ? '—' : item.detalle,
                   item.desProducto, // SKU es la descripción del producto
+                  vm.fechaRecibido,
                 ];
               }).toList(),
             )
           else
             pw.Text('No se asignaron ítems'),
-
           pw.SizedBox(height: 20),
 
           // ===================== OBSERVACIONES ADICIONALES =====================
@@ -406,7 +417,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               pw.Text('Obs. Vehículo:', style: pw.TextStyle(fontSize: 12)),
             ],
           ),
-
           pw.SizedBox(height: 30),
 
           // ===================== IMÁGENES DE LOS ITEMS =====================
@@ -423,10 +433,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
                 pw.Divider(),
                 pw.SizedBox(height: 10),
-
                 ...vm.itemsAsignados.expand((item) {
                   if (item.fotos.isEmpty) return <pw.Widget>[];
-
                   return [
                     // Encabezado del item con SKU
                     pw.Text(
@@ -479,13 +487,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         );
                       }).toList(),
                     ),
-
                     pw.SizedBox(height: 20),
                   ];
                 }).toList(),
               ],
             ),
-
           pw.SizedBox(height: 20),
 
           // ===================== DATOS CLIENTE COMPLETOS =====================
@@ -499,7 +505,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           _pdfDato('Dirección', vm.direccion),
           _pdfDato('Celular', vm.celular),
           _pdfDato('Email', vm.email),
-
           pw.SizedBox(height: 20),
 
           // ===================== DATOS VEHÍCULO =====================
@@ -519,18 +524,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             pw.SizedBox(height: 15),
             pw.Text(
               'ESTADO DEL VEHÍCULO',
-              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+              style: pw.TextStyle(
+                fontSize: 14,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
             pw.SizedBox(height: 8),
             _vehiculoConMarcasPdf(imagenVehiculoPdf, vm.marcasVehiculo),
           ],
-
           pw.SizedBox(height: 20),
 
           // ===================== FECHAS =====================
           _pdfDato('Fecha recibido', vm.fechaRecibido),
           _pdfDato('Fecha Estimada de Salida', vm.fechaSalida),
-
           pw.SizedBox(height: 30),
 
           // ===================== FIRMAS =====================
@@ -539,7 +545,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
           ),
           pw.Divider(),
-
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
@@ -548,7 +553,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   pw.Container(
                     width: 180,
                     height: 80,
-                    decoration: pw.BoxDecoration(border: pw.Border.all()),
+                    decoration:
+                        pw.BoxDecoration(border: pw.Border.all()),
                     child: firmaMecanicoPdf != null
                         ? pw.Image(firmaMecanicoPdf, fit: pw.BoxFit.contain)
                         : pw.Center(child: pw.Text('Firma Mecánico')),
@@ -562,7 +568,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   pw.Container(
                     width: 180,
                     height: 80,
-                    decoration: pw.BoxDecoration(border: pw.Border.all()),
+                    decoration:
+                        pw.BoxDecoration(border: pw.Border.all()),
                     child: firmaClientePdf != null
                         ? pw.Image(firmaClientePdf, fit: pw.BoxFit.contain)
                         : pw.Center(child: pw.Text('Firma Cliente')),
@@ -580,9 +587,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/ReporteVehiculo.pdf');
     await file.writeAsBytes(await pdf.save());
-
     await OpenFilex.open(file.path);
-
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text('PDF generado: ${file.path}')));
@@ -608,6 +613,105 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       firmaCliente: firmaClienteBytes,
     );
   }
+
+  Future<void> _enviarDocumento(BuildContext context) async {
+    final vm = context.read<InicioVehiculosViewModel>();
+    final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
+    final elVM = context.read<ElementoAsigandoViewModel>();
+
+    try {
+      vm.setLoading(true);
+
+      // ================= PASO 1: CARGAR TRANSAcCIONES =================
+      print('=== PASO 1: Verificar transacciones ===');
+      print('Transacciones cargadas: ${itemsVM.transaciciones.length}');
+
+      // 🔥 CARGAR TRANSAcCIONES SI ESTÁN VACÍAS
+      if (itemsVM.transaciciones.isEmpty) {
+        print('Cargando transacciones desde API...');
+        await itemsVM.loadItems();
+        print('Transacciones después de carga: ${itemsVM.transaciciones.length}');
+      }
+
+      // ================= PASO 2: SINCRONIZAR =================
+      print('=== PASO 2: Sincronizar ===');
+      await vm.sincronizarTransacciones(context);
+
+      // ================= PASO 3: ENVIAR DOCUMENTO =================
+      print('=== PASO 3: Enviar documento ===');
+      final res = await vm.sendDocument(context);
+
+      if (res.succes) {
+        // ✅ ÉXITO: Mostrar mensaje
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Documento enviado correctamente'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // 🔄 Limpiar datos
+        vm.cancelar();
+        elVM.cancelar();
+
+        // 🏠 Regresar HASTA EL INICIO
+        Navigator.of(context).popUntil((route) {
+          return route.settings.name == '/InicioVehiculosView' ||
+              route.isFirst;
+        });
+      } else {
+        // ❌ ERROR
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              res.response?.toString() ?? '❌ Error al enviar documento',
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      vm.setLoading(false);
+    }
+  }
+
+  // Future<void> _enviarDocumento(BuildContext context) async {
+  //   final vm = context.read<InicioVehiculosViewModel>();
+  //   try {
+  //     vm.setLoading(true);
+  //     final res = await vm.sendDocument(context);
+  //     if (res.succes) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Documento enviado correctamente')),
+  //       );
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(
+  //           content: Text(
+  //             res.response?.toString() ??
+  //                 'Debe seleccionar al menos una transacción',
+  //           ),
+  //           backgroundColor: Colors.red,
+  //         ),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+  //     );
+  //   } finally {
+  //     vm.setLoading(false);
+  //   }
+  // }
 }
 
 Widget _titulo(String titulo) {

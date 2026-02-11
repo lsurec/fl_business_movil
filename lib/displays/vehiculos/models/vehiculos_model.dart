@@ -19,18 +19,23 @@ class VehiculoModel {
   static List<VehiculoModel> fromJsonList(String str) {
     final jsonData = json.decode(str);
 
-    // Si la respuesta tiene "data"
     if (jsonData is Map && jsonData.containsKey('data')) {
       final data = jsonData['data'] as List;
       return data.map((e) => VehiculoModel.fromJson(e)).toList();
     }
 
-    // Si es una lista directa
     if (jsonData is List) {
       return jsonData.map((e) => VehiculoModel.fromJson(e)).toList();
     }
 
     throw Exception('Formato de JSON inesperado para VehiculoModel');
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'descripcion': descripcion,
+    };
   }
 
   @override

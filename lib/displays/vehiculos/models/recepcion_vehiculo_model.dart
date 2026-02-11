@@ -39,4 +39,48 @@ class RecepcionVehiculoModel {
     required this.cc,
     required this.cil,
   });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'nit': nit,
+      'nombre': nombre,
+      'direccion': direccion,
+      'celular': celular,
+      'email': email,
+      'placa': placa,
+      'chasis': chasis,
+      'marca': marca,
+      'modelo': modelo,
+      'anio': anio,
+      'color': color,
+      'fechaRecibido': fechaRecibido,
+      'fechaSalida': fechaSalida,
+      'detalleTrabajo': detalleTrabajo,
+      'kilometraje': kilometraje,
+      'cc': cc,
+      'cil': cil,
+    };
+  }
+
+  factory RecepcionVehiculoModel.fromJson(Map<String, dynamic> json) {
+    return RecepcionVehiculoModel(
+      nit: json['nit'] ?? '',
+      nombre: json['nombre'] ?? '',
+      direccion: json['direccion'] ?? '',
+      celular: json['celular'] ?? '',
+      email: json['email'] ?? '',
+      placa: json['placa'] ?? '',
+      chasis: json['chasis'] ?? '',
+      marca: json['marca'] ?? '',
+      modelo: json['modelo'] ?? '',
+      anio: json['anio'] ?? 0,
+      color: json['color'] ?? '',
+      fechaRecibido: json['fechaRecibido'] ?? '',
+      fechaSalida: json['fechaSalida'] ?? '',
+      detalleTrabajo: json['detalleTrabajo'] ?? '',
+      kilometraje: json['kilometraje'] ?? '',
+      cc: json['cc'] ?? '',
+      cil: json['cil'] ?? '',
+    );
+  }
 }

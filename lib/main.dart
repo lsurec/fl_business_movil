@@ -10,6 +10,7 @@ import 'package:fl_business/displays/shr_local_config/view_models/view_models.da
 import 'package:fl_business/displays/tablero_kanban/view_models/tablero_view_model.dart';
 import 'package:fl_business/displays/tareas/view_models/view_models.dart';
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
+import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/model_views/vehiculos_catalogo_viewmodel.dart';
 import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
@@ -76,6 +77,7 @@ class AppState extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => InicioVehiculosViewModel()),
         ChangeNotifierProvider(create: (_) => IdReferenciaViewModel()),
         ChangeNotifierProvider(create: (_) => CatalogoVehiculosViewModel()),
+        ChangeNotifierProvider(create: (_) => ItemsVehiculoViewModel()),
 
         ChangeNotifierProvider(create: (_) => UsuariosViewModel()),
         ChangeNotifierProvider(create: (_) => CalendarioViewModel()),

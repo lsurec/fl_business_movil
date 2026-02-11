@@ -42,6 +42,39 @@ class DocEstructuraModel {
   int? docReferencia;
   String docVersionApp;
 
+  // --------------------
+  // Datos del cliente
+  // --------------------
+  String? nit;
+  String? nombreCliente;
+  String? direccionCliente;
+  String? celularCliente;
+  String? emailCliente;
+
+  // --------------------
+  // Datos del vehículo
+  // --------------------
+  String? placa;
+  String? chasis;
+  String? marca;
+  String? modelo;
+  String? anio;
+  String? color;
+
+  // --------------------
+  // Fechas
+  // --------------------
+  DateTime? fechaRecibido;
+  DateTime? fechaSalida;
+
+  // --------------------
+  // Observaciones técnicas
+  // --------------------
+  String? detalleTrabajo;
+  String? kilometraje;
+  String? cc;
+  String? cil;
+
   DocEstructuraModel({
     required this.docVersionApp,
     required this.docConfirmarOrden,
@@ -83,6 +116,24 @@ class DocEstructuraModel {
     required this.docRefObservacion3,
     required this.docRefObservacion,
     required this.docReferencia,
+
+    this.nit,
+    this.nombreCliente,
+    this.direccionCliente,
+    this.celularCliente,
+    this.emailCliente,
+    this.placa,
+    this.chasis,
+    this.marca,
+    this.modelo,
+    this.anio,
+    this.color,
+    this.fechaRecibido,
+    this.fechaSalida,
+    this.detalleTrabajo,
+    this.kilometraje,
+    this.cc,
+    this.cil,
   });
 
   factory DocEstructuraModel.fromJson(String str) =>
@@ -124,7 +175,8 @@ class DocEstructuraModel {
           json["Doc_Transaccion"].map((x) => DocTransaccion.fromMap(x)),
         ),
         docCargoAbono: List<DocCargoAbono>.from(
-            json["Doc_Cargo_Abono"].map((x) => DocCargoAbono.fromMap(x))),
+          json["Doc_Cargo_Abono"].map((x) => DocCargoAbono.fromMap(x)),
+        ),
         docRefTipoReferencia: json["Doc_Ref_Tipo_Referencia"],
         docRefFechaIni: json["Doc_Ref_Fecha_Ini"] != null
             ? DateTime.parse(json["Doc_Ref_Fecha_Ini"])
@@ -143,52 +195,96 @@ class DocEstructuraModel {
         docRefObservacion3: json["Doc_Ref_Observacion_3"],
         docRefObservacion: json["Doc_Ref_Observacion"],
         docReferencia: json["Doc_Referencia"],
+                nit: json["Nit"],
+        nombreCliente: json["Nombre_Cliente"],
+        direccionCliente: json["Direccion_Cliente"],
+        celularCliente: json["Celular_Cliente"],
+        emailCliente: json["Email_Cliente"],
+
+        placa: json["Placa"],
+        chasis: json["Chasis"],
+        marca: json["Marca"],
+        modelo: json["Modelo"],
+        anio: json["Anio"],
+        color: json["Color"],
+
+        fechaRecibido: json["Fecha_Recibido"] != null
+            ? DateTime.parse(json["Fecha_Recibido"])
+            : null,
+        fechaSalida: json["Fecha_Salida"] != null
+            ? DateTime.parse(json["Fecha_Salida"])
+            : null,
+
+        detalleTrabajo: json["Detalle_Trabajo"],
+        kilometraje: json["Kilometraje"],
+        cc: json["CC"],
+        cil: json["Cil"],
+
       );
 
   Map<String, dynamic> toMap() => {
-        "Doc_Version_App": docVersionApp,
-        "Doc_Confirmar_Orden": docConfirmarOrden,
-        "Doc_Comanda": docComanda,
-        "Doc_Mesa": docMesa,
-        "Doc_Ubicacion": docUbicacion,
-        "Doc_Latitud": docLatitud,
-        "Doc_Longitud": docLongitud,
-        "Consecutivo_Interno": consecutivoInterno,
-        "Doc_Tra_Monto": docTraMonto,
-        "Doc_CA_Monto": docCaMonto,
-        "Doc_ID_Certificador": docIdCertificador,
-        "Doc_Cuenta_Correntista_Ref": docCuentaVendedor,
-        "Doc_ID_Documento_Ref": docIdDocumentoRef,
-        "Doc_FEL_numeroDocumento": docFelNumeroDocumento,
-        "Doc_FEL_Serie": docFelSerie,
-        "Doc_FEL_UUID": docFelUUID,
-        "Doc_FEL_fechaCertificacion": docFelFechaCertificacion,
-        "Doc_Fecha_Documento": docFechaDocumento,
-        "Doc_Cuenta_Correntista": docCuentaCorrentista,
-        "Doc_Cuenta_Cta": docCuentaCta,
-        "Doc_Tipo_Documento": docTipoDocumento,
-        "Doc_Serie_Documento": docSerieDocumento,
-        "Doc_Empresa": docEmpresa,
-        "Doc_Estacion_Trabajo": docEstacionTrabajo,
-        "Doc_UserName": docUserName,
-        "Doc_Observacion_1": docObservacion1,
-        "Doc_Tipo_Pago": docTipoPago,
-        "Doc_Elemento_Asignado": docElementoAsignado,
-        "Doc_Transaccion":
-            List<dynamic>.from(docTransaccion.map((x) => x.toMap())),
-        "Doc_Cargo_Abono":
-            List<dynamic>.from(docCargoAbono.map((x) => x.toMap())),
-        "Doc_Ref_Tipo_Referencia": docRefTipoReferencia,
-        "Doc_Ref_Fecha_Ini": docRefFechaIni?.toIso8601String(),
-        "Doc_Ref_Fecha_Fin": docRefFechaFin?.toIso8601String(),
-        "Doc_Fecha_Ini": docFechaIni?.toIso8601String(),
-        "Doc_Fecha_Fin": docFechaFin?.toIso8601String(),
-        "Doc_Ref_Observacion_2": docRefObservacion2,
-        "Doc_Ref_Descripcion": docRefDescripcion,
-        "Doc_Ref_Observacion_3": docRefObservacion3,
-        "Doc_Ref_Observacion": docRefObservacion,
-        "Doc_Referencia": docReferencia,
-      };
+    "Doc_Version_App": docVersionApp,
+    "Doc_Confirmar_Orden": docConfirmarOrden,
+    "Doc_Comanda": docComanda,
+    "Doc_Mesa": docMesa,
+    "Doc_Ubicacion": docUbicacion,
+    "Doc_Latitud": docLatitud,
+    "Doc_Longitud": docLongitud,
+    "Consecutivo_Interno": consecutivoInterno,
+    "Doc_Tra_Monto": docTraMonto,
+    "Doc_CA_Monto": docCaMonto,
+    "Doc_ID_Certificador": docIdCertificador,
+    "Doc_Cuenta_Correntista_Ref": docCuentaVendedor,
+    "Doc_ID_Documento_Ref": docIdDocumentoRef,
+    "Doc_FEL_numeroDocumento": docFelNumeroDocumento,
+    "Doc_FEL_Serie": docFelSerie,
+    "Doc_FEL_UUID": docFelUUID,
+    "Doc_FEL_fechaCertificacion": docFelFechaCertificacion,
+    "Doc_Fecha_Documento": docFechaDocumento,
+    "Doc_Cuenta_Correntista": docCuentaCorrentista,
+    "Doc_Cuenta_Cta": docCuentaCta,
+    "Doc_Tipo_Documento": docTipoDocumento,
+    "Doc_Serie_Documento": docSerieDocumento,
+    "Doc_Empresa": docEmpresa,
+    "Doc_Estacion_Trabajo": docEstacionTrabajo,
+    "Doc_UserName": docUserName,
+    "Doc_Observacion_1": docObservacion1,
+    "Doc_Tipo_Pago": docTipoPago,
+    "Doc_Elemento_Asignado": docElementoAsignado,
+    "Doc_Transaccion": List<dynamic>.from(docTransaccion.map((x) => x.toMap())),
+    "Doc_Cargo_Abono": List<dynamic>.from(docCargoAbono.map((x) => x.toMap())),
+    "Doc_Ref_Tipo_Referencia": docRefTipoReferencia,
+    "Doc_Ref_Fecha_Ini": docRefFechaIni?.toIso8601String(),
+    "Doc_Ref_Fecha_Fin": docRefFechaFin?.toIso8601String(),
+    "Doc_Fecha_Ini": docFechaIni?.toIso8601String(),
+    "Doc_Fecha_Fin": docFechaFin?.toIso8601String(),
+    "Doc_Ref_Observacion_2": docRefObservacion2,
+    "Doc_Ref_Descripcion": docRefDescripcion,
+    "Doc_Ref_Observacion_3": docRefObservacion3,
+    "Doc_Ref_Observacion": docRefObservacion,
+    "Doc_Referencia": docReferencia,
+            "Nit": nit,
+        "Nombre_Cliente": nombreCliente,
+        "Direccion_Cliente": direccionCliente,
+        "Celular_Cliente": celularCliente,
+        "Email_Cliente": emailCliente,
+
+        "Placa": placa,
+        "Chasis": chasis,
+        "Marca": marca,
+        "Modelo": modelo,
+        "Anio": anio,
+        "Color": color,
+
+        "Fecha_Recibido": fechaRecibido?.toIso8601String(),
+        "Fecha_Salida": fechaSalida?.toIso8601String(),
+
+        "Detalle_Trabajo": detalleTrabajo,
+        "Kilometraje": kilometraje,
+        "CC": cc,
+        "Cil": cil,
+
+  };
 }
 
 class DocCargoAbono {
@@ -226,34 +322,34 @@ class DocCargoAbono {
   String toJson() => json.encode(toMap());
 
   factory DocCargoAbono.fromMap(Map<String, dynamic> json) => DocCargoAbono(
-        consecutivoInterno: json["Consecutivo_Interno"] ?? 0,
-        dConsecutivoInterno: json["D_Consecutivo_Interno"] ?? 0,
-        tipoCargoAbono: json["Tipo_Cargo_Abono"],
-        monto: json["Monto"]?.toDouble() ?? 0,
-        cambio: json["Cambio"]?.toDouble() ?? 0,
-        tipoCambio: json["Tipo_Cambio"]?.toDouble(),
-        moneda: json["Moneda"],
-        montoMoneda: json["Monto_Moneda"]?.toDouble(),
-        referencia: json["Referencia"],
-        autorizacion: json["Autorizacion"],
-        banco: json["Banco"],
-        cuentaBancaria: json["Cuenta_Bancaria"],
-      );
+    consecutivoInterno: json["Consecutivo_Interno"] ?? 0,
+    dConsecutivoInterno: json["D_Consecutivo_Interno"] ?? 0,
+    tipoCargoAbono: json["Tipo_Cargo_Abono"],
+    monto: json["Monto"]?.toDouble() ?? 0,
+    cambio: json["Cambio"]?.toDouble() ?? 0,
+    tipoCambio: json["Tipo_Cambio"]?.toDouble(),
+    moneda: json["Moneda"],
+    montoMoneda: json["Monto_Moneda"]?.toDouble(),
+    referencia: json["Referencia"],
+    autorizacion: json["Autorizacion"],
+    banco: json["Banco"],
+    cuentaBancaria: json["Cuenta_Bancaria"],
+  );
 
   Map<String, dynamic> toMap() => {
-        "Consecutivo_Interno": consecutivoInterno,
-        "D_Consecutivo_Interno": dConsecutivoInterno,
-        "Tipo_Cargo_Abono": tipoCargoAbono,
-        "Monto": monto,
-        "Cambio": cambio,
-        "Tipo_Cambio": tipoCambio,
-        "Moneda": moneda,
-        "Monto_Moneda": montoMoneda,
-        "Referencia": referencia,
-        "Autorizacion": autorizacion,
-        "Banco": banco,
-        "Cuenta_Bancaria": cuentaBancaria,
-      };
+    "Consecutivo_Interno": consecutivoInterno,
+    "D_Consecutivo_Interno": dConsecutivoInterno,
+    "Tipo_Cargo_Abono": tipoCargoAbono,
+    "Monto": monto,
+    "Cambio": cambio,
+    "Tipo_Cambio": tipoCambio,
+    "Moneda": moneda,
+    "Monto_Moneda": montoMoneda,
+    "Referencia": referencia,
+    "Autorizacion": autorizacion,
+    "Banco": banco,
+    "Cuenta_Bancaria": cuentaBancaria,
+  };
 }
 
 class DocTransaccion {
@@ -297,40 +393,40 @@ class DocTransaccion {
   String toJson() => json.encode(toMap());
 
   factory DocTransaccion.fromMap(Map<String, dynamic> json) => DocTransaccion(
-        traObservacion: json["Tra_Observacion"],
-        traConsecutivoInterno: json["Tra_Consecutivo_Interno"],
-        traConsecutivoInternoPadre: json["Tra_Consecutivo_Interno_Padre"],
-        dConsecutivoInterno: json["D_Consecutivo_Interno"] ?? 0,
-        traBodega: json["Tra_Bodega"],
-        traProducto: json["Tra_Producto"],
-        traUnidadMedida: json["Tra_Unidad_Medida"],
-        traCantidad: json["Tra_Cantidad"],
-        traTipoCambio: json["Tra_Tipo_Cambio"]?.toDouble(),
-        traMoneda: json["Tra_Moneda"],
-        traTipoPrecio: json["Tra_Tipo_Precio"],
-        traFactorConversion: json["Tra_Factor_Conversion"],
-        traTipoTransaccion: json["Tra_Tipo_Transaccion"],
-        traMonto: json["Tra_Monto"].toDouble(),
-        traMontoDias: json["Tra_Monto_Dias"]?.toDouble(),
-      );
+    traObservacion: json["Tra_Observacion"],
+    traConsecutivoInterno: json["Tra_Consecutivo_Interno"],
+    traConsecutivoInternoPadre: json["Tra_Consecutivo_Interno_Padre"],
+    dConsecutivoInterno: json["D_Consecutivo_Interno"] ?? 0,
+    traBodega: json["Tra_Bodega"],
+    traProducto: json["Tra_Producto"],
+    traUnidadMedida: json["Tra_Unidad_Medida"],
+    traCantidad: json["Tra_Cantidad"],
+    traTipoCambio: json["Tra_Tipo_Cambio"]?.toDouble(),
+    traMoneda: json["Tra_Moneda"],
+    traTipoPrecio: json["Tra_Tipo_Precio"],
+    traFactorConversion: json["Tra_Factor_Conversion"],
+    traTipoTransaccion: json["Tra_Tipo_Transaccion"],
+    traMonto: json["Tra_Monto"].toDouble(),
+    traMontoDias: json["Tra_Monto_Dias"]?.toDouble(),
+  );
 
   Map<String, dynamic> toMap() => {
-        "Tra_Observacion": traObservacion,
-        "Tra_Consecutivo_Interno": traConsecutivoInterno,
-        "Tra_Consecutivo_Interno_Padre": traConsecutivoInternoPadre,
-        "D_Consecutivo_Interno": dConsecutivoInterno,
-        "Tra_Bodega": traBodega,
-        "Tra_Producto": traProducto,
-        "Tra_Unidad_Medida": traUnidadMedida,
-        "Tra_Cantidad": traCantidad,
-        "Tra_Tipo_Cambio": traTipoCambio,
-        "Tra_Moneda": traMoneda,
-        "Tra_Tipo_Precio": traTipoPrecio,
-        "Tra_Factor_Conversion": traFactorConversion,
-        "Tra_Tipo_Transaccion": traTipoTransaccion,
-        "Tra_Monto": traMonto,
-        "Tra_Monto_Dias": traMontoDias,
-      };
+    "Tra_Observacion": traObservacion,
+    "Tra_Consecutivo_Interno": traConsecutivoInterno,
+    "Tra_Consecutivo_Interno_Padre": traConsecutivoInternoPadre,
+    "D_Consecutivo_Interno": dConsecutivoInterno,
+    "Tra_Bodega": traBodega,
+    "Tra_Producto": traProducto,
+    "Tra_Unidad_Medida": traUnidadMedida,
+    "Tra_Cantidad": traCantidad,
+    "Tra_Tipo_Cambio": traTipoCambio,
+    "Tra_Moneda": traMoneda,
+    "Tra_Tipo_Precio": traTipoPrecio,
+    "Tra_Factor_Conversion": traFactorConversion,
+    "Tra_Tipo_Transaccion": traTipoTransaccion,
+    "Tra_Monto": traMonto,
+    "Tra_Monto_Dias": traMontoDias,
+  };
 }
 
 class GuarnicionModel {
@@ -348,12 +444,12 @@ class GuarnicionModel {
   String toJson() => json.encode(toMap());
 
   factory GuarnicionModel.fromMap(Map<String, dynamic> json) => GuarnicionModel(
-        productoCaracteristica: json["productoCaracteristica"],
-        productoCaracteristicaPadre: json["productoCaracteristicaPadre"],
-      );
+    productoCaracteristica: json["productoCaracteristica"],
+    productoCaracteristicaPadre: json["productoCaracteristicaPadre"],
+  );
 
   Map<String, dynamic> toMap() => {
-        "productoCaracteristica": productoCaracteristica,
-        "productoCaracteristicaPadre": productoCaracteristicaPadre,
-      };
+    "productoCaracteristica": productoCaracteristica,
+    "productoCaracteristicaPadre": productoCaracteristicaPadre,
+  };
 }
