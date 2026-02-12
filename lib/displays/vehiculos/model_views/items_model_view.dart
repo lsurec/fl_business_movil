@@ -10,14 +10,13 @@ import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart'
 import 'package:path_provider/path_provider.dart';
 
 class ItemsVehiculoViewModel extends ChangeNotifier {
-   bool _isLoading = false;
+  bool _isLoading = false;
   bool get isLoading => _isLoading;
 
   set isLoading(bool value) {
     _isLoading = value;
     notifyListeners();
   }
-
 
   final ItemVehiculoService _service = ItemVehiculoService();
 
@@ -181,7 +180,6 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
-    
   }
 
   // ================================
@@ -196,6 +194,25 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
     if (index != -1) {
       transaciciones[index].isChecked = value;
+      transaciciones[index].observacion =
+          controllers[idProducto]?.text.trim() ?? '';
+    }
+
+    notifyListeners();
+  }
+
+  void actualizarObservacion(String idProducto, String texto) {
+    final index = transaciciones.indexWhere(
+      (t) => t.producto.productoId == idProducto,
+    );
+
+    if (index != -1) {
+      transaciciones[index].observacion = texto;
+      // Si tiene texto, sugerir marcar automáticamente (opcional)
+      if (texto.isNotEmpty && !isChecked[idProducto]!) {
+        isChecked[idProducto] = true;
+        transaciciones[index].isChecked = true;
+      }
     }
 
     notifyListeners();
@@ -207,7 +224,42 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   void limpiarDetalle(String idProducto) {
     controllers[idProducto]?.clear();
     isChecked[idProducto] = false;
+    fotosPorItem[idProducto]?.clear();
+
+    final index = transaciciones.indexWhere(
+      (t) => t.producto.productoId == idProducto,
+    );
+
+    if (index != -1) {
+      transaciciones[index].isChecked = false;
+      transaciciones[index].observacion = '';
+      transaciciones[index].files?.clear();
+    }
+
     notifyListeners();
+  }
+
+  List<Map<String, dynamic>> getItemsSeleccionados() {
+    List<Map<String, dynamic>> seleccionados = [];
+
+    for (var item in items) {
+      final detalle = controllers[item.idProducto]?.text.trim() ?? '';
+      final checkeado = isChecked[item.idProducto] ?? false;
+      final fotos = fotosPorItem[item.idProducto] ?? [];
+
+      // Solo incluir si está checkeado O tiene detalle O tiene fotos
+      if (checkeado || detalle.isNotEmpty || fotos.isNotEmpty) {
+        seleccionados.add({
+          'idProducto': item.idProducto,
+          'desProducto': item.desProducto,
+          'detalle': detalle,
+          'completado': checkeado, // ← ¡CRÍTICO!
+          'fotos': fotos,
+        });
+      }
+    }
+
+    return seleccionados;
   }
 
   @override

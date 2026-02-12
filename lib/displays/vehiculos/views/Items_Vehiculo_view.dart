@@ -54,7 +54,7 @@ class _ItemsVehiculoView extends StatelessWidget {
             itemCount: vm.items.length,
             itemBuilder: (context, index) {
               final item = vm.items[index];
-        
+
               return Card(
                 elevation: 4,
                 child: Padding(
@@ -67,7 +67,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                         children: [
                           Icon(Icons.inventory_2, color: Color(0xff134895)),
                           SizedBox(width: 8),
-        
+
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,40 +86,82 @@ class _ItemsVehiculoView extends StatelessWidget {
                               ],
                             ),
                           ),
-        
+
                           Checkbox(
                             value: vm.isChecked[item.idProducto] ?? false,
                             onChanged: (value) {
+                              // 1. Actualizar estado local
                               vm.toggleCheck(item.idProducto, value ?? false);
-        
+
+                              // 2. Obtener el texto actual
+                              final text = vm.controllers[item.idProducto]!.text
+                                  .trim();
+
                               if (value == true) {
-                                final text = vm.controllers[item.idProducto]!.text
-                                    .trim();
-        
+                                // ✅ MARCAR CHECKBOX
                                 if (text.isNotEmpty) {
-                                  vmInicio.actualizarItem(
-                                    item.idProducto,
-                                    detalle: text,
-                                    completado: true,
-                                  );
+                                  // Actualizar o crear ítem en InicioVehiculosViewModel
+                                  final index = vmInicio.itemsAsignados
+                                      .indexWhere(
+                                        (item) =>
+                                            item.idProducto == item.idProducto,
+                                      );
+
+                                  if (index != -1) {
+                                    vmInicio.itemsAsignados[index].completado =
+                                        true;
+                                    vmInicio.itemsAsignados[index].detalle =
+                                        text;
+                                  } else {
+                                    vmInicio.itemsAsignados.add(
+                                      model.ItemVehiculo(
+                                        idProducto: item.idProducto,
+                                        desProducto: item.desProducto,
+                                        detalle: text,
+                                        completado: true,
+                                        fotos:
+                                            vm.fotosPorItem[item.idProducto] ??
+                                            [],
+                                      ),
+                                    );
+                                  }
+
                                   vm.moveItemToTop(item.idProducto);
+                                  vmInicio.notifyListeners();
                                 } else {
+                                  // No puede marcar sin detalle
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
                                       content: Text("Escribe un detalle antes"),
                                     ),
                                   );
-        
                                   vm.toggleCheck(item.idProducto, false);
                                 }
+                              } else {
+                                // ✅ DESMARCAR CHECKBOX
+                                final index = vmInicio.itemsAsignados
+                                    .indexWhere(
+                                      (i) => i.idProducto == item.idProducto,
+                                    );
+
+                                if (index != -1) {
+                                  // Opción 1: Marcar como NO completado (conserva detalle y fotos)
+                                  vmInicio.itemsAsignados[index].completado =
+                                      false;
+
+                                  // Opción 2: Eliminar el ítem completamente (si prefieres)
+                                  // vmInicio.itemsAsignados.removeAt(index);
+                                }
+
+                                vmInicio.notifyListeners();
                               }
                             },
                           ),
                         ],
                       ),
-        
+
                       const SizedBox(height: 10),
-        
+
                       TextField(
                         controller: vm.controllers[item.idProducto],
                         decoration: InputDecoration(
@@ -132,18 +174,21 @@ class _ItemsVehiculoView extends StatelessWidget {
                         ),
                         maxLines: 2,
                       ),
-        
+
                       // ------------ Fotos ----------------
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           IconButton(
-                            icon: Icon(Icons.camera_alt, color: Color(0xff134895)),
+                            icon: Icon(
+                              Icons.camera_alt,
+                              color: Color(0xff134895),
+                            ),
                             onPressed: () => vm.tomarFoto(item.idProducto),
                           ),
                         ],
                       ),
-        
+
                       if ((vm.fotosPorItem[item.idProducto] ?? []).isNotEmpty)
                         SizedBox(
                           height: 80,
@@ -158,7 +203,9 @@ class _ItemsVehiculoView extends StatelessWidget {
                                     child: Stack(
                                       children: [
                                         ClipRRect(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           child: Image.file(
                                             File(foto),
                                             width: 80,
@@ -166,7 +213,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                                             fit: BoxFit.cover,
                                           ),
                                         ),
-        
+
                                         Positioned(
                                           top: 2,
                                           right: 2,
@@ -204,32 +251,51 @@ class _ItemsVehiculoView extends StatelessWidget {
               );
             },
           ),
-        
+
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: const Color(0xff134895),
             icon: const Icon(Icons.save),
             label: const Text("Guardar ítems"),
             onPressed: () {
-              final itemsGuardados = vm.items.map((i) {
-                final detalle = vm.controllers[i.idProducto]!.text.trim();
-                final fotos = vm.fotosPorItem[i.idProducto]!;
-        
-                return model.ItemVehiculo(
-                  idProducto: i.idProducto,
-                  desProducto: i.desProducto,
-                  detalle: detalle,
-                  completado: vm.isChecked[i.idProducto] ?? false,
-                  fotos: fotos,
+              // 1. Usar getItemsSeleccionados en lugar de TODOS los items
+              final itemsSeleccionados = vm.getItemsSeleccionados();
+
+              print('=== GUARDANDO ÍTEMS ===');
+              print('Total items en VM: ${vm.items.length}');
+              print('Items seleccionados: ${itemsSeleccionados.length}');
+
+              // 2. Limpiar items anteriores
+              vmInicio.limpiarItems();
+
+              // 3. Agregar SOLO los seleccionados
+              for (var itemData in itemsSeleccionados) {
+                print(
+                  '  - ${itemData['idProducto']}: completado=${itemData['completado']}',
                 );
-              }).toList();
-        
-              vmInicio.setItemsAsignados(itemsGuardados);
-        
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text("Ítems guardados")));
-        
-              // 👉 Navegar a DatosGuardadosScreen
+
+                vmInicio.itemsAsignados.add(
+                  model.ItemVehiculo(
+                    idProducto: itemData['idProducto'],
+                    desProducto: itemData['desProducto'],
+                    detalle: itemData['detalle'],
+                    completado:
+                        itemData['completado'], // ← USA EL VALOR DEL CHECKBOX
+                    fotos: List<String>.from(itemData['fotos']),
+                  ),
+                );
+              }
+
+              vmInicio.notifyListeners();
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    '${itemsSeleccionados.length} ítem(s) guardados',
+                  ),
+                ),
+              );
+
+              // 4. Navegar
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const DatosGuardadosScreen()),
@@ -246,8 +312,9 @@ class _ItemsVehiculoView extends StatelessWidget {
                 : AppTheme.backroundColor,
           ),
         if (vm.isLoading) const LoadWidget(),
-
       ],
     );
   }
+
+  
 }

@@ -56,7 +56,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
-
 /// Representa un ítem a revisar en el vehículo.
 /// Cada ítem puede tener:
 /// - ID y descripción
@@ -301,10 +300,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   /// Actualiza un ítem específico por ID
-  void actualizarItem(String idProducto,
-      {String? detalle, bool? completado}) {
-    final index =
-        itemsAsignados.indexWhere((e) => e.idProducto == idProducto);
+  void actualizarItem(String idProducto, {String? detalle, bool? completado}) {
+    final index = itemsAsignados.indexWhere((e) => e.idProducto == idProducto);
     if (index != -1) {
       final item = itemsAsignados[index];
       if (detalle != null) item.detalle = detalle;
@@ -373,11 +370,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       final user = Preferences.userName; // o el usuario que corresponda
       final empresa = 1; // o la empresa correspondiente
       final res = await ElementoAsignadoService().getElementoAsignado(
-            empresa,
-            placa,
-            user,
-            token,
-          );
+        empresa,
+        placa,
+        user,
+        token,
+      );
 
       // Si la data tiene al menos un elemento, significa que ya existe
       if (res.data != null && (res.data as List).isNotEmpty) {
@@ -445,7 +442,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
 
   /// Carga los valores de los TextControllers a las variables reales
-  /// 
+  ///
   RecepcionVehiculoModel? recepcionGuardada;
 
   void guardar() {
@@ -539,16 +536,30 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   //validar campos llenos
   bool get formularioValido {
-    return clienteSelect != null &&
-        marcaSeleccionada != null &&
-        modeloSeleccionado != null &&
-        anioSeleccionado != null &&
-        colorSeleccionado != null &&
-        detalleTrabajoController.text.trim().isNotEmpty &&
+    print('🔍 VALIDANDO BOTÓN:');
+    print('   - clienteSelect: ${clienteSelect != null}');
+    print(
+      '   - placa: "${placaController.text}" (${placaController.text.length} chars)',
+    );
+    print(
+      '   - chasis: "${chasisController.text}" (${chasisController.text.length} chars)',
+    );
+    print(
+      '   - fechaRecibido: "$fechaRecibido" (${fechaRecibido.isEmpty ? "VACÍA" : "OK"})',
+    );
+    print(
+      '   - fechaSalida: "$fechaSalida" (${fechaSalida.isEmpty ? "VACÍA" : "OK"})',
+    );
+
+    final valido =
+        clienteSelect != null &&
         placaController.text.trim().isNotEmpty &&
         chasisController.text.trim().isNotEmpty &&
         fechaRecibido.isNotEmpty &&
         fechaSalida.isNotEmpty;
+
+    print('✅ RESULTADO: $valido');
+    return valido;
   }
 
   ApiResModel? validarDocumentoCompleto(BuildContext context) {
@@ -638,6 +649,16 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   //enviar datos del vehiculo al catalogo
   Future<bool> guardarVehiculoEnCatalogo() async {
+    if (marcaSeleccionada == null ||
+        modeloSeleccionado == null ||
+        anioSeleccionado == null ||
+        colorSeleccionado == null) {
+      NotificationService.showSnackbar(
+        'Debe seleccionar marca, modelo, año y color para guardar en catálogo',
+      );
+      return false;
+    }
+
     if (!formularioValido) return false;
 
     try {
@@ -734,7 +755,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     // COLOR
     // ---------------------------
     final color = colores.firstWhere(
-      (c) => c.descripcion.toUpperCase() == (elemento.color ?? '').toUpperCase(),
+      (c) =>
+          c.descripcion.toUpperCase() == (elemento.color ?? '').toUpperCase(),
       orElse: () => VehiculoModel(id: 0, descripcion: ''),
     );
 
@@ -806,7 +828,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     int numeroAleatorio = 100 + random.nextInt(900); // 100 a 999
 
     // Combinar los dos números para formar uno de 14 dígitos
-    String combinedStr = numeroAleatorio.toString() +
+    String combinedStr =
+        numeroAleatorio.toString() +
         date.day.toString().padLeft(2, '0') +
         date.month.toString().padLeft(2, '0') +
         date.year.toString() +
@@ -849,8 +872,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       NotificationService.showSnackbar(
         AppLocalizations.of(
           context,
-        )!
-            .translate(BlockTranslate.notificacion, 'clienteSelec'),
+        )!.translate(BlockTranslate.notificacion, 'clienteSelec'),
       );
 
       if (!vmFactura.editDoc) {
@@ -871,19 +893,18 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String getTextCuenta(BuildContext context) {
     String fileName = AppLocalizations.of(
       context,
-    )!
-        .translate(BlockTranslate.factura, 'cuenta');
+    )!.translate(BlockTranslate.factura, 'cuenta');
 
     for (var i = 0; i < parametros.length; i++) {
       final ParametroModel param = parametros[i];
 
       //buscar nombre del campo en el parametro 57
       if (param.parametro == 57) {
-        fileName = param.paCaracter ??
+        fileName =
+            param.paCaracter ??
             AppLocalizations.of(
               context,
-            )!
-                .translate(BlockTranslate.factura, 'cuenta');
+            )!.translate(BlockTranslate.factura, 'cuenta');
         break;
       }
     }
@@ -914,8 +935,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
     final vmFactura = Provider.of<DocumentoViewModel>(context, listen: false);
-    final localVM =
-        Provider.of<LocalSettingsViewModel>(context, listen: false);
+    final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
     final MenuViewModel menuVM = Provider.of<MenuViewModel>(
       context,
       listen: false,
@@ -967,8 +987,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!
-              .translate(BlockTranslate.notificacion, 'sinRegistros'),
+          )!.translate(BlockTranslate.notificacion, 'sinRegistros'),
         );
         return;
       }
@@ -1028,8 +1047,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!
-              .translate(BlockTranslate.notificacion, 'sinRegistros'),
+          )!.translate(BlockTranslate.notificacion, 'sinRegistros'),
         );
         return;
       }
@@ -1076,9 +1094,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!
-              .translate(
-                  BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
+          )!.translate(BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
         );
         return;
       }
@@ -1090,9 +1106,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!
-              .translate(
-                  BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
+          )!.translate(BlockTranslate.notificacion, 'cuentaCreadaNoSelec'),
         );
         return;
       }
@@ -1103,8 +1117,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
-          )!
-              .translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
+          )!.translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
         );
 
         if (!vmFactura.editDoc) {
@@ -1127,8 +1140,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       NotificationService.showSnackbar(
         AppLocalizations.of(
           context,
-        )!
-            .translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
+        )!.translate(BlockTranslate.notificacion, 'cuentaCreadaSelec'),
       );
     }
 
@@ -1399,8 +1411,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     vmFactura.isLoading = true;
 
     //Buscar vendedores de la serie
-    await loadSellers(
-        context, serieSelect!.serieDocumento!, vmMenu.documento!);
+    await loadSellers(context, serieSelect!.serieDocumento!, vmMenu.documento!);
     await loadTipoTransaccion(context);
     await loadParametros(context);
     await obtenerReferencias(context);
@@ -1411,8 +1422,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     vmFactura.isLoading = false;
 
     if (valueParametro(318)) {
-      Provider.of<LocationService>(context, listen: false)
-          .getLocation(context);
+      Provider.of<LocationService>(context, listen: false).getLocation(context);
     }
 
     if (!vmFactura.editDoc) {
@@ -1517,13 +1527,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       listen: false,
     );
     final docVM = Provider.of<DocumentViewModel>(context, listen: false);
-    final elVM =
-        Provider.of<ElementoAsigandoViewModel>(context, listen: false);
+    final elVM = Provider.of<ElementoAsigandoViewModel>(context, listen: false);
     final menuVM = Provider.of<MenuViewModel>(context, listen: false);
     final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
-    final itemsVM =
-        Provider.of<ItemsVehiculoViewModel>(context, listen: false);
+    final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
     final paymentVM = Provider.of<PaymentViewModel>(context, listen: false);
     final ReferenciaViewModel refVM = Provider.of<ReferenciaViewModel>(
       context,
@@ -1638,10 +1646,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
           traCantidad: transaction.cantidad,
           traTipoCambio: menuVM.tipoCambio,
           traMoneda: transaction.precio!.moneda,
-          traTipoPrecio:
-              transaction.precio!.precio ? transaction.precio!.id : null,
-          traFactorConversion:
-              !transaction.precio!.precio ? transaction.precio!.id : null,
+          traTipoPrecio: transaction.precio!.precio
+              ? transaction.precio!.id
+              : null,
+          traFactorConversion: !transaction.precio!.precio
+              ? transaction.precio!.id
+              : null,
           traTipoTransaccion: resolveTipoTransaccion(
             transaction.producto.tipoProducto,
             context,
@@ -1703,8 +1713,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
 
     for (var t in itemsVM.transaciciones) {
-      debugPrint(
-          'Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
+      debugPrint('Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
     }
 
     if (products.isEmpty) {
@@ -1775,8 +1784,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docRefObservacion3: docVM.valueParametro(386)
           ? docVM.refDirecEntregaParam386.text
           : null,
-      docReferencia:
-          docVM.valueParametro(58) ? refVM.referencia!.referencia : null,
+      docReferencia: docVM.valueParametro(58)
+          ? refVM.referencia!.referencia
+          : null,
 
       // --------------------
       // Datos del cliente
@@ -1863,8 +1873,15 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   Future<void> sincronizarTransacciones(BuildContext context) async {
-    final itemsVM =
-        Provider.of<ItemsVehiculoViewModel>(context, listen: false);
+    final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
+
+    print('=== SINCRONIZANDO TRANSAcCIONES ===');
+
+    // 🔹 Verificar que haya transacciones cargadas
+    if (itemsVM.transaciciones.isEmpty) {
+      print('⚠️ Transacciones vacías, cargando...');
+      await itemsVM.loadItems();
+    }
 
     // 🔹 PRIMERO: Resetear todos a false
     for (var transaccion in itemsVM.transaciciones) {
@@ -1872,34 +1889,29 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       transaccion.observacion = '';
     }
 
-    // 🔹 SEGUNDO: Marcar solo los que el usuario seleccionó
+    // 🔹 SEGUNDO: Marcar solo los que el usuario COMPLETÓ (checkbox marcado)
+    int contador = 0;
     for (var item in itemsAsignados) {
-      // Buscar por ID del producto
       final index = itemsVM.transaciciones.indexWhere(
         (t) => t.producto.productoId == item.idProducto,
       );
 
       if (index != -1) {
-        // Solo marcar si el ítem tiene detalle o fue explícitamente marcado
-        // Depende de tu lógica de negocio:
-        // Opción 1: Marcar si tiene detalle
-        if (item.detalle.isNotEmpty) {
+        // ✅ USAR COMPLETADO, NO DETALLE
+        if (item.completado) {
           itemsVM.transaciciones[index].isChecked = true;
           itemsVM.transaciciones[index].observacion = item.detalle;
+          contador++;
+          print('✅ ${item.idProducto} - sincronizado (completado=true)');
+        } else {
+          print('❌ ${item.idProducto} - NO sincronizado (completado=false)');
         }
-        // Opción 2: Usar un campo "completado" o "seleccionado" en ItemVehiculo
-        // if (item.completado) { ... }
-        // Opción 3: Marcar siempre (como ahora, pero está mal)
+      } else {
+        print('❌ ${item.idProducto} - No encontrado en transaciciones');
       }
     }
 
     itemsVM.notifyListeners();
-
-    // DEBUG
-    final seleccionados =
-        itemsVM.transaciciones.where((t) => t.isChecked).length;
-    print(
-      '✅ Transacciones sincronizadas: $seleccionados de ${itemsVM.transaciciones.length}',
-    );
+    print('=== SINCRONIZADAS: $contador transacciones ===');
   }
 }

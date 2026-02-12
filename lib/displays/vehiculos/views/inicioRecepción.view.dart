@@ -35,9 +35,36 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   @override
   void initState() {
     super.initState();
+
     Future.microtask(() {
-      context.read<InicioVehiculosViewModel>().cargarDatosIniciales(context);
+      final vm = context.read<InicioVehiculosViewModel>(); // 👈 DEFINIR VM AQUÍ
+      vm.cargarDatosIniciales(context);
+
+      // Agregar listeners después de cargar datos
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final vm = context
+            .read<InicioVehiculosViewModel>(); // 👈 OTRA VEZ AQUÍ (seguro)
+        vm.placaController.addListener(_revalidar);
+        vm.chasisController.addListener(_revalidar);
+      });
     });
+  }
+
+  void _revalidar() {
+    if (mounted) {
+      final vm = context.read<InicioVehiculosViewModel>();
+      vm.notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (mounted) {
+      final vm = context.read<InicioVehiculosViewModel>();
+      vm.placaController.removeListener(_revalidar);
+      vm.chasisController.removeListener(_revalidar);
+    }
+    super.dispose();
   }
 
   @override
@@ -62,7 +89,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             centerTitle: true,
             title: const Text(
               'Recepción de Vehículos',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
             actions: [
               IconButton(
@@ -79,14 +109,14 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             builder: (_) => const ItemsVehiculoScreen(),
                           ),
                         );
-        
+
                         final ok = await vm.guardarVehiculoEnCatalogo();
-        
+
                         if (!context.mounted) return;
                       }
                     : null,
               ),
-        
+
               IconButton(
                 icon: const Icon(Icons.cancel_rounded, color: Colors.white),
                 tooltip: 'Cancelar',
@@ -97,7 +127,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
               ),
             ],
           ),
-        
+
           body: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -138,7 +168,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           ),
                         ],
                       ),
-        
+
                       const SizedBox(height: 10),
                       Text(
                         AppLocalizations.of(
@@ -148,9 +178,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       ),
                       if (vm.series.isEmpty && !vmFactura.editDoc)
                         NotFoundWidget(
-                          text: AppLocalizations.of(
-                            context,
-                          )!.translate(BlockTranslate.notificacion, 'sinElementos'),
+                          text: AppLocalizations.of(context)!.translate(
+                            BlockTranslate.notificacion,
+                            'sinElementos',
+                          ),
                           icon: const Icon(
                             Icons.browser_not_supported_outlined,
                             size: 50,
@@ -194,9 +225,11 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: AppLocalizations.of(
-                                      context,
-                                    )!.translate(BlockTranslate.tiket, 'latitud'),
+                                    text: AppLocalizations.of(context)!
+                                        .translate(
+                                          BlockTranslate.tiket,
+                                          'latitud',
+                                        ),
                                     style: StyleApp.normalBold,
                                   ),
                                   TextSpan(
@@ -216,9 +249,11 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                 ),
                                 children: [
                                   TextSpan(
-                                    text: AppLocalizations.of(
-                                      context,
-                                    )!.translate(BlockTranslate.tiket, 'longitud'),
+                                    text: AppLocalizations.of(context)!
+                                        .translate(
+                                          BlockTranslate.tiket,
+                                          'longitud',
+                                        ),
                                     style: StyleApp.normalBold,
                                   ),
                                   TextSpan(
@@ -230,7 +265,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             ),
                           ],
                         ),
-        
+
                       if (vm.valueParametro(58))
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,13 +289,18 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                         color: Theme.of(context).primaryColor,
                                       ),
                                     ),
-                                    const Text(" * ", style: StyleApp.obligatory),
+                                    const Text(
+                                      " * ",
+                                      style: StyleApp.obligatory,
+                                    ),
                                     const SizedBox(width: 30),
                                   ],
                                 ),
                                 leading: Icon(
                                   Icons.search,
-                                  color: vmTheme.colorPref(AppTheme.idColorTema),
+                                  color: vmTheme.colorPref(
+                                    AppTheme.idColorTema,
+                                  ),
                                 ),
                                 contentPadding: const EdgeInsets.all(0),
                               ),
@@ -292,13 +332,18 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                         color: Theme.of(context).primaryColor,
                                       ),
                                     ),
-                                    const Text(" * ", style: StyleApp.obligatory),
+                                    const Text(
+                                      " * ",
+                                      style: StyleApp.obligatory,
+                                    ),
                                     const SizedBox(width: 30),
                                   ],
                                 ),
                                 leading: Icon(
                                   Icons.search,
-                                  color: vmTheme.colorPref(AppTheme.idColorTema),
+                                  color: vmTheme.colorPref(
+                                    AppTheme.idColorTema,
+                                  ),
                                 ),
                                 contentPadding: const EdgeInsets.all(0),
                               ),
@@ -309,10 +354,15 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(vm.getTextCuenta(context), style: StyleApp.title),
+                          Text(
+                            vm.getTextCuenta(context),
+                            style: StyleApp.title,
+                          ),
                           IconButton(
-                            onPressed: () =>
-                                Navigator.pushNamed(context, AppRoutes.addClient),
+                            onPressed: () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.addClient,
+                            ),
                             icon: const Icon(Icons.person_add_outlined),
                             tooltip: AppLocalizations.of(
                               context,
@@ -340,7 +390,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                               hintText: vm.getTextCuenta(context),
                               suffixIcon: IconButton(
                                 icon: const Icon(Icons.search),
-                                onPressed: () => vm.performSearchClient(context),
+                                onPressed: () =>
+                                    vm.performSearchClient(context),
                               ),
                             ),
                             validator: (value) {
@@ -356,7 +407,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ),
                       const SizedBox(height: 10),
                       SwitchListTile(
-                        activeColor: AppTheme.hexToColor(Preferences.valueColor),
+                        activeColor: AppTheme.hexToColor(
+                          Preferences.valueColor,
+                        ),
                         contentPadding: EdgeInsets.zero,
                         value: vm.cf,
                         onChanged: (value) => vm.changeCF(context, value),
@@ -384,9 +437,11 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                       Icons.edit_outlined,
                                       color: AppTheme.grey,
                                     ),
-                                    tooltip: AppLocalizations.of(
-                                      context,
-                                    )!.translate(BlockTranslate.cuenta, 'editar'),
+                                    tooltip: AppLocalizations.of(context)!
+                                        .translate(
+                                          BlockTranslate.cuenta,
+                                          'editar',
+                                        ),
                                   ),
                               ],
                             ),
@@ -459,8 +514,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           ],
                         ),
                       const SizedBox(height: 15),
-        
-                    
+
                       _buildModernSection(
                         title: 'Identificación del Vehículo',
                         icon: Icons.confirmation_number_outlined,
@@ -468,35 +522,38 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // 🔍 CAMPO DE BÚSQUEDA (para buscar por placa)
                               TextFormField(
                                 controller: elVM.buscarElementoAsignado,
                                 decoration: InputDecoration(
-                                  labelText: 'Placa',
+                                  labelText: 'Buscar vehículo por placa',
                                   suffixIcon: IconButton(
                                     icon: const Icon(Icons.search),
                                     onPressed: () async {
                                       FocusScope.of(context).unfocus();
-        
                                       if (elVM.buscarElementoAsignado.text
                                           .trim()
                                           .isEmpty)
                                         return;
-        
                                       await elVM.getElementoAsignado(context);
                                       elVM.mostrarLista();
                                     },
                                   ),
                                 ),
                               ),
-        
-                              //   DESPLIEGUE DE COINCIDENCIAS
+
+                              // 📋 RESULTADOS DE BÚSQUEDA
                               if (elVM.mostrarResultados)
                                 Container(
-                                  constraints: const BoxConstraints(maxHeight: 250),
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 250,
+                                  ),
                                   margin: const EdgeInsets.only(top: 4),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    border: Border.all(color: Colors.grey.shade300),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: ListView.builder(
@@ -509,13 +566,14 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                           "${item.descripcion} (${item.elementoAsignado})",
                                         ),
                                         onTap: () async {
-                                          //   1. Escribir la placa en el input
-                                          elVM.buscarElementoAsignado.text = item
-                                              .placa
-                                              .toString();
-        
-                                          // (opcional) mover cursor al final
-                                          elVM.buscarElementoAsignado.selection =
+                                          // 1. Escribir la placa en el input de búsqueda
+                                          elVM.buscarElementoAsignado.text =
+                                              item.placa.toString();
+
+                                          // 2. Mover cursor al final
+                                          elVM
+                                                  .buscarElementoAsignado
+                                                  .selection =
                                               TextSelection.fromPosition(
                                                 TextPosition(
                                                   offset: elVM
@@ -524,41 +582,49 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                                       .length,
                                                 ),
                                               );
-        
-                                          //   2. Guardar selección
+
+                                          // 3. Guardar selección
                                           elVM.selectRef(context, item, false);
-        
-                                          //   3. Ocultar resultados
+
+                                          // 4. Ocultar resultados
                                           elVM.ocultarLista();
-        
-                                          //   4. Cargar datos relacionados
+
+                                          // 5. Cargar datos relacionados (ESTO YA ACTUALIZA vm.placaController)
                                           await inicioVM
                                               .cargarDesdeElementoAsignado(
                                                 context,
                                                 item,
                                               );
+
+                                          // 6. Forzar revalidación
+                                          vm.notifyListeners();
                                         },
                                       );
                                     },
                                   ),
                                 ),
-        
-                              const SizedBox(height: 12),
-        
+
+                              const SizedBox(height: 16),
+
+                              // 🟢🟢🟢 NUEVO: CAMPO DE PLACA MANUAL (conectado a vm.placaController) 🟢🟢🟢
+                              _buildTextField('Placa', vm.placaController),
+
+                              const SizedBox(height: 8),
+
                               _buildTextField('Chasis', vm.chasisController),
-        
+
                               if (vm.marcaSeleccionada != null ||
                                   vm.modeloSeleccionado != null ||
                                   vm.anioSeleccionado != null ||
                                   vm.colorSeleccionado != null)
                                 _buildVehiculoSeleccionado(vm),
-        
+
                               _buildTipoVehiculoDropdown(vm),
                             ],
                           ),
                         ],
                       ),
-        
+
                       _buildModernSection(
                         title: 'Datos del Vehículo',
                         icon: Icons.directions_car_outlined,
@@ -588,7 +654,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ],
                       ),
                       const SizedBox(height: 16),
-        
+
                       const SizedBox(height: 24),
                     ],
                   ),
@@ -755,6 +821,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: controller,
+        onChanged: (_) {
+          // 👇 FORZAR REVALIDACIÓN EN CADA TECLA
+          context.read<InicioVehiculosViewModel>().notifyListeners();
+        },
         decoration: InputDecoration(
           labelText: label,
           filled: true,

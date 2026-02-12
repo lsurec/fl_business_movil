@@ -19,10 +19,9 @@ class TipoVehiculoModel {
     this.mFechaHora,
   });
 
-  /// 🔹 Mapper desde JSON
   factory TipoVehiculoModel.fromJson(Map<String, dynamic> json) {
     return TipoVehiculoModel(
-      id: json['id'],
+      id: json['id']?.toString(),
       descripcion: json['descripcion'],
       estado: json['estado'],
       consecutivoInterno: json['consecutivo_Interno'],
@@ -37,7 +36,6 @@ class TipoVehiculoModel {
     );
   }
 
-  /// 🔹 Para enviar a JSON (opcional)
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -51,6 +49,17 @@ class TipoVehiculoModel {
     };
   }
 
-  /// 🔹 Comodidad para UI
   bool get activo => estado == true;
+
+  // 🔥 CLAVE PARA DROPDOWN / LISTAS
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TipoVehiculoModel &&
+          runtimeType == other.runtimeType &&
+          id != null &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

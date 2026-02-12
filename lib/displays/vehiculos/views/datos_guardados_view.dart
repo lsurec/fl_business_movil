@@ -1,7 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:fl_business/displays/report/view_models/printer_view_model.dart';
 import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
+import 'package:fl_business/displays/vehiculos/services/ticket_vehiculo_service.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
@@ -12,6 +14,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:signature/signature.dart';
 
 // ViewModel
@@ -56,6 +59,18 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               style: TextStyle(color: Colors.white),
             ),
             iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              Consumer<InicioVehiculosViewModel>(
+                builder: (_, vm, __) => IconButton(
+                  icon: const Icon(Icons.send, color: Colors.white),
+                  onPressed: vm.isLoading
+                      ? null
+                      : () async {
+                          await _enviarDocumento(context);
+                        },
+                ),
+              ),
+            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -161,44 +176,52 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
                 // ================= PDF =================
                 Center(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff134895),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // BOTÓN PDF
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xff134895),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                        onPressed: _prepararYGenerarPdf,
+                        icon: const Icon(
+                          Icons.picture_as_pdf,
+                          color: Colors.white,
+                        ),
+                        label: const Text(
+                          'Generar PDF',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
-                    ),
-                    onPressed: _prepararYGenerarPdf,
-                    icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-                    label: const Text(
-                      'Generar PDF',
-                      style: TextStyle(color: Colors.white),
-                    ),
+
+                      const SizedBox(height: 12),
+
+                      // BOTÓN IMPRIMIR
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                        ),
+                        onPressed: _imprimirTicket,
+                        icon: const Icon(Icons.print, color: Colors.white),
+                        label: const Text(
+                          'Imprimir Ticket',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+
                 const SizedBox(height: 16),
-                Center(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
-                      ),
-                    ),
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    label: const Text(
-                      'Enviar Documento',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: vm.isLoading
-                        ? null
-                        : () async {
-                            await _enviarDocumento(context);
-                          },
-                  ),
-                ),
               ],
             ),
           ),
@@ -313,8 +336,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   }
 
   // ================= PDF =================
-  Future<void> _generarPdf(
-    BuildContext context, {
+  Future<String> _generarPdf({
+    required List<ItemVehiculo> items,
     Uint8List? firmaMecanico,
     Uint8List? firmaCliente,
   }) async {
@@ -377,22 +400,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           pw.Center(
             child: pw.Text(
               'DETALLE DEL TRABAJO',
-              style: pw.TextStyle(
-                fontSize: 16,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
             ),
           ),
           pw.SizedBox(height: 15),
 
           // ===================== TABLA DE ITEMS (SKU + OBSERVACIÓN) =====================
-          if (vm.itemsAsignados.isNotEmpty)
+          if (items.isNotEmpty)
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(),
               cellAlignment: pw.Alignment.centerLeft,
               headerDecoration: pw.BoxDecoration(color: PdfColors.grey200),
               headers: ['Observación', 'SKU'],
-              data: vm.itemsAsignados.map((item) {
+              data: items.map((item) {
                 // Usar el detalle como observación
                 return [
                   item.detalle.isEmpty ? '—' : item.detalle,
@@ -420,7 +440,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           pw.SizedBox(height: 30),
 
           // ===================== IMÁGENES DE LOS ITEMS =====================
-          if (vm.itemsAsignados.any((item) => item.fotos.isNotEmpty))
+          if (items.any((item) => item.fotos.isNotEmpty))
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -433,7 +453,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
                 pw.Divider(),
                 pw.SizedBox(height: 10),
-                ...vm.itemsAsignados.expand((item) {
+                ...items.expand((item) {
                   if (item.fotos.isEmpty) return <pw.Widget>[];
                   return [
                     // Encabezado del item con SKU
@@ -524,10 +544,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             pw.SizedBox(height: 15),
             pw.Text(
               'ESTADO DEL VEHÍCULO',
-              style: pw.TextStyle(
-                fontSize: 14,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 8),
             _vehiculoConMarcasPdf(imagenVehiculoPdf, vm.marcasVehiculo),
@@ -553,8 +570,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   pw.Container(
                     width: 180,
                     height: 80,
-                    decoration:
-                        pw.BoxDecoration(border: pw.Border.all()),
+                    decoration: pw.BoxDecoration(border: pw.Border.all()),
                     child: firmaMecanicoPdf != null
                         ? pw.Image(firmaMecanicoPdf, fit: pw.BoxFit.contain)
                         : pw.Center(child: pw.Text('Firma Mecánico')),
@@ -568,8 +584,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   pw.Container(
                     width: 180,
                     height: 80,
-                    decoration:
-                        pw.BoxDecoration(border: pw.Border.all()),
+                    decoration: pw.BoxDecoration(border: pw.Border.all()),
                     child: firmaClientePdf != null
                         ? pw.Image(firmaClientePdf, fit: pw.BoxFit.contain)
                         : pw.Center(child: pw.Text('Firma Cliente')),
@@ -587,16 +602,47 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/ReporteVehiculo.pdf');
     await file.writeAsBytes(await pdf.save());
-    await OpenFilex.open(file.path);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('PDF generado: ${file.path}')));
+    // await OpenFilex.open(file.path);
+
+    return file.path; // 👈 RETORNAMOS PATH
   }
 
-  Future<void> _prepararYGenerarPdf() async {
+  Future<String?> _prepararYGenerarPdf() async {
+    if (_firmaMecanico.isEmpty || _firmaCliente.isEmpty) {
+      if (!mounted) return null;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ambas firmas son obligatorias'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return null;
+    }
+
+    final Uint8List? firmaMecanicoBytes = await _firmaMecanico.toPngBytes();
+    final Uint8List? firmaClienteBytes = await _firmaCliente.toPngBytes();
+
+    // 🔥 ESTA ES LA LISTA COMPLETA
+    final items = context.read<InicioVehiculosViewModel>().itemsAsignados;
+
+    return await _generarPdf(
+      items: items,
+      firmaMecanico: firmaMecanicoBytes,
+      firmaCliente: firmaClienteBytes,
+    );
+  }
+
+  Future<void> _imprimirTicket() async {
+    final vm = context.read<InicioVehiculosViewModel>();
+    final printerVM = context.read<PrinterViewModel>();
+
     if (_firmaMecanico.isEmpty || _firmaCliente.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Ambas firmas son obligatorias')),
+        const SnackBar(
+          content: Text('Ambas firmas son obligatorias'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -604,14 +650,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final Uint8List? firmaMecanicoBytes = await _firmaMecanico.toPngBytes();
     final Uint8List? firmaClienteBytes = await _firmaCliente.toPngBytes();
 
-    debugPrint('Firma mecánico bytes: ${firmaMecanicoBytes?.length}');
-    debugPrint('Firma cliente bytes: ${firmaClienteBytes?.length}');
-
-    await _generarPdf(
-      context,
+    final bytes = await TicketVehiculoService.generarTicket(
+      items: vm.itemsAsignados,
       firmaMecanico: firmaMecanicoBytes,
       firmaCliente: firmaClienteBytes,
     );
+
+    await printerVM.printTMU(context, bytes, false);
   }
 
   Future<void> _enviarDocumento(BuildContext context) async {
@@ -619,99 +664,68 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
     final elVM = context.read<ElementoAsigandoViewModel>();
 
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     try {
       vm.setLoading(true);
 
-      // ================= PASO 1: CARGAR TRANSAcCIONES =================
-      print('=== PASO 1: Verificar transacciones ===');
-      print('Transacciones cargadas: ${itemsVM.transaciciones.length}');
-
-      // 🔥 CARGAR TRANSAcCIONES SI ESTÁN VACÍAS
+      // ================= PASO 1 =================
       if (itemsVM.transaciciones.isEmpty) {
-        print('Cargando transacciones desde API...');
         await itemsVM.loadItems();
-        print('Transacciones después de carga: ${itemsVM.transaciciones.length}');
       }
 
-      // ================= PASO 2: SINCRONIZAR =================
-      print('=== PASO 2: Sincronizar ===');
+      // ================= PASO 2 =================
       await vm.sincronizarTransacciones(context);
 
-      // ================= PASO 3: ENVIAR DOCUMENTO =================
-      print('=== PASO 3: Enviar documento ===');
+      // ================= PASO 3 =================
       final res = await vm.sendDocument(context);
 
       if (res.succes) {
-        // ✅ ÉXITO: Mostrar mensaje
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('✅ Documento enviado correctamente'),
             backgroundColor: Colors.green,
-            duration: Duration(seconds: 3),
+            duration: Duration(seconds: 2),
           ),
         );
 
-        // 🔄 Limpiar datos
+        // Generar PDF
+        final pdfPath = await _prepararYGenerarPdf();
+
+        if (!mounted || pdfPath == null) return;
+
+        // 🔥 Compartir PDF
+        await Share.shareXFiles([
+          XFile(pdfPath),
+        ], text: 'Orden de servicio del vehículo');
+
+        // 🔥 Limpiar datos pero quedarnos en esta pantalla
         vm.cancelar();
         elVM.cancelar();
-
-        // 🏠 Regresar HASTA EL INICIO
-        Navigator.of(context).popUntil((route) {
-          return route.settings.name == '/InicioVehiculosView' ||
-              route.isFirst;
-        });
       } else {
-        // ❌ ERROR
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(
               res.response?.toString() ?? '❌ Error al enviar documento',
             ),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 4),
           ),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('❌ Error: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
-      vm.setLoading(false);
+      if (mounted) {
+        vm.setLoading(false);
+      }
     }
   }
-
-  // Future<void> _enviarDocumento(BuildContext context) async {
-  //   final vm = context.read<InicioVehiculosViewModel>();
-  //   try {
-  //     vm.setLoading(true);
-  //     final res = await vm.sendDocument(context);
-  //     if (res.succes) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Documento enviado correctamente')),
-  //       );
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(
-  //             res.response?.toString() ??
-  //                 'Debe seleccionar al menos una transacción',
-  //           ),
-  //           backgroundColor: Colors.red,
-  //         ),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-  //     );
-  //   } finally {
-  //     vm.setLoading(false);
-  //   }
-  // }
 }
 
 Widget _titulo(String titulo) {
