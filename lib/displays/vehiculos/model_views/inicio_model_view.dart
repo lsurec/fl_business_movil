@@ -1811,12 +1811,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       // Fechas
       // --------------------
-      fechaRecibido: recepcionGuardada?.fechaRecibido != null
-          ? DateTime.parse(recepcionGuardada!.fechaRecibido!)
-          : null,
-      fechaSalida: recepcionGuardada?.fechaSalida != null
-          ? DateTime.parse(recepcionGuardada!.fechaSalida!)
-          : null,
+      // --------------------
+// Fechas
+// --------------------
+fechaRecibido: _parseFecha(recepcionGuardada?.fechaRecibido),
+fechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
 
       // --------------------
       // Observaciones técnicas
@@ -1914,4 +1913,37 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     itemsVM.notifyListeners();
     print('=== SINCRONIZADAS: $contador transacciones ===');
   }
+  DateTime? _parseFecha(String? fechaStr) {
+  if (fechaStr == null || fechaStr.isEmpty) return null;
+  
+  try {
+    // Intenta parsear formato ISO completo primero
+    return DateTime.parse(fechaStr);
+  } catch (e) {
+    try {
+      // Si falla, intenta con formato "YYYY-MM-DD HH:MM"
+      // Ejemplo: "2026-02-12 0.12" -> lo convertimos a "2026-02-12 00:12:00"
+      
+      // Separa fecha y hora
+      List<String> parts = fechaStr.split(' ');
+      if (parts.length != 2) return null;
+      
+      String datePart = parts[0]; // "2026-02-12"
+      String timePart = parts[1]; // "0.12"
+      
+      // Convierte "0.12" a "00:12:00"
+      List<String> timeParts = timePart.split('.');
+      if (timeParts.length != 2) return null;
+      
+      String hour = timeParts[0].padLeft(2, '0'); // "00"
+      String minute = timeParts[1].padLeft(2, '0'); // "12"
+      String formattedTime = '$hour:$minute:00';
+      
+      return DateTime.parse('$datePart $formattedTime');
+    } catch (e2) {
+      debugPrint('Error parseando fecha "$fechaStr": $e2');
+      return null;
+    }
+  }
+}
 }
