@@ -498,13 +498,6 @@ class ProductViewModel extends ChangeNotifier {
     valueNum = 1;
     accion = 0;
 
-    //mensaje de confirmacion
-    NotificationService.showSnackbar(
-      AppLocalizations.of(
-        context,
-      )!.translate(BlockTranslate.notificacion, 'transaccionAgregada'),
-    );
-
     DocumentService.saveDocumentLocal(context);
 
     //regresar a detalle

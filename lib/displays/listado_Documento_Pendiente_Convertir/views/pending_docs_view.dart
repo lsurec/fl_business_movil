@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:fl_business/displays/prc_documento_3/models/serie_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/models.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/view_models.dart';
@@ -36,6 +37,7 @@ class PendingDocsView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -103,6 +105,26 @@ class PendingDocsView extends StatelessWidget {
                             ],
                           ),
                         ],
+                      ),
+                      Text("Serie", style: StyleApp.normalBold),
+                      DropdownButton<SerieModel>(
+                        isExpanded: true,
+                        dropdownColor: AppTheme.isDark()
+                            ? AppTheme.darkBackroundColor
+                            : AppTheme.backroundColor,
+                        hint: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.translate(BlockTranslate.factura, 'opcion'),
+                        ),
+                        value: vm.serieSelect,
+                        onChanged: (value) => vm.changeSerie(value, context),
+                        items: vm.series.map((serie) {
+                          return DropdownMenuItem<SerieModel>(
+                            value: serie,
+                            child: Text(serie.descripcion!),
+                          );
+                        }).toList(),
                       ),
                       const Divider(),
                       Row(

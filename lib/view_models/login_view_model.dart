@@ -6,7 +6,6 @@ import 'package:fl_business/models/models.dart';
 import 'package:fl_business/models/url_pic_model.dart';
 import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
-import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/utilities.dart';
@@ -14,7 +13,6 @@ import 'package:fl_business/view_models/view_models.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../displays/shr_local_config/services/services.dart';
 
@@ -50,7 +48,7 @@ class LoginViewModel extends ChangeNotifier {
   }
 
   void showCustomDialog(BuildContext context) async {
-    String idDevice = await getDeviceId();
+    String idDevice = SplashViewModel.idDevice;
 
     showDialog(
       context: context,
@@ -78,19 +76,6 @@ class LoginViewModel extends ChangeNotifier {
     );
   }
 
-  Future<String> getOrCreateIOSDeviceId() async {
-    const storage = FlutterSecureStorage();
-    String? deviceId = await storage.read(key: 'device_id');
-
-    if (deviceId == null) {
-      deviceId =
-          'ios-${DateTime.now().millisecondsSinceEpoch}'; // Genera un ID único
-      await storage.write(key: 'device_id', value: deviceId);
-    }
-
-    return deviceId;
-  }
-
   Future<String> getDeviceName() async {
     var deviceInfo = DeviceInfoPlugin();
 
@@ -103,21 +88,6 @@ class LoginViewModel extends ChangeNotifier {
     }
 
     return 'Unknown Device';
-  }
-
-  Future<String> getDeviceId() async {
-    if (Platform.isAndroid) {
-      return await getAndroidDeviceId();
-    } else if (Platform.isIOS) {
-      return await getOrCreateIOSDeviceId();
-    }
-    return 'unknown_device';
-  }
-
-  Future<String> getAndroidDeviceId() async {
-    var deviceInfo = DeviceInfoPlugin();
-    var androidInfo = await deviceInfo.androidInfo;
-    return androidInfo.id; // ANDROID_ID, único para el dispositivo
   }
 
   //disableSession
@@ -177,7 +147,7 @@ class LoginViewModel extends ChangeNotifier {
 
       //si el usuaro es correcto
       if (respLogin.success) {
-        String idDevice = await getDeviceId();
+        String idDevice = SplashViewModel.idDevice;
 
         //guardar token y nombre de usuario
         ApiResponseModel resIdDevice = await loginService.validateDeviceID(

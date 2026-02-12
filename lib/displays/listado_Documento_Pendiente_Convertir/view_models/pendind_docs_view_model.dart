@@ -5,6 +5,9 @@ import 'dart:async';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/models.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/services/services.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/view_models.dart';
+import 'package:fl_business/displays/prc_documento_3/models/serie_model.dart';
+import 'package:fl_business/displays/prc_documento_3/services/serie_service.dart';
+import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/models/models.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/services.dart';
@@ -229,6 +232,62 @@ class PendingDocsViewModel extends ChangeNotifier {
     isLoading = false;
   }
 
+  final List<SerieModel> series = [];
+  SerieModel? serieSelect;
+
+  Future<ApiResModel> loadSeries(BuildContext context) async {
+    final vmLogin = Provider.of<LoginViewModel>(context, listen: false);
+    final vmLocal = Provider.of<LocalSettingsViewModel>(context, listen: false);
+
+    final vmMenu = Provider.of<MenuViewModel>(context, listen: false);
+
+    final int empresa = vmLocal.selectedEmpresa!.empresa;
+    final int estacion = vmLocal.selectedEstacion!.estacionTrabajo;
+    final String user = vmLogin.user;
+    final String token = vmLogin.token;
+    final int tipoDocumento = vmMenu.documento!;
+
+    final SerieService serieService = SerieService();
+
+    final ApiResModel res = await serieService.getSerie(
+      tipoDocumento,
+      empresa,
+      estacion,
+      user,
+      token,
+    );
+
+    if (!res.succes) return res;
+
+    series.clear();
+    serieSelect = null;
+    series.addAll(res.response);
+
+    if (series.isNotEmpty) {
+      // Buscar el que tenga orden == 1
+      serieSelect = series.firstWhere(
+        (s) => s.orden == 1,
+        orElse: () => series.first,
+      );
+    }
+
+    notifyListeners();
+
+    return res;
+  }
+
+  //seleccionar serie
+  Future<void> changeSerie(SerieModel? value, BuildContext context) async {
+    //Seleccionar serie
+    serieSelect = value;
+
+    //TODO:Hacer cambios segun la serie
+
+    notifyListeners();
+
+    if (serieSelect != null) laodData(context);
+  }
+
   //Cargar datos
   Future<void> laodData(BuildContext context) async {
     //datos externos
@@ -249,6 +308,7 @@ class PendingDocsViewModel extends ChangeNotifier {
       user,
       token,
       tipoDoc,
+      serieSelect!.serieDocumento!,
       formatStrFilterDate(fechaIni!),
       formatStrFilterDate(fechaFin!),
       searchController.text,

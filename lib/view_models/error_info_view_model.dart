@@ -123,9 +123,9 @@ class ErrorInfoViewModel extends ChangeNotifier {
                   ),
                 ),
               pw.SizedBox(height: 5),
-              if (error.storeProcedure.isNotEmpty)
+              if (error.storedProcedure.isNotEmpty)
                 pw.Text(
-                  error.storeProcedure,
+                  error.storedProcedure,
                   style: const pw.TextStyle(
                     decoration: pw.TextDecoration.underline,
                   ),
@@ -176,7 +176,7 @@ class ErrorInfoViewModel extends ChangeNotifier {
 
     Utilities.copyToClipboard(
       context,
-      "EXEC ${data.storeProcedure} $paramString;",
+      "EXEC ${data.storedProcedure} $paramString;",
     );
   }
 }

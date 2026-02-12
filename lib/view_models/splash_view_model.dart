@@ -1,26 +1,43 @@
 // ignore_for_file: use_build_context_synchronously, avoid_print
 
-import 'dart:io';
-
 import 'package:fl_business/displays/shr_local_config/services/services.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/models/models.dart';
 import 'package:fl_business/models/url_pic_model.dart';
 import 'package:fl_business/providers/logo_provider.dart';
 import 'package:fl_business/routes/app_routes.dart';
-import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/views/views.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class SplashViewModel extends ChangeNotifier {
   //version actual
   static String versionLocal = "";
+  static String idDevice = "";
   static String versionRemota = "";
   String idApp = "app_business";
+
+  static const _key = 'device_uuid';
+  static final _storage = FlutterSecureStorage();
+  static final _uuid = Uuid();
+
+  static Future<void> getOrCreateUuid() async {
+    final existing = await _storage.read(key: _key);
+
+    if (existing != null && existing.isNotEmpty) {
+      idDevice = existing;
+      return;
+    }
+
+    final newUuid = _uuid.v4();
+    await _storage.write(key: _key, value: newUuid);
+    idDevice = newUuid;
+  }
 
   SplashViewModel() {
     _init();
@@ -29,6 +46,7 @@ class SplashViewModel extends ChangeNotifier {
   Future<void> _init() async {
     VersionService versionService = VersionService();
     versionLocal = await versionService.getVersionLocal();
+    await getOrCreateUuid();
   }
 
   double verStrToNum(String versionstr) {

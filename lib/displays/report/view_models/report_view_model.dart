@@ -112,7 +112,7 @@ class ReportViewModel extends ChangeNotifier {
       idBodega: data.bodega,
       products: products,
       total: totalExistencias,
-      storeProcedure: res.storeProcedure,
+      storeProcedure: res.storedProcedure,
     );
 
     return true;
@@ -171,7 +171,7 @@ class ReportViewModel extends ChangeNotifier {
       idBodega: data.bodega,
       products: products,
       total: total,
-      storeProcedure: res.storeProcedure,
+      storeProcedure: res.storedProcedure,
     );
 
     return true;
@@ -235,7 +235,7 @@ class ReportViewModel extends ChangeNotifier {
       totalContCred: totalContado + totalCredito,
       startDate: startDate!,
       endDate: endDate!,
-      storeProcedure: res.storeProcedure,
+      storeProcedure: res.storedProcedure,
     );
 
     return true;

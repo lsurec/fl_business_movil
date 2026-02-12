@@ -117,7 +117,7 @@ class ErrorInfoView extends StatelessWidget {
                     style: StyleApp.normalBold,
                   ),
                   IconButton(
-                    onPressed: error.storeProcedure.isNotEmpty
+                    onPressed: error.storedProcedure.isNotEmpty
                         ? () => vm.copyPa(context, error)
                         : null,
                     icon: const Icon(Icons.copy, color: Colors.grey),
@@ -125,11 +125,11 @@ class ErrorInfoView extends StatelessWidget {
                 ],
               ),
               Text(
-                error.storeProcedure.isEmpty
+                error.storedProcedure.isEmpty
                     ? AppLocalizations.of(
                         context,
                       )!.translate(BlockTranslate.error, "noAplica")
-                    : error.storeProcedure,
+                    : error.storedProcedure,
                 style: StyleApp.normal.copyWith(fontFamily: 'monospace'),
               ),
               if (error.parameters != null)

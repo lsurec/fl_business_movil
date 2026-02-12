@@ -1,11 +1,8 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, library_prefixes, avoid_print
 import 'dart:convert';
-import 'package:diacritic/diacritic.dart';
 import 'package:fl_business/demos/printer/service/impresion_ticket.dart';
-import 'package:fl_business/demos/printer/widgets/tabla_demo.dart';
 import 'package:fl_business/displays/report/reports/factura/provider.dart';
 import 'package:fl_business/displays/report/reports/factura/tmu.dart';
-import 'package:fl_business/displays/report/reports/test/tmu.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
@@ -14,7 +11,6 @@ import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dar
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/fel/models/models.dart';
 import 'package:fl_business/models/models.dart';
-import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
@@ -370,14 +366,14 @@ class ConfirmDocViewModel extends ChangeNotifier {
   }
 
   //Navgar a pantalla de impresion
-  Future<void> navigatePrint(BuildContext context) async {
+  Future<void> navigatePrint() async {
     final DocumentoViewModel docsVm = Provider.of<DocumentoViewModel>(
-      context,
+      scaffoldKey.currentContext!,
       listen: false,
     );
 
     final DocumentViewModel docVm = Provider.of<DocumentViewModel>(
-      context,
+      scaffoldKey.currentContext!,
       listen: false,
     );
 
@@ -388,19 +384,18 @@ class ConfirmDocViewModel extends ChangeNotifier {
     isLoading = true;
 
     //cragar datos del reporte
-    bool loadData = await facturaProvider.loaData(context, consecutivoDoc);
+    bool loadData = await facturaProvider.loaData(
+      scaffoldKey.currentContext!,
+      consecutivoDoc,
+    );
 
     isLoading = false;
     if (!loadData) return;
 
-    final ImpresionTicket impresionTicket = ImpresionTicket();
-
-    // await impresionTicket.getReport(context);
-
-    await facturaTMU.getReport(context);
+    await facturaTMU.getReport(scaffoldKey.currentContext!);
 
     if (docVm.valueParametro(48)) {
-      docsVm.backTabs(context);
+      docsVm.backTabs(scaffoldKey.currentContext!);
     }
   }
 
@@ -475,7 +470,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
     if (directPrint) {
       // if (screen == 1) {
-      navigatePrint(context);
+      navigatePrint();
       // } else {
       // printNetwork(context);
       // }
@@ -540,7 +535,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
     if (directPrint) {
       // if (screen == 1) {
-      navigatePrint(context);
+      navigatePrint();
       // } else {
       // printNetwork(context);
       // }
@@ -571,7 +566,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
       if (directPrint) {
         if (screen == 1) {
-          navigatePrint(context);
+          navigatePrint();
         } else {
           printNetwork(context);
         }
@@ -719,7 +714,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
     if (directPrint) {
       // if (screen == 1) {
-      navigatePrint(context);
+      navigatePrint();
       // } else {
       // printNetwork(context);
       // }

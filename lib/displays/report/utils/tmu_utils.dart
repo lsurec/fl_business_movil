@@ -1,10 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
-
-import 'package:fl_business/displays/shr_local_config/models/models.dart';
-import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/providers/logo_provider.dart';
-import 'package:fl_business/services/picture_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -12,6 +7,18 @@ import 'package:image/image.dart' as img;
 import 'package:provider/provider.dart';
 
 class TmuUtils {
+  String normalizarParaPrinter(String text) {
+    return text
+        // Comillas
+        .replaceAll(r'\"', "'")
+        .replaceAll('"', "'")
+        // Símbolos conflictivos
+        .replaceAll('×', 'x')
+        .replaceAll('°', 'o')
+        // Limpia caracteres no imprimibles
+        .replaceAll(RegExp(r'[^\x20-\x7E\xA0-\xFF]'), '');
+  }
+
   Future<Uint8List> compressPicture(Uint8List original) async {
     return await FlutterImageCompress.compressWithList(
       original,

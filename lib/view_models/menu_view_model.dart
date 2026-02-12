@@ -160,11 +160,20 @@ class MenuViewModel extends ChangeNotifier {
         //limpiar docuemntos existentes
         penVM.documents.clear();
 
+        final ApiResModel resSeries = await penVM.loadSeries(context);
+
+        if (!resSeries.succes) {
+          vmHome.isLoading = false;
+          NotificationService.showErrorView(context, resSeries);
+          return;
+        }
+
         //consumo del api
         final ApiResModel res = await receptionService.getPendindgDocs(
           user,
           token,
           documento!,
+          penVM.serieSelect!.serieDocumento!,
           penVM.formatStrFilterDate(penVM.fechaIni!),
           penVM.formatStrFilterDate(penVM.fechaFin!),
           "",

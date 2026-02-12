@@ -186,7 +186,7 @@ class SelectAccountViewModel extends ChangeNotifier {
         styles: center,
       );
 
-      bytes += generator.text(res.storeProcedure, styles: center);
+      bytes += generator.text(res.storedProcedure, styles: center);
 
       bytes += generator.cut();
 
