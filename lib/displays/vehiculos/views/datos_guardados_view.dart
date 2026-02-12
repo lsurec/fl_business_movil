@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:provider/provider.dart';
 import 'package:signature/signature.dart';
+import 'package:share_plus/share_plus.dart';
 
 // ViewModel
 import '../model_views/inicio_model_view.dart';
@@ -27,6 +28,8 @@ class DatosGuardadosScreen extends StatefulWidget {
 class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   late SignatureController _firmaMecanico;
   late SignatureController _firmaCliente;
+  bool _documentoEnviado = false; // 🔒 Bloquea el botón enviar
+  bool _pdfGenerado = false;
 
   @override
   void initState() {
@@ -46,6 +49,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   Widget build(BuildContext context) {
     final vm = context.watch<InicioVehiculosViewModel>();
     final items = vm.itemsAsignados;
+
     return Stack(
       children: [
         Scaffold(
@@ -56,18 +60,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               style: TextStyle(color: Colors.white),
             ),
             iconTheme: const IconThemeData(color: Colors.white),
-            actions: [
-              Consumer<InicioVehiculosViewModel>(
-                builder: (_, vm, __) => IconButton(
-                  icon: const Icon(Icons.send, color: Colors.white),
-                  onPressed: vm.isLoading
-                      ? null
-                      : () async {
-                          await _enviarDocumento(context);
-                        },
-                ),
-              ),
-            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -101,11 +93,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   VehiculoMarcadoWidget(
                     imagePath: vm.imagenTipoVehiculo!,
                     marcas: vm.marcasVehiculo,
-                    onTap: vm.agregarMarca, // 👈 edición activa
+                    onTap: vm.agregarMarca,
                   ),
                   const SizedBox(height: 12),
-
-                  // ================= BOTONES MARCAS =================
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -171,45 +161,127 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 _firmaBox(_firmaCliente),
                 const SizedBox(height: 30),
 
-                // ================= PDF =================
+                // ================= BOTONES ACCIÓN =================
                 Center(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xff134895),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
+                  child: Column(
+                    children: [
+                      // Generar PDF
+                      // ElevatedButton.icon(
+                      //   style: ElevatedButton.styleFrom(
+                      //     backgroundColor: const Color(0xff134895),
+                      //     padding: const EdgeInsets.symmetric(
+                      //       horizontal: 20,
+                      //       vertical: 12,
+                      //     ),
+                      //   ),
+                      //   onPressed: _prepararYGenerarPdf,
+                      //   icon: const Icon(
+                      //     Icons.picture_as_pdf,
+                      //     color: Colors.white,
+                      //   ),
+                      //   label: const Text(
+                      //     'Generar PDF',
+                      //     style: TextStyle(color: Colors.white),
+                      //   ),
+                      // ),
+                      // const SizedBox(height: 16),
+
+                      // Enviar Documento
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 14,
+                          ),
+                        ),
+                        icon: const Icon(Icons.send, color: Colors.white),
+                        label: const Text(
+                          'Enviar Documento',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: (_documentoEnviado || vm.isLoading)
+                            ? null
+                            : () async {
+                                await _enviarDocumento(context);
+                                // ❌ No necesitas este setState aquí, ya se maneja dentro de _enviarDocumento
+                              },
                       ),
-                    ),
-                    onPressed: _prepararYGenerarPdf,
-                    icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-                    label: const Text(
-                      'Generar PDF',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Center(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 14,
+
+                      const SizedBox(height: 16),
+
+                      // Compartir Documento
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                        ),
+                        icon: const Icon(Icons.share, color: Colors.white),
+                        label: const Text(
+                          'Compartir Documento',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () async {
+                          final vm = context.read<InicioVehiculosViewModel>();
+                          final firmaMecBytes = await _firmaMecanico
+                              .toPngBytes();
+                          final firmaCliBytes = await _firmaCliente
+                              .toPngBytes();
+
+                          // Generar PDF temporal
+                          await _generarPdf(
+                            context,
+                            firmaMecanico: firmaMecBytes,
+                            firmaCliente: firmaCliBytes,
+                          );
+
+                          // Compartir PDF
+                          await _compartirDocumento();
+                        },
                       ),
-                    ),
-                    
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    label: const Text(
-                      'Enviar Documento',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    onPressed: vm.isLoading
-                        ? null
-                        : () async {
-                            await _enviarDocumento(context);
-                          },
+
+                      const SizedBox(height: 16),
+
+                      // Nueva Orden
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
+                        ),
+                        icon: const Icon(Icons.add, color: Colors.white),
+                        label: const Text(
+                          'Nueva Orden',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () {
+                          final vm = context.read<InicioVehiculosViewModel>();
+                          final elVM = context
+                              .read<ElementoAsigandoViewModel>();
+
+                          // ✅ Limpiar datos
+                          vm.cancelar();
+                          elVM.cancelar();
+
+                          // ✅ Regresar al inicio
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            final navigator = Navigator.of(context);
+                            try {
+                              navigator.pop(); // Cierra DatosGuardadosScreen
+                              navigator.pop(); // Cierra ItemsVehiculoScreen
+                            } catch (e) {
+                              print('Error al navegar: $e');
+                              navigator.popUntil((route) => route.isFirst);
+                            }
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -219,7 +291,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         if (vm.isLoading)
           ModalBarrier(
             dismissible: false,
-            // color: Colors.black.withOpacity(0.3),
             color: AppTheme.isDark()
                 ? AppTheme.darkBackroundColor
                 : AppTheme.backroundColor,
@@ -327,7 +398,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
   // ================= PDF =================
   Future<void> _generarPdf(
-    
     BuildContext context, {
     Uint8List? firmaMecanico,
     Uint8List? firmaCliente,
@@ -408,7 +478,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 return [
                   item.detalle.isEmpty ? '—' : item.detalle,
                   item.desProducto, // SKU es la descripción del producto
-                  
                 ];
               }).toList(),
             )
@@ -599,6 +668,34 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     ).showSnackBar(SnackBar(content: Text('PDF generado: ${file.path}')));
   }
 
+  Future<void> _compartirDocumento() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/ReporteVehiculo.pdf');
+
+      if (!file.existsSync()) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Primero debes generar el PDF'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Documento del vehículo');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al compartir documento: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _prepararYGenerarPdf() async {
     if (_firmaMecanico.isEmpty || _firmaCliente.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -618,6 +715,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       firmaMecanico: firmaMecanicoBytes,
       firmaCliente: firmaClienteBytes,
     );
+    setState(() {
+      _pdfGenerado = true;
+    });
   }
 
   Future<void> _enviarDocumento(BuildContext context) async {
@@ -662,24 +762,27 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             duration: Duration(seconds: 2),
           ),
         );
-
-        // ✅ Limpiar datos (esto NO afecta el contexto)
-        vm.cancelar();
-        elVM.cancelar();
-
-        // ✅ Ejecutar los pops DESPUÉS del frame actual
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // Verificar que el navigator todavía sea válido
-          try {
-            // Pop 2 veces para regresar al inicio
-            navigator.pop(); // Cierra DatosGuardadosScreen
-            navigator.pop(); // Cierra ItemsVehiculoScreen
-          } catch (e) {
-            print('Error al navegar: $e');
-            // Fallback: intentar con popUntil
-            navigator.popUntil((route) => route.isFirst);
-          }
+        setState(() {
+          _documentoEnviado = true;
         });
+
+        // // ✅ Limpiar datos (esto NO afecta el contexto)
+        // vm.cancelar();
+        // elVM.cancelar();
+
+        // // ✅ Ejecutar los pops DESPUÉS del frame actual
+        // WidgetsBinding.instance.addPostFrameCallback((_) {
+        //   // Verificar que el navigator todavía sea válido
+        //   try {
+        //     // Pop 2 veces para regresar al inicio
+        //     navigator.pop(); // Cierra DatosGuardadosScreen
+        //     navigator.pop(); // Cierra ItemsVehiculoScreen
+        //   } catch (e) {
+        //     print('Error al navegar: $e');
+        //     // Fallback: intentar con popUntil
+        //     navigator.popUntil((route) => route.isFirst);
+        //   }
+        // });
       } else {
         // ❌ ERROR
         ScaffoldMessenger.of(context).showSnackBar(
