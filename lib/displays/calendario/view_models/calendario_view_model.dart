@@ -1357,6 +1357,7 @@ class CalendarioViewModel extends ChangeNotifier {
 
       //asignar a la fecha del picker la fecha seleccionada
       fechaPicker = DateTime(yearSelect, monthSelectView, daySelect);
+
       notifyListeners();
     }
 
@@ -1371,6 +1372,8 @@ class CalendarioViewModel extends ChangeNotifier {
       fechaPicker = DateTime(yearSelect, monthSelectView, daySelect);
       notifyListeners();
     }
+
+    await obtenerTareasRango(context, monthSelectView, yearSelect);
 
     notifyListeners();
   }
