@@ -13,6 +13,7 @@ import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 // import 'package:url_launcher/url_launcher.dart';
 
@@ -136,7 +137,7 @@ class ComentariosViewModel extends ChangeNotifier {
         files,
         idTarea!,
         idComentario,
-        empresa.uploadFileLocal,
+        empresa.uploadLocal,
       );
 
       //si el consumo salió mal
@@ -221,8 +222,20 @@ class ComentariosViewModel extends ChangeNotifier {
     );
 
     if (result != null) {
-      files = result.paths.map((path) => File(path!)).toList();
+      files.addAll(result.paths.map((path) => File(path!)).toList());
     }
+    notifyListeners();
+  }
+
+  //seleccionar archivos para adjuntalos a la tarea
+  Future<void> shotCamera() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.camera);
+
+    if (image != null) {
+      files.add(File(image.path));
+    }
+
     notifyListeners();
   }
 
