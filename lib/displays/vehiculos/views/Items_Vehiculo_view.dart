@@ -4,7 +4,9 @@ import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dar
     as model;
 import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
+import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
+import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +26,8 @@ class ItemsVehiculoScreen extends StatelessWidget {
 class _ItemsVehiculoView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     final vm = Provider.of<ItemsVehiculoViewModel>(context);
     final vmInicio = Provider.of<model.InicioVehiculosViewModel>(
       context,
@@ -46,7 +50,8 @@ class _ItemsVehiculoView extends StatelessWidget {
       children: [
         Scaffold(
           appBar: AppBar(
-            title: const Text("Ítems del Vehículo"),
+            title: Text(t.translate(BlockTranslate.vehiculos, 'titulo')),
+
             backgroundColor: Color(0xff134895),
           ),
           body: ListView.builder(
@@ -132,7 +137,12 @@ class _ItemsVehiculoView extends StatelessWidget {
                                   // No puede marcar sin detalle
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text("Escribe un detalle antes"),
+                                      content: Text(
+                                        t.translate(
+                                          BlockTranslate.vehiculos,
+                                          'escribeDetalle',
+                                        ),
+                                      ),
                                     ),
                                   );
                                   vm.toggleCheck(item.idProducto, false);
@@ -165,7 +175,11 @@ class _ItemsVehiculoView extends StatelessWidget {
                       TextField(
                         controller: vm.controllers[item.idProducto],
                         decoration: InputDecoration(
-                          labelText: 'Detalle',
+                          labelText: t.translate(
+                            BlockTranslate.vehiculos,
+                            'detalleLabel',
+                          ),
+
                           border: OutlineInputBorder(),
                           suffixIcon: IconButton(
                             icon: Icon(Icons.clear),
@@ -255,7 +269,10 @@ class _ItemsVehiculoView extends StatelessWidget {
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: const Color(0xff134895),
             icon: const Icon(Icons.save),
-            label: const Text("Guardar ítems"),
+            label: Text(
+              t.translate(BlockTranslate.vehiculos, 'guardarItems'),
+            ),
+
             onPressed: () {
               // 1. Usar getItemsSeleccionados en lugar de TODOS los items
               final itemsSeleccionados = vm.getItemsSeleccionados();
@@ -315,6 +332,4 @@ class _ItemsVehiculoView extends StatelessWidget {
       ],
     );
   }
-
-  
 }

@@ -1,4 +1,5 @@
 class BlockTranslate {
+  static String vehiculos = "vehiculos";
   static String tablero = "tablero";
   static String url = "url";
   static String home = "home";

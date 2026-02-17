@@ -3,7 +3,9 @@ import 'dart:typed_data';
 import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
+import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
+import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +49,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+
     final vm = context.watch<InicioVehiculosViewModel>();
     final items = vm.itemsAsignados;
 
@@ -55,8 +59,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         Scaffold(
           appBar: AppBar(
             backgroundColor: const Color(0xff134895),
-            title: const Text(
-              'Datos guardados',
+            title: Text(
+              t.translate(BlockTranslate.vehiculos, 'datosGuardados'),
               style: TextStyle(color: Colors.white),
             ),
             iconTheme: const IconThemeData(color: Colors.white),
@@ -67,25 +71,59 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ================= DATOS CLIENTE =================
-                _titulo('Datos del Cliente'),
-                _dato('NIT', vm.clienteSelect?.facturaNit ?? ""),
-                _dato('Nombre', vm.clienteSelect?.facturaNombre ?? ""),
-                _dato('Dirección', vm.clienteSelect?.facturaDireccion ?? ""),
-                _dato('Celular', vm.clienteSelect?.telefono ?? ""),
-                _dato('Email', vm.clienteSelect?.eMail ?? ""),
+                _titulo(t.translate(BlockTranslate.vehiculos, 'datosCliente')),
+
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'nit'),
+                  vm.clienteSelect?.facturaNit ?? "",
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'nombre'),
+                  vm.clienteSelect?.facturaNombre ?? "",
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'direccion'),
+                  vm.clienteSelect?.facturaDireccion ?? "",
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'celular'),
+                  vm.clienteSelect?.telefono ?? "",
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'email'),
+                  vm.clienteSelect?.eMail ?? "",
+                ),
+
                 const SizedBox(height: 20),
 
                 // ================= DATOS VEHÍCULO =================
-                _titulo('Datos del Vehículo'),
-                _dato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
-                _dato('Placa', vm.recepcionGuardada?.placa ?? '—'),
-                _dato('Marca', vm.marcaSeleccionada?.descripcion ?? '—'),
-                _dato('Línea', vm.modeloSeleccionado?.descripcion ?? '—'),
+                _titulo(t.translate(BlockTranslate.vehiculos, 'datosVehiculo')),
+
                 _dato(
-                  'Modelo (Año)',
+                  t.translate(BlockTranslate.vehiculos, 'chasis'),
+                  vm.recepcionGuardada?.chasis ?? '—',
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'placa'),
+                  vm.recepcionGuardada?.placa ?? '—',
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'marca'),
+                  vm.marcaSeleccionada?.descripcion ?? '—',
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'linea'),
+                  vm.modeloSeleccionado?.descripcion ?? '—',
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'modeloAnio'),
                   vm.anioSeleccionado?.anio.toString() ?? '—',
                 ),
-                _dato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'color'),
+                  vm.colorSeleccionado?.descripcion ?? '—',
+                ),
+
                 const SizedBox(height: 20),
 
                 // ================= VEHÍCULO MARCADO =================
@@ -123,26 +161,46 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 const SizedBox(height: 20),
 
                 // ================= FECHAS =================
-                _titulo('📅 Fechas'),
-                _dato('Fecha recibido', vm.fechaRecibido),
-                _dato('Fecha estimada de entrega', vm.fechaSalida),
+                _titulo(t.translate(BlockTranslate.vehiculos, 'fechas')),
+
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'fechaRecibido'),
+                  vm.fechaRecibido,
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'fechaEntregaEstimada'),
+                  vm.fechaSalida,
+                ),
+
                 const SizedBox(height: 20),
 
                 // ================= OBSERVACIONES =================
-                _titulo('Observaciones'),
+                _titulo(t.translate(BlockTranslate.vehiculos, 'observaciones')),
+
                 _dato(
-                  'Detalle del trabajo',
+                  t.translate(BlockTranslate.vehiculos, 'detalleTrabajo'),
                   vm.recepcionGuardada?.detalleTrabajo ?? '—',
                 ),
-                _dato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
-                _dato('CC', vm.recepcionGuardada?.cc ?? '—'),
-                _dato('CIL', vm.recepcionGuardada?.cil ?? '—'),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'kilometraje'),
+                  vm.recepcionGuardada?.kilometraje ?? '—',
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'cc'),
+                  vm.recepcionGuardada?.cc ?? '—',
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'cil'),
+                  vm.recepcionGuardada?.cil ?? '—',
+                ),
+
                 const SizedBox(height: 30),
 
                 // ================= ÍTEMS =================
-                _titulo('Ítems del Vehículo'),
+                _titulo(t.translate(BlockTranslate.vehiculos, 'itemsVehiculo')),
+
                 if (items.isEmpty)
-                  const Text('No se asignaron ítems')
+                  Text(t.translate(BlockTranslate.vehiculos, 'noItems'))
                 else
                   ListView.builder(
                     shrinkWrap: true,
@@ -150,15 +208,20 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     itemCount: items.length,
                     itemBuilder: (_, i) => _itemCard(items[i]),
                   ),
+
                 const SizedBox(height: 30),
 
                 // ================= FIRMAS =================
-                _titulo(' Firmas'),
-                const Text('Firma del Mecánico'),
+                _titulo(t.translate(BlockTranslate.vehiculos, 'firmas')),
+
+                Text(t.translate(BlockTranslate.vehiculos, 'firmaMecanico')),
                 _firmaBox(_firmaMecanico),
+
                 const SizedBox(height: 20),
-                const Text('Firma del Dueño'),
+
+                Text(t.translate(BlockTranslate.vehiculos, 'firmaCliente')),
                 _firmaBox(_firmaCliente),
+
                 const SizedBox(height: 30),
 
                 // ================= BOTONES ACCIÓN =================
@@ -196,10 +259,14 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.send, color: Colors.white),
-                        label: const Text(
-                          'Enviar Documento',
-                          style: TextStyle(color: Colors.white),
+                        label: Text(
+                          t.translate(
+                            BlockTranslate.vehiculos,
+                            'enviarDocumento',
+                          ),
+                          style: const TextStyle(color: Colors.white),
                         ),
+
                         onPressed: (_documentoEnviado || vm.isLoading)
                             ? null
                             : () async {
@@ -220,10 +287,14 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.share, color: Colors.white),
-                        label: const Text(
-                          'Compartir Documento',
-                          style: TextStyle(color: Colors.white),
+                        label: Text(
+                          t.translate(
+                            BlockTranslate.vehiculos,
+                            'compartirDocumento',
+                          ),
+                          style: const TextStyle(color: Colors.white),
                         ),
+
                         onPressed: () async {
                           final vm = context.read<InicioVehiculosViewModel>();
                           final firmaMecBytes = await _firmaMecanico
@@ -255,10 +326,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           ),
                         ),
                         icon: const Icon(Icons.add, color: Colors.white),
-                        label: const Text(
-                          'Nueva Orden',
-                          style: TextStyle(color: Colors.white),
+                        label: Text(
+                          t.translate(BlockTranslate.vehiculos, 'nuevaOrden'),
+                          style: const TextStyle(color: Colors.white),
                         ),
+
                         onPressed: () {
                           final vm = context.read<InicioVehiculosViewModel>();
                           final elVM = context
@@ -314,7 +386,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         ),
         TextButton(
           onPressed: controller.clear,
-          child: const Text('Limpiar firma'),
+          child: Text(
+            AppLocalizations.of(
+              context,
+            )!.translate(BlockTranslate.vehiculos, 'limpiarFirma'),
+          ),
         ),
       ],
     );

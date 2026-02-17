@@ -116,6 +116,25 @@ final CatalogoVehiculosService _catalogoVehiculosService =
 /// - Limpiar todos los datos
 
 class InicioVehiculosViewModel extends ChangeNotifier {
+
+
+  @override
+void dispose() {
+  detalleTrabajoController.dispose();
+  celularController.dispose();
+  emailController.dispose();
+  kilometrajeController.dispose();
+  ccController.dispose();
+  cilController.dispose();
+  nitController.dispose();
+  nombreController.dispose();
+  direccionController.dispose();
+  placaController.dispose();
+  chasisController.dispose();
+  client.dispose();
+  super.dispose();
+}
+
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
@@ -1070,6 +1089,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         cuenta,
         estacion,
       );
+      if (!context.mounted) return;
 
       //validar respuesta del servico, si es incorrecta
       if (!resNewAccount.succes) {
