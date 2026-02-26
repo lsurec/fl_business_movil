@@ -185,7 +185,8 @@ class LoginViewModel extends ChangeNotifier {
         }
 
         token = respLogin.message;
-        user = respLogin.user;
+        user = 'I02';
+        // user = respLogin.user;
         conStr = respLogin.con;
 
         //si la sesion es permanente guardar en preferencias el token
