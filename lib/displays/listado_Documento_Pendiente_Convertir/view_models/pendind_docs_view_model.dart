@@ -305,8 +305,14 @@ class PendingDocsViewModel extends ChangeNotifier {
     //limpiar docuemntos existentes
     documents.clear();
 
-    isLoading = true;
+    if (serieSelect == null) {
+      NotificationService.showSnackbar(
+        "No se encontró serie para el tipo de documento $tipoDoc",
+      );
+      return;
+    }
 
+    isLoading = true;
     //consumo del api
     final ApiResModel res = await receptionService.getPendindgDocs(
       user,
