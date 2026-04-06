@@ -339,13 +339,17 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final VehiculoService _vehiculoService = VehiculoService();
 
   Future<void> cargarDatosIniciales(BuildContext context) async {
-    print("🚗 Entrando a cargarTiposVehiculo");
     try {
+      final String token = Provider.of<LoginViewModel>(
+        context,
+        listen: false,
+      ).token;
+
       isLoading = true;
       notifyListeners();
 
       // 👇 PRIMERO tipos de vehículo
-      await cargarTiposVehiculo();
+      await cargarTiposVehiculo(context);
       setIdDocumentoRef();
 
       final MenuViewModel vmMenu = Provider.of<MenuViewModel>(
@@ -370,9 +374,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         vmMenu.documento!,
       );
 
-      marcas = await _vehiculoService.obtenerMarcas();
-      anios = await _vehiculoService.obtenerAnios();
-      colores = await _vehiculoService.obtenerColores();
+      marcas = await _vehiculoService.obtenerMarcas(token);
+      anios = await _vehiculoService.obtenerAnios(token);
+      colores = await _vehiculoService.obtenerColores(token);
     } catch (e) {
       error = 'Error al cargar datos: $e';
       print(error);
@@ -410,14 +414,21 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
 
   /// Selecciona la marca y carga los modelos asociados
-  Future<void> seleccionarMarca(VehiculoModel marca) async {
+  Future<void> seleccionarMarca(
+    VehiculoModel marca,
+    BuildContext context,
+  ) async {
     marcaSeleccionada = marca;
     modeloSeleccionado = null;
     modelos = [];
     notifyListeners();
 
     try {
-      modelos = await _vehiculoService.obtenerModelos(marca.id);
+      final String token = Provider.of<LoginViewModel>(
+        context,
+        listen: false,
+      ).token;
+      modelos = await _vehiculoService.obtenerModelos(marca.id, token);
       notifyListeners();
     } catch (e) {
       error = 'Error al cargar modelos: $e';
@@ -554,21 +565,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   //validar campos llenos
   bool get formularioValido {
-    print('🔍 VALIDANDO BOTÓN:');
-    print('   - clienteSelect: ${clienteSelect != null}');
-    print(
-      '   - placa: "${placaController.text}" (${placaController.text.length} chars)',
-    );
-    print(
-      '   - chasis: "${chasisController.text}" (${chasisController.text.length} chars)',
-    );
-    print(
-      '   - fechaRecibido: "$fechaRecibido" (${fechaRecibido.isEmpty ? "VACÍA" : "OK"})',
-    );
-    print(
-      '   - fechaSalida: "$fechaSalida" (${fechaSalida.isEmpty ? "VACÍA" : "OK"})',
-    );
-
     final valido =
         clienteSelect != null &&
         placaController.text.trim().isNotEmpty &&
@@ -576,7 +572,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         fechaRecibido.isNotEmpty &&
         fechaSalida.isNotEmpty;
 
-    print('✅ RESULTADO: $valido');
     return valido;
   }
 
@@ -729,6 +724,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     BuildContext context,
     ElementoAsignadoModel elemento,
   ) async {
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
     // ---------------------------
     // TEXTOS
     // ---------------------------
@@ -754,7 +751,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     );
 
     if (marca.id != 0) {
-      await seleccionarMarca(marca);
+      await seleccionarMarca(marca, context);
     }
 
     // ---------------------------
@@ -786,11 +783,28 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   //Funcion para obtener tipo de Vehiculo
-  Future<void> cargarTiposVehiculo() async {
+  Future<void> cargarTiposVehiculo(BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+    final empresa = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.empresa;
+    final estacionTrabajo = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEstacion!.estacionTrabajo;
+
     cargandoTiposVehiculo = true;
     notifyListeners();
 
-    tiposVehiculo = await _tipoVehiculoService.getTiposVehiculo();
+    tiposVehiculo = await _tipoVehiculoService.getTiposVehiculo(
+      "",
+      token,
+      user,
+      empresa,
+      estacionTrabajo,
+    );
 
     cargandoTiposVehiculo = false;
     notifyListeners();
@@ -1897,10 +1911,10 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     print('=== SINCRONIZANDO TRANSAcCIONES ===');
 
     // 🔹 Verificar que haya transacciones cargadas
-  if (itemsVM.transaciciones.isEmpty) {
-     print('⚠️ Transacciones vacías, cargando...');
-    await itemsVM.loadItems();
-   } 
+    if (itemsVM.transaciciones.isEmpty) {
+      print('⚠️ Transacciones vacías, cargando...');
+      await itemsVM.loadItems();
+    }
 
     // 🔹 PRIMERO: Resetear todos a false
     for (var transaccion in itemsVM.transaciciones) {

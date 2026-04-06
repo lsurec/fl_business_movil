@@ -1,6 +1,8 @@
 import 'package:fl_business/displays/vehiculos/models/vehiculos_model.dart';
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
+import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/vehiculo_registrado_model.dart';
 
 class CatalogoVehiculosViewModel extends ChangeNotifier {
@@ -14,9 +16,15 @@ class CatalogoVehiculosViewModel extends ChangeNotifier {
   Future<String> obtenerDescripcionModeloPorId(
     int marcaId,
     int modeloId,
+    BuildContext context,
   ) async {
     try {
-      final modelos = await _vehiculoService.obtenerModelos(marcaId);
+      final String token = Provider.of<LoginViewModel>(
+        context,
+        listen: false,
+      ).token;
+
+      final modelos = await _vehiculoService.obtenerModelos(marcaId, token);
       final modelo = modelos.firstWhere(
         (m) => m.id == modeloId,
         orElse: () => VehiculoModel(id: 0, descripcion: ''),
@@ -27,16 +35,25 @@ class CatalogoVehiculosViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> cargarMarcas() async {
-    marcas = await _vehiculoService.obtenerMarcas();
+  Future<void> cargarMarcas(BuildContext context) async {
+    final String token = Provider.of<LoginViewModel>(
+      context,
+      listen: false,
+    ).token;
+    marcas = await _vehiculoService.obtenerMarcas(token);
     notifyListeners();
   }
 
-  Future<void> cargarModelos(int marcaId) async {
+  Future<void> cargarModelos(int marcaId, BuildContext context) async {
     cargandoModelos = true;
     notifyListeners();
 
-    modelos = await _vehiculoService.obtenerModelos(marcaId);
+    final String token = Provider.of<LoginViewModel>(
+      context,
+      listen: false,
+    ).token;
+
+    modelos = await _vehiculoService.obtenerModelos(marcaId, token);
 
     for (final m in modelos) {}
 
@@ -84,7 +101,10 @@ class CatalogoVehiculosViewModel extends ChangeNotifier {
   }
 
   // 🔹 Seleccionar desde el Drawer
-  Future<void> seleccionarVehiculo(VehiculoRegistrado vehiculo) async {
+  Future<void> seleccionarVehiculo(
+    VehiculoRegistrado vehiculo,
+    BuildContext context,
+  ) async {
     vehiculoSeleccionado = vehiculo;
 
     // ⚠️ aquí está la diferencia
@@ -92,7 +112,7 @@ class CatalogoVehiculosViewModel extends ChangeNotifier {
         .firstWhere((m) => m.descripcion == vehiculo.marca)
         .id;
 
-    await cargarModelos(marcaId);
+    await cargarModelos(marcaId, context);
 
     notifyListeners();
   }

@@ -1,16 +1,11 @@
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/convert_doc_view_model.dart';
-import 'package:fl_business/displays/prc_documento_3/models/seller_model.dart';
 import 'package:fl_business/displays/prc_documento_3/models/serie_model.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
-import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart'
-    as model;
 import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
-import 'package:fl_business/displays/vehiculos/views/catalogo_vehiculos_view.dart';
-import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -38,9 +33,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     super.initState();
 
     Future.microtask(() {
-      final vm = context.read<InicioVehiculosViewModel>(); // 👈 DEFINIR VM AQUÍ
-      vm.cargarDatosIniciales(context);
-
       // Agregar listeners después de cargar datos
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final vm = context
@@ -59,19 +51,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   }
 
   @override
-  void dispose() {
-    if (mounted) {
-      final vm = context.read<InicioVehiculosViewModel>();
-      vm.placaController.removeListener(_revalidar);
-      vm.chasisController.removeListener(_revalidar);
-    }
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
-    final vm = context.watch<InicioVehiculosViewModel>();
+    final vm = Provider.of<InicioVehiculosViewModel>(context);
     final vmFactura = Provider.of<DocumentoViewModel>(context);
     final vmConfirm = Provider.of<ConfirmDocViewModel>(context);
     final vmConvert = Provider.of<ConvertDocViewModel>(context);
@@ -568,7 +550,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         vm.anioSeleccionado != null ||
                         vm.colorSeleccionado != null)
                       _buildVehiculoSeleccionado(vm),
-                    _buildTipoVehiculoDropdown(context, vm),
+                    _buildTipoVehiculoDropdown(context),
                   ],
                 ),
 
@@ -634,10 +616,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     );
   }
 
-  Widget _buildTipoVehiculoDropdown(
-    BuildContext context,
-    InicioVehiculosViewModel vm,
-  ) {
+  Widget _buildTipoVehiculoDropdown(BuildContext context) {
+    final vm = Provider.of<InicioVehiculosViewModel>(context);
+
     final t = AppLocalizations.of(context)!;
 
     if (vm.cargandoTiposVehiculo) {
@@ -1000,7 +981,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       vm.marcaSeleccionada,
                       (v) => v.descripcion,
                       (v) {
-                        vm.seleccionarMarca(v);
+                        vm.seleccionarMarca(v, context);
                         DefaultTabController.of(tabContext).animateTo(1);
                       },
                     ),
@@ -1034,7 +1015,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       (v) => v.descripcion,
                       (v) async {
                         vm.seleccionarColor(v);
-                        await vm.cargarTiposVehiculo();
+                        await vm.cargarTiposVehiculo(context);
                         ScaffoldMessenger.of(tabContext).showSnackBar(
                           SnackBar(
                             content: Text(

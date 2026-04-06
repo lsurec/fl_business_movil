@@ -29,7 +29,6 @@ class ItemsVehiculoScreen extends StatelessWidget {
   }
 }
 
-
 class _ItemsVehiculoView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -276,9 +275,7 @@ class _ItemsVehiculoView extends StatelessWidget {
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: const Color(0xff134895),
             icon: const Icon(Icons.save),
-            label: Text(
-              t.translate(BlockTranslate.vehiculos, 'guardarItems'),
-            ),
+            label: Text(t.translate(BlockTranslate.vehiculos, 'guardarItems')),
 
             onPressed: () {
               // 1. Usar getItemsSeleccionados en lugar de TODOS los items

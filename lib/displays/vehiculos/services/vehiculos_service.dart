@@ -9,20 +9,20 @@ import 'package:fl_business/displays/prc_documento_3/models/post_document_model.
 class VehiculoService {
   VehiculoService();
 
-  // ============= HEADERS AUTOMÁTICOS DESDE PREFERENCES =============
-  Map<String, String> get headers => {
-        "Authorization": "bearer ${Preferences.token}",
-        "Content-Type": "application/json",
-      };
-
   // ============= BASE URL AUTOMÁTICA =============
   String get baseUrl => "${Preferences.urlApi}v2/vehiculos";
 
   // ====================== OBTENER MARCAS ======================
-  Future<List<VehiculoModel>> obtenerMarcas() async {
+  Future<List<VehiculoModel>> obtenerMarcas(String token) async {
     final url = Uri.parse("$baseUrl/marcas");
 
-    final res = await http.get(url, headers: headers);
+    final res = await http.get(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
 
     if (res.statusCode == 200) {
       return VehiculoModel.fromJsonList(res.body);
@@ -32,10 +32,16 @@ class VehiculoService {
   }
 
   // ====================== OBTENER MODELOS ======================
-  Future<List<VehiculoModel>> obtenerModelos(int marcaId) async {
+  Future<List<VehiculoModel>> obtenerModelos(int marcaId, String token) async {
     final url = Uri.parse("$baseUrl/modelos/$marcaId");
 
-    final res = await http.get(url, headers: headers);
+    final res = await http.get(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
 
     if (res.statusCode == 200) {
       return VehiculoModel.fromJsonList(res.body);
@@ -45,10 +51,16 @@ class VehiculoService {
   }
 
   // ====================== OBTENER AÑOS ======================
-  Future<List<VehiculoYearModel>> obtenerAnios() async {
+  Future<List<VehiculoYearModel>> obtenerAnios(String token) async {
     final url = Uri.parse("$baseUrl/anios");
 
-    final res = await http.get(url, headers: headers);
+    final res = await http.get(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
 
     if (res.statusCode == 200) {
       return VehiculoYearModel.fromJsonList(res.body);
@@ -58,10 +70,16 @@ class VehiculoService {
   }
 
   // ====================== OBTENER COLORES ======================
-  Future<List<VehiculoModel>> obtenerColores() async {
+  Future<List<VehiculoModel>> obtenerColores(String token) async {
     final url = Uri.parse("$baseUrl/colores");
 
-    final res = await http.get(url, headers: headers);
+    final res = await http.get(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
 
     if (res.statusCode == 200) {
       return VehiculoModel.fromJsonList(res.body);
@@ -71,12 +89,18 @@ class VehiculoService {
   }
 
   // ====================== GUARDAR DOCUMENTO ======================
-  Future<Map<String, dynamic>> enviarDocumento(PostDocumentModel documento) async {
+  Future<Map<String, dynamic>> enviarDocumento(
+    PostDocumentModel documento,
+    String token,
+  ) async {
     final url = Uri.parse("$baseUrl/documento/crear");
 
     final res = await http.post(
       url,
-      headers: headers,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
       body: documento.toJson(),
     );
 
