@@ -81,7 +81,7 @@ class ProductService {
       List<MensajeModel> mensajes = [];
 
       //TODO:Validar error, respuesta 1 es igual a proceso correcto
-      //Pendinete de validacion para la corrección definitva, esta solucion es temporal
+      //Pendiente de validacion para la corrección definitva, esta solucion es temporal
       if (res.data == '1 ') {
         mensajes.add(MensajeModel(mensaje: '', resultado: true));
 

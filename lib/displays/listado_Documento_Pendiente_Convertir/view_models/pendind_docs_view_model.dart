@@ -305,6 +305,14 @@ class PendingDocsViewModel extends ChangeNotifier {
     //limpiar docuemntos existentes
     documents.clear();
 
+    final ApiResModel resSeries = await loadSeries(context);
+
+    if (!resSeries.succes) {
+      isLoading = false;
+      NotificationService.showErrorView(context, resSeries);
+      return;
+    }
+
     if (serieSelect == null) {
       NotificationService.showSnackbar(
         "No se encontró serie para el tipo de documento $tipoDoc",
