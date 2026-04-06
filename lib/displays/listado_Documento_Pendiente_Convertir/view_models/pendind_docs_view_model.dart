@@ -291,6 +291,10 @@ class PendingDocsViewModel extends ChangeNotifier {
   //Cargar datos
   Future<void> laodData(BuildContext context) async {
     //datos externos
+
+    final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
+    int empresa = localVM.selectedEmpresa!.empresa;
+
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
     final String token = loginVM.token;
     final String user = loginVM.user;
@@ -301,13 +305,28 @@ class PendingDocsViewModel extends ChangeNotifier {
     //limpiar docuemntos existentes
     documents.clear();
 
-    isLoading = true;
+    final ApiResModel resSeries = await loadSeries(context);
 
+    if (!resSeries.succes) {
+      isLoading = false;
+      NotificationService.showErrorView(context, resSeries);
+      return;
+    }
+
+    if (serieSelect == null) {
+      NotificationService.showSnackbar(
+        "No se encontró serie para el tipo de documento $tipoDoc",
+      );
+      return;
+    }
+
+    isLoading = true;
     //consumo del api
     final ApiResModel res = await receptionService.getPendindgDocs(
       user,
       token,
       tipoDoc,
+      empresa,
       serieSelect!.serieDocumento!,
       formatStrFilterDate(fechaIni!),
       formatStrFilterDate(fechaFin!),

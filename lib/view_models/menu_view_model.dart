@@ -57,6 +57,8 @@ class MenuViewModel extends ChangeNotifier {
 
     final vmTarea = Provider.of<TareasViewModel>(context, listen: false);
 
+    final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
+    int empresa = localVM.selectedEmpresa!.empresa;
     final String user = vmLogin.user;
     final String token = vmLogin.token;
 
@@ -173,6 +175,7 @@ class MenuViewModel extends ChangeNotifier {
           user,
           token,
           documento!,
+          empresa,
           penVM.serieSelect!.serieDocumento!,
           penVM.formatStrFilterDate(penVM.fechaIni!),
           penVM.formatStrFilterDate(penVM.fechaFin!),

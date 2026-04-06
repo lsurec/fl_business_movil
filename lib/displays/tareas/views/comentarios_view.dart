@@ -93,7 +93,11 @@ class ComentariosView extends StatelessWidget {
                         },
                       ),
                       const SizedBox(height: 25),
-                      const _NuevoComentario(),
+                      //ocultar nuevo comentario si la tarea esta finalizada
+                      if (vm.vistaTarea == 1
+                          ? vmTarea.tarea!.estadoObjeto != 12
+                          : vmTareaCalendario.tarea!.estado != 12)
+                        const _NuevoComentario(),
                       const SizedBox(height: 15),
                       if (vm.files.isNotEmpty)
                         Text(
@@ -159,55 +163,65 @@ class _NuevoComentario extends StatelessWidget {
   Widget build(BuildContext context) {
     final vm = Provider.of<ComentariosViewModel>(context);
 
-    return Form(
-      autovalidateMode: AutovalidateMode.onUserInteraction,
-      key: vm.formKeyComment,
-      child: TextFormField(
-        controller: vm.comentarioController,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.notificacion, 'requerido');
-          }
-          return null;
-        },
-        maxLines: 3,
-        textInputAction: TextInputAction.send,
-        onFieldSubmitted: (value) => vm.comentar(context),
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(borderSide: BorderSide(width: 1)),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: AppTheme.border),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          labelText: AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.tareas, 'nuevoComentario'),
-          suffixIcon: SizedBox(
-            width: 100,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                IconButton(
-                  tooltip: AppLocalizations.of(
-                    context,
-                  )!.translate(BlockTranslate.botones, 'adjuntarArchivos'),
-                  onPressed: () => vm.selectFiles(),
-                  icon: const Icon(Icons.attach_file_outlined),
-                ),
-                IconButton(
-                  tooltip: AppLocalizations.of(
-                    context,
-                  )!.translate(BlockTranslate.botones, 'enviarComentario'),
-                  onPressed: () => vm.comentar(context),
-                  icon: const Icon(Icons.send),
-                ),
-              ],
+    return Column(
+      children: [
+        Form(
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          key: vm.formKeyComment,
+          child: TextFormField(
+            controller: vm.comentarioController,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.notificacion, 'requerido');
+              }
+              return null;
+            },
+            maxLines: 3,
+            textInputAction: TextInputAction.send,
+            onFieldSubmitted: (value) => vm.comentar(context),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(
+                borderSide: BorderSide(width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: const BorderSide(color: AppTheme.border),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              labelText: AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.tareas, 'nuevoComentario'),
             ),
           ),
         ),
-      ),
+        Row(
+          children: [
+            IconButton(
+              tooltip: AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.botones, 'adjuntarArchivos'),
+              onPressed: () => vm.shotCamera(),
+              icon: const Icon(Icons.camera_outlined),
+            ),
+            IconButton(
+              tooltip: AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.botones, 'adjuntarArchivos'),
+              onPressed: () => vm.selectFiles(),
+              icon: const Icon(Icons.attach_file_outlined),
+            ),
+            Spacer(),
+            IconButton(
+              tooltip: AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.botones, 'enviarComentario'),
+              onPressed: () => vm.comentar(context),
+              icon: const Icon(Icons.send),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

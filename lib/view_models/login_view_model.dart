@@ -185,6 +185,7 @@ class LoginViewModel extends ChangeNotifier {
         }
 
         token = respLogin.message;
+        // user = 'I02';
         user = respLogin.user;
         conStr = respLogin.con;
 

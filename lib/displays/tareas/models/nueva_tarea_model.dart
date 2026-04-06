@@ -14,7 +14,7 @@ class NuevaTareaModel {
   int nivelPrioridad;
   dynamic tiempoEstimadoTipoPeriocidad;
   dynamic tiempoEstimado;
-  int elementoAsignado;
+  // int elementoAsignado;
 
   NuevaTareaModel({
     required this.tarea,
@@ -30,7 +30,7 @@ class NuevaTareaModel {
     required this.nivelPrioridad,
     required this.tiempoEstimadoTipoPeriocidad,
     required this.tiempoEstimado,
-    required this.elementoAsignado,
+    // required this.elementoAsignado,
   });
 
   factory NuevaTareaModel.fromJson(String str) =>
@@ -39,36 +39,36 @@ class NuevaTareaModel {
   String toJson() => json.encode(toMap());
 
   factory NuevaTareaModel.fromMap(Map<String, dynamic> json) => NuevaTareaModel(
-        elementoAsignado: json["elemento_Asignado"],
-        tarea: json["tarea"],
-        descripcion: json["descripcion"],
-        fechaIni: DateTime.parse(json["fecha_Ini"]),
-        fechaFin: DateTime.parse(json["fecha_Fin"]),
-        referencia: json["referencia"],
-        userName: json["userName"],
-        observacion1: json["observacion_1"],
-        tipoTarea: json["tipo_Tarea"],
-        estado: json["estado"],
-        empresa: json["empresa"],
-        nivelPrioridad: json["nivel_Prioridad"],
-        tiempoEstimadoTipoPeriocidad: json["tiempo_Estimado_Tipo_Periocidad"],
-        tiempoEstimado: json["tiempo_Estimado"],
-      );
+    // elementoAsignado: json["elemento_Asignado"],
+    tarea: json["tarea"],
+    descripcion: json["descripcion"],
+    fechaIni: DateTime.parse(json["fecha_Ini"]),
+    fechaFin: DateTime.parse(json["fecha_Fin"]),
+    referencia: json["referencia"],
+    userName: json["userName"],
+    observacion1: json["observacion_1"],
+    tipoTarea: json["tipo_Tarea"],
+    estado: json["estado"],
+    empresa: json["empresa"],
+    nivelPrioridad: json["nivel_Prioridad"],
+    tiempoEstimadoTipoPeriocidad: json["tiempo_Estimado_Tipo_Periocidad"],
+    tiempoEstimado: json["tiempo_Estimado"],
+  );
 
   Map<String, dynamic> toMap() => {
-        "elemento_Asignado": elementoAsignado,
-        "tarea": tarea,
-        "descripcion": descripcion,
-        "fecha_Ini": fechaIni.toIso8601String(),
-        "fecha_Fin": fechaFin.toIso8601String(),
-        "referencia": referencia,
-        "userName": userName,
-        "observacion_1": observacion1,
-        "tipo_Tarea": tipoTarea,
-        "estado": estado,
-        "empresa": empresa,
-        "nivel_Prioridad": nivelPrioridad,
-        "tiempo_Estimado_Tipo_Periocidad": tiempoEstimadoTipoPeriocidad,
-        "tiempo_Estimado": tiempoEstimado,
-      };
+    // "elemento_Asignado": elementoAsignado,
+    "tarea": tarea,
+    "descripcion": descripcion,
+    "fecha_Ini": fechaIni.toIso8601String(),
+    "fecha_Fin": fechaFin.toIso8601String(),
+    "referencia": referencia,
+    "userName": userName,
+    "observacion_1": observacion1,
+    "tipo_Tarea": tipoTarea,
+    "estado": estado,
+    "empresa": empresa,
+    "nivel_Prioridad": nivelPrioridad,
+    "tiempo_Estimado_Tipo_Periocidad": tiempoEstimadoTipoPeriocidad,
+    "tiempo_Estimado": tiempoEstimado,
+  };
 }

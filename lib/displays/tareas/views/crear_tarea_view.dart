@@ -62,6 +62,14 @@ class CrearTareaView extends StatelessWidget {
                         context,
                       )!.translate(BlockTranslate.botones, 'adjuntarArchivos'),
                     ),
+                  if (vm.idTarea == -1)
+                    IconButton(
+                      onPressed: () => vm.shotCamera(),
+                      icon: const Icon(Icons.camera_outlined),
+                      tooltip: AppLocalizations.of(
+                        context,
+                      )!.translate(BlockTranslate.botones, 'adjuntarArchivos'),
+                    ),
                   IconButton(
                     onPressed: () => vm.crearTarea(context),
                     icon: Icon(
@@ -366,30 +374,32 @@ class CrearTareaView extends StatelessWidget {
                           },
                         ),
                         // const Divider(),
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, AppRoutes.eaTareas),
-                          child: ListTile(
-                            title: Row(
-                              children: [
-                                //TODO:Translate
-                                Text(
-                                  "Elemento Asignado: ",
-                                  style: StyleApp.normal.copyWith(
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                                const Text(" * ", style: StyleApp.obligatory),
-                                const SizedBox(width: 30),
-                              ],
-                            ),
-                            leading: Icon(
-                              Icons.search,
-                              color: vmTheme.colorPref(AppTheme.idColorTema),
-                            ),
-                            contentPadding: const EdgeInsets.all(0),
-                          ),
-                        ),
+                        //TODO: Validar elemento asignado
+
+                        // TextButton(
+                        //   onPressed: () =>
+                        //       Navigator.pushNamed(context, AppRoutes.eaTareas),
+                        //   child: ListTile(
+                        //     title: Row(
+                        //       children: [
+                        //         //TODO:Translate
+                        //         Text(
+                        //           "Elemento Asignado: ",
+                        //           style: StyleApp.normal.copyWith(
+                        //             color: Theme.of(context).primaryColor,
+                        //           ),
+                        //         ),
+                        //         const Text(" * ", style: StyleApp.obligatory),
+                        //         const SizedBox(width: 30),
+                        //       ],
+                        //     ),
+                        //     leading: Icon(
+                        //       Icons.search,
+                        //       color: vmTheme.colorPref(AppTheme.idColorTema),
+                        //     ),
+                        //     contentPadding: const EdgeInsets.all(0),
+                        //   ),
+                        // ),
                         if (vm.elemento != null)
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

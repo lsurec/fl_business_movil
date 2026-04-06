@@ -18,8 +18,8 @@ import 'package:uuid/uuid.dart';
 class SplashViewModel extends ChangeNotifier {
   //version actual
   static String versionLocal = "";
-  static String idDevice = "";
   static String versionRemota = "";
+  static String idDevice = "";
   String idApp = "app_business";
 
   static const _key = 'device_uuid';
