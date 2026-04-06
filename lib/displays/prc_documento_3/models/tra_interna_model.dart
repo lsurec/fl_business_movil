@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
+import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 
 class TraInternaModel {
   TraInternaModel({
@@ -19,7 +20,10 @@ class TraInternaModel {
     required this.consecutivo,
     required this.estadoTra,
     required this.observacion,
-    required this.files,
+    
+    this.files,
+ this.filesUpload,
+
   });
 
   bool isChecked;
@@ -37,7 +41,10 @@ class TraInternaModel {
   int consecutivo;
   int estadoTra;
   String? observacion;
-  List<String>? files;
+ List<String>? files;
+List<TraFileUploadModel>? filesUpload;
+
+
 
 
   factory TraInternaModel.fromJson(String str) =>
@@ -46,7 +53,6 @@ class TraInternaModel {
   String toJson() => json.encode(toMap());
 
   factory TraInternaModel.fromMap(Map<String, dynamic> json) => TraInternaModel(
-  files: List<String>.from(json["files"]),
     observacion: json["observacion"],
     isChecked: json["isChecked"],
     producto: ProductModel.fromMap(json["producto"]),
@@ -68,6 +74,18 @@ class TraInternaModel {
     precioCantidad: json["precioCantidad"]?.toDouble(),
     consecutivo: json["consecutivo"],
     estadoTra: json["estadoTra"],
+   files: json["files"] == null
+    ? null
+    : List<String>.from(json["files"]),
+
+filesUpload: json["Tra_Files"] == null
+    ? null
+    : List<TraFileUploadModel>.from(
+        json["Tra_Files"].map((x) => TraFileUploadModel.fromMap(x)),
+      ),
+
+
+
   );
 
   Map<String, dynamic> toMap() => {
@@ -87,5 +105,9 @@ class TraInternaModel {
     "precioCantidad": precioCantidad,
     "consecutivo": consecutivo,
     "estadoTra": estadoTra,
+    "Tra_Files": filesUpload == null
+      ? null
+      : List<dynamic>.from(filesUpload!.map((x) => x.toMap())),
+
   };
 }

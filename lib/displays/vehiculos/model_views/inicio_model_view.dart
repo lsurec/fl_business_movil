@@ -116,24 +116,22 @@ final CatalogoVehiculosService _catalogoVehiculosService =
 /// - Limpiar todos los datos
 
 class InicioVehiculosViewModel extends ChangeNotifier {
-
-
   @override
-void dispose() {
-  detalleTrabajoController.dispose();
-  celularController.dispose();
-  emailController.dispose();
-  kilometrajeController.dispose();
-  ccController.dispose();
-  cilController.dispose();
-  nitController.dispose();
-  nombreController.dispose();
-  direccionController.dispose();
-  placaController.dispose();
-  chasisController.dispose();
-  client.dispose();
-  super.dispose();
-}
+  void dispose() {
+    detalleTrabajoController.dispose();
+    celularController.dispose();
+    emailController.dispose();
+    kilometrajeController.dispose();
+    ccController.dispose();
+    cilController.dispose();
+    nitController.dispose();
+    nombreController.dispose();
+    direccionController.dispose();
+    placaController.dispose();
+    chasisController.dispose();
+    client.dispose();
+    super.dispose();
+  }
 
   bool _isLoading = false;
 
@@ -341,6 +339,7 @@ void dispose() {
   final VehiculoService _vehiculoService = VehiculoService();
 
   Future<void> cargarDatosIniciales(BuildContext context) async {
+    print("🚗 Entrando a cargarTiposVehiculo");
     try {
       isLoading = true;
       notifyListeners();
@@ -1678,6 +1677,7 @@ void dispose() {
           ),
           traMonto: transaction.total,
           traMontoDias: transaction.precioDia,
+          traArchivos: transaction.filesUpload,
         ),
       );
 
@@ -1832,10 +1832,10 @@ void dispose() {
       // Fechas
       // --------------------
       // --------------------
-// Fechas
-// --------------------
-fechaRecibido: _parseFecha(recepcionGuardada?.fechaRecibido),
-fechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
+      // Fechas
+      // --------------------
+      fechaRecibido: _parseFecha(recepcionGuardada?.fechaRecibido),
+      fechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
 
       // --------------------
       // Observaciones técnicas
@@ -1897,10 +1897,10 @@ fechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
     print('=== SINCRONIZANDO TRANSAcCIONES ===');
 
     // 🔹 Verificar que haya transacciones cargadas
-    if (itemsVM.transaciciones.isEmpty) {
-      print('⚠️ Transacciones vacías, cargando...');
-      await itemsVM.loadItems();
-    }
+  if (itemsVM.transaciciones.isEmpty) {
+     print('⚠️ Transacciones vacías, cargando...');
+    await itemsVM.loadItems();
+   } 
 
     // 🔹 PRIMERO: Resetear todos a false
     for (var transaccion in itemsVM.transaciciones) {
@@ -1933,37 +1933,38 @@ fechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
     itemsVM.notifyListeners();
     print('=== SINCRONIZADAS: $contador transacciones ===');
   }
+
   DateTime? _parseFecha(String? fechaStr) {
-  if (fechaStr == null || fechaStr.isEmpty) return null;
-  
-  try {
-    // Intenta parsear formato ISO completo primero
-    return DateTime.parse(fechaStr);
-  } catch (e) {
+    if (fechaStr == null || fechaStr.isEmpty) return null;
+
     try {
-      // Si falla, intenta con formato "YYYY-MM-DD HH:MM"
-      // Ejemplo: "2026-02-12 0.12" -> lo convertimos a "2026-02-12 00:12:00"
-      
-      // Separa fecha y hora
-      List<String> parts = fechaStr.split(' ');
-      if (parts.length != 2) return null;
-      
-      String datePart = parts[0]; // "2026-02-12"
-      String timePart = parts[1]; // "0.12"
-      
-      // Convierte "0.12" a "00:12:00"
-      List<String> timeParts = timePart.split('.');
-      if (timeParts.length != 2) return null;
-      
-      String hour = timeParts[0].padLeft(2, '0'); // "00"
-      String minute = timeParts[1].padLeft(2, '0'); // "12"
-      String formattedTime = '$hour:$minute:00';
-      
-      return DateTime.parse('$datePart $formattedTime');
-    } catch (e2) {
-      debugPrint('Error parseando fecha "$fechaStr": $e2');
-      return null;
+      // Intenta parsear formato ISO completo primero
+      return DateTime.parse(fechaStr);
+    } catch (e) {
+      try {
+        // Si falla, intenta con formato "YYYY-MM-DD HH:MM"
+        // Ejemplo: "2026-02-12 0.12" -> lo convertimos a "2026-02-12 00:12:00"
+
+        // Separa fecha y hora
+        List<String> parts = fechaStr.split(' ');
+        if (parts.length != 2) return null;
+
+        String datePart = parts[0]; // "2026-02-12"
+        String timePart = parts[1]; // "0.12"
+
+        // Convierte "0.12" a "00:12:00"
+        List<String> timeParts = timePart.split('.');
+        if (timeParts.length != 2) return null;
+
+        String hour = timeParts[0].padLeft(2, '0'); // "00"
+        String minute = timeParts[1].padLeft(2, '0'); // "12"
+        String formattedTime = '$hour:$minute:00';
+
+        return DateTime.parse('$datePart $formattedTime');
+      } catch (e2) {
+        debugPrint('Error parseando fecha "$fechaStr": $e2');
+        return null;
+      }
     }
   }
-}
 }

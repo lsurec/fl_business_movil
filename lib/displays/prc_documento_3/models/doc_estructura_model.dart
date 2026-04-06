@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
+
 class DocEstructuraModel {
   bool docConfirmarOrden;
   int? docMesa;
@@ -195,7 +197,7 @@ class DocEstructuraModel {
         docRefObservacion3: json["Doc_Ref_Observacion_3"],
         docRefObservacion: json["Doc_Ref_Observacion"],
         docReferencia: json["Doc_Referencia"],
-                nit: json["Nit"],
+        nit: json["Nit"],
         nombreCliente: json["Nombre_Cliente"],
         direccionCliente: json["Direccion_Cliente"],
         celularCliente: json["Celular_Cliente"],
@@ -219,7 +221,6 @@ class DocEstructuraModel {
         kilometraje: json["Kilometraje"],
         cc: json["CC"],
         cil: json["Cil"],
-
       );
 
   Map<String, dynamic> toMap() => {
@@ -263,27 +264,26 @@ class DocEstructuraModel {
     "Doc_Ref_Observacion_3": docRefObservacion3,
     "Doc_Ref_Observacion": docRefObservacion,
     "Doc_Referencia": docReferencia,
-            "Nit": nit,
-        "Nombre_Cliente": nombreCliente,
-        "Direccion_Cliente": direccionCliente,
-        "Celular_Cliente": celularCliente,
-        "Email_Cliente": emailCliente,
+    "Nit": nit,
+    "Nombre_Cliente": nombreCliente,
+    "Direccion_Cliente": direccionCliente,
+    "Celular_Cliente": celularCliente,
+    "Email_Cliente": emailCliente,
 
-        "Placa": placa,
-        "Chasis": chasis,
-        "Marca": marca,
-        "Modelo": modelo,
-        "Anio": anio,
-        "Color": color,
+    "Placa": placa,
+    "Chasis": chasis,
+    "Marca": marca,
+    "Modelo": modelo,
+    "Anio": anio,
+    "Color": color,
 
-        "Fecha_Recibido": fechaRecibido?.toIso8601String(),
-        "Fecha_Salida": fechaSalida?.toIso8601String(),
+    "Fecha_Recibido": fechaRecibido?.toIso8601String(),
+    "Fecha_Salida": fechaSalida?.toIso8601String(),
 
-        "Detalle_Trabajo": detalleTrabajo,
-        "Kilometraje": kilometraje,
-        "CC": cc,
-        "Cil": cil,
-
+    "Detalle_Trabajo": detalleTrabajo,
+    "Kilometraje": kilometraje,
+    "CC": cc,
+    "Cil": cil,
   };
 }
 
@@ -368,6 +368,7 @@ class DocTransaccion {
   int traTipoTransaccion;
   double traMonto;
   double? traMontoDias;
+  List<TraFileUploadModel>? traArchivos;
 
   DocTransaccion({
     required this.traObservacion,
@@ -385,6 +386,7 @@ class DocTransaccion {
     required this.traTipoTransaccion,
     required this.traMonto,
     required this.traMontoDias,
+    this.traArchivos,
   });
 
   factory DocTransaccion.fromJson(String str) =>
@@ -408,6 +410,10 @@ class DocTransaccion {
     traTipoTransaccion: json["Tra_Tipo_Transaccion"],
     traMonto: json["Tra_Monto"].toDouble(),
     traMontoDias: json["Tra_Monto_Dias"]?.toDouble(),
+    traArchivos: json["Tra_Archivos"] != null
+    ? List<TraFileUploadModel>.from(
+        json["Tra_Archivos"].map((x) => TraFileUploadModel.fromMap(x)))
+    : null,
   );
 
   Map<String, dynamic> toMap() => {
@@ -426,6 +432,10 @@ class DocTransaccion {
     "Tra_Tipo_Transaccion": traTipoTransaccion,
     "Tra_Monto": traMonto,
     "Tra_Monto_Dias": traMontoDias,
+    "Tra_Archivos": traArchivos != null
+    ? List<dynamic>.from(traArchivos!.map((x) => x.toMap()))
+    : null,
+
   };
 }
 

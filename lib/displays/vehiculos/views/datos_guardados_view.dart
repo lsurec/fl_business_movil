@@ -60,7 +60,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           appBar: AppBar(
             backgroundColor: const Color(0xff134895),
             title: Text(
-              t.translate(BlockTranslate.vehiculos, 'datosGuardados'),
+              t.translate(BlockTranslate.vehiculos, 'vehiculos_datosGuardados'),
               style: TextStyle(color: Colors.white),
             ),
             iconTheme: const IconThemeData(color: Colors.white),
@@ -71,18 +71,23 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ================= DATOS CLIENTE =================
-                _titulo(t.translate(BlockTranslate.vehiculos, 'datosCliente')),
+                _titulo(
+                  t.translate(
+                    BlockTranslate.vehiculos,
+                    'vehiculos_datosCliente',
+                  ),
+                ),
 
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'nit'),
+                  t.translate(BlockTranslate.vehiculos, 'vehiculos_nit'),
                   vm.clienteSelect?.facturaNit ?? "",
                 ),
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'nombre'),
+                  t.translate(BlockTranslate.vehiculos, 'vehiculos_nombre'),
                   vm.clienteSelect?.facturaNombre ?? "",
                 ),
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'direccion'),
+                  t.translate(BlockTranslate.vehiculos, 'vehiculos_direccion'),
                   vm.clienteSelect?.facturaDireccion ?? "",
                 ),
                 _dato(
@@ -116,7 +121,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   vm.modeloSeleccionado?.descripcion ?? '—',
                 ),
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'modeloAnio'),
+                  t.translate(BlockTranslate.vehiculos, 'vehiculos_modeloAnio'),
                   vm.anioSeleccionado?.anio.toString() ?? '—',
                 ),
                 _dato(
@@ -168,7 +173,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   vm.fechaRecibido,
                 ),
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'fechaEntregaEstimada'),
+                  t.translate(
+                    BlockTranslate.vehiculos,
+                    'vehiculos_fechaEntregaEstimada',
+                  ),
                   vm.fechaSalida,
                 ),
 
@@ -197,7 +205,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 const SizedBox(height: 30),
 
                 // ================= ÍTEMS =================
-                _titulo(t.translate(BlockTranslate.vehiculos, 'itemsVehiculo')),
+                _titulo(
+                  t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo'),
+                ),
 
                 if (items.isEmpty)
                   Text(t.translate(BlockTranslate.vehiculos, 'noItems'))
@@ -212,14 +222,26 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 const SizedBox(height: 30),
 
                 // ================= FIRMAS =================
-                _titulo(t.translate(BlockTranslate.vehiculos, 'firmas')),
+                _titulo(
+                  t.translate(BlockTranslate.vehiculos, 'vehiculos_firmas'),
+                ),
 
-                Text(t.translate(BlockTranslate.vehiculos, 'firmaMecanico')),
+                Text(
+                  t.translate(
+                    BlockTranslate.vehiculos,
+                    'vehiculos_firmaMecanico',
+                  ),
+                ),
                 _firmaBox(_firmaMecanico),
 
                 const SizedBox(height: 20),
 
-                Text(t.translate(BlockTranslate.vehiculos, 'firmaCliente')),
+                Text(
+                  t.translate(
+                    BlockTranslate.vehiculos,
+                    'vehiculos_firmaCliente',
+                  ),
+                ),
                 _firmaBox(_firmaCliente),
 
                 const SizedBox(height: 30),
@@ -262,7 +284,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         label: Text(
                           t.translate(
                             BlockTranslate.vehiculos,
-                            'enviarDocumento',
+                            'vehiculos_enviarDocumento',
                           ),
                           style: const TextStyle(color: Colors.white),
                         ),
@@ -290,7 +312,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         label: Text(
                           t.translate(
                             BlockTranslate.vehiculos,
-                            'compartirDocumento',
+                            'vehiculos_compartirDocumento',
                           ),
                           style: const TextStyle(color: Colors.white),
                         ),
@@ -327,7 +349,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         ),
                         icon: const Icon(Icons.add, color: Colors.white),
                         label: Text(
-                          t.translate(BlockTranslate.vehiculos, 'nuevaOrden'),
+                          t.translate(
+                            BlockTranslate.vehiculos,
+                            'vehiculos_nuevaOrden',
+                          ),
                           style: const TextStyle(color: Colors.white),
                         ),
 
@@ -389,7 +414,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           child: Text(
             AppLocalizations.of(
               context,
-            )!.translate(BlockTranslate.vehiculos, 'limpiarFirma'),
+            )!.translate(BlockTranslate.vehiculos, 'vehiculos_limpiarFirma'),
           ),
         ),
       ],
@@ -820,6 +845,31 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       // ================= PASO 2: SINCRONIZAR =================
       print('=== PASO 2: Sincronizar ===');
       await vm.sincronizarTransacciones(context);
+      // ================= PASO 2.5: SUBIR FOTOS =================
+      print('=== PASO 2.5: Subiendo fotos ===');
+
+      print('Total transacciones: ${itemsVM.transaciciones.length}');
+
+      for (var t in itemsVM.transaciciones) {
+        print('Producto: ${t.producto.productoId}');
+        print('Fotos locales: ${t.files?.length ?? 0}');
+      }
+
+      await itemsVM.subirTodasLasFotos();
+
+      print('Subida de fotos completada');
+
+      // Verificar que ahora existan los uploads
+      for (var t in itemsVM.transaciciones) {
+        print('Producto: ${t.producto.productoId}');
+        print('FilesUpload: ${t.filesUpload?.length ?? 0}');
+      }
+      // ================= DEBUG JSON FINAL =================
+      print('=== JSON FINAL A ENVIAR ===');
+      
+
+      final documentoJson = vm.docGlobal?.toJson();
+      print(documentoJson);
 
       // ================= PASO 3: ENVIAR DOCUMENTO =================
       print('=== PASO 3: Enviar documento ===');
@@ -829,6 +879,12 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         // ✅ Guardar referencias ANTES de cualquier cambio
         final navigator = Navigator.of(context);
         final scaffoldMessenger = ScaffoldMessenger.of(context);
+        for (var t in itemsVM.transaciciones) {
+          print({
+            "producto": t.producto.productoId,
+            "filesUpload": t.filesUpload?.map((e) => e.system).toList(),
+          });
+        }
 
         // ✅ Mostrar mensaje (usando la referencia guardada)
         scaffoldMessenger.showSnackBar(
@@ -841,24 +897,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         setState(() {
           _documentoEnviado = true;
         });
-
-        // // ✅ Limpiar datos (esto NO afecta el contexto)
-        // vm.cancelar();
-        // elVM.cancelar();
-
-        // // ✅ Ejecutar los pops DESPUÉS del frame actual
-        // WidgetsBinding.instance.addPostFrameCallback((_) {
-        //   // Verificar que el navigator todavía sea válido
-        //   try {
-        //     // Pop 2 veces para regresar al inicio
-        //     navigator.pop(); // Cierra DatosGuardadosScreen
-        //     navigator.pop(); // Cierra ItemsVehiculoScreen
-        //   } catch (e) {
-        //     print('Error al navegar: $e');
-        //     // Fallback: intentar con popUntil
-        //     navigator.popUntil((route) => route.isFirst);
-        //   }
-        // });
       } else {
         // ❌ ERROR
         ScaffoldMessenger.of(context).showSnackBar(
@@ -882,35 +920,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       vm.setLoading(false);
     }
   }
-
-  // Future<void> _enviarDocumento(BuildContext context) async {
-  //   final vm = context.read<InicioVehiculosViewModel>();
-  //   try {
-  //     vm.setLoading(true);
-  //     final res = await vm.sendDocument(context);
-  //     if (res.succes) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Documento enviado correctamente')),
-  //       );
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(
-  //           content: Text(
-  //             res.response?.toString() ??
-  //                 'Debe seleccionar al menos una transacción',
-  //           ),
-  //           backgroundColor: Colors.red,
-  //         ),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-  //     );
-  //   } finally {
-  //     vm.setLoading(false);
-  //   }
-  // }
 }
 
 Widget _titulo(String titulo) {

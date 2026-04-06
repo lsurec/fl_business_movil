@@ -7,6 +7,7 @@ import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart'
     as model;
+import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
 import 'package:fl_business/displays/vehiculos/views/catalogo_vehiculos_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
@@ -122,9 +123,13 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const ItemsVehiculoScreen(),
+                            builder: (_) => ChangeNotifierProvider.value(
+                              value: context.read<ItemsVehiculoViewModel>(),
+                              child: const ItemsVehiculoScreen(),
+                            ),
                           ),
                         );
+
                         final ok = await vm.guardarVehiculoEnCatalogo();
                         if (!context.mounted) return;
                       }
@@ -643,10 +648,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     }
 
     if (vm.tiposVehiculo.isEmpty) {
-      
-      
-      return  Padding(
-        
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 12),
         child: Text(
           t.translate(BlockTranslate.vehiculos, 'sinTiposVehiculo'),
@@ -869,7 +871,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   Widget _buildDetalleTrabajo(
     BuildContext context,
     InicioVehiculosViewModel vm,
-    
   ) {
     final t = AppLocalizations.of(context)!;
 
@@ -877,7 +878,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 🔹 Sección: Contacto
-         Text(
+        Text(
           t.translate(BlockTranslate.vehiculos, 'contacto'),
           style: TextStyle(
             fontSize: 16,
@@ -897,7 +898,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         const SizedBox(height: 20),
 
         // 🔹 Sección: Datos técnicos
-         Text(
+        Text(
           t.translate(BlockTranslate.vehiculos, 'datosTecnicos'),
           style: TextStyle(
             fontSize: 16,
@@ -921,7 +922,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         const SizedBox(height: 20),
 
         // 🔹 Sección: Observaciones
-         Text(
+        Text(
           t.translate(BlockTranslate.vehiculos, 'observaciones'),
           style: TextStyle(
             fontSize: 16,
@@ -1035,7 +1036,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         vm.seleccionarColor(v);
                         await vm.cargarTiposVehiculo();
                         ScaffoldMessenger.of(tabContext).showSnackBar(
-                           SnackBar(
+                          SnackBar(
                             content: Text(
                               t.translate(
                                 BlockTranslate.vehiculos,
@@ -1130,9 +1131,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
   // 📅 Selector de fecha y hora moderno
   Widget _buildDateSelector(
-    
     BuildContext context, {
-      
+
     required String label,
     required String fecha,
     required Function(String) onFechaSeleccionada,
@@ -1185,7 +1185,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     fontSize: 15,
                   ),
                 ),
-                 SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   fecha.isEmpty
                       ? t.translate(

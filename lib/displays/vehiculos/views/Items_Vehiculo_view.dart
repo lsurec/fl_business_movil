@@ -16,12 +16,19 @@ class ItemsVehiculoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ItemsVehiculoViewModel()..loadItems(),
-      child: _ItemsVehiculoView(),
-    );
+    final vm = context.read<ItemsVehiculoViewModel>();
+
+    // Solo cargar si está vacío
+    if (vm.items.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        vm.loadItems();
+      });
+    }
+
+    return _ItemsVehiculoView();
   }
 }
+
 
 class _ItemsVehiculoView extends StatelessWidget {
   @override

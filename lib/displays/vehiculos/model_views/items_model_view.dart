@@ -1,6 +1,9 @@
 import 'dart:io';
 
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
+import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
+import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -28,11 +31,19 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   final Map<String, List<String>> fotosPorItem = {};
 
   final List<TraInternaModel> transaciciones = [];
+  final UploadService _uploadService = UploadService();
 
   // ================================
   //   CARGAR ÍTEMS
   // ================================
   Future<void> loadItems() async {
+    if (transaciciones.isNotEmpty) {
+      print("⚠️ loadItems cancelado - ya existen transacciones");
+      return;
+    }
+
+    print("🔥 LOAD ITEMS EJECUTADO");
+
     try {
       isLoading = true;
       notifyListeners();
@@ -43,6 +54,11 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         empresa: '1',
         estacionTrabajo: '2',
       );
+      final Map<String, List<String>> fotosGuardadas = {};
+
+      for (var t in transaciciones) {
+        fotosGuardadas[t.producto.productoId] = t.files ?? [];
+      }
 
       transaciciones.clear();
 
@@ -88,7 +104,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
                 consecutivo: 0,
                 estadoTra: 1,
                 observacion: '',
-                files: [],
+                files: fotosGuardadas[item.idProducto] ?? [],
               ),
             )
             .toList(),
@@ -103,6 +119,41 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       error = null;
     } catch (e) {
       error = "Error: $e";
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> subirFotosItem({
+    required String idProducto,
+    required String token,
+  }) async {
+    try {
+      isLoading = true;
+
+      final fotosLocales = fotosPorItem[idProducto] ?? [];
+
+      if (fotosLocales.isEmpty) return;
+
+      final uploadedFiles = await _uploadService.uploadImages(
+        imagePaths: fotosLocales,
+        token: token,
+        urlCarpeta: r"C:\Bussines_AppMovilV2\fl_business_movil\assets\ImagenesTaller", // tu ruta real del server
+      );
+
+      // 📌 Guardar nombres SYSTEM en la transacción
+      final index = transaciciones.indexWhere(
+        (t) => t.producto.productoId == idProducto,
+      );
+
+      if (index != -1) {
+        transaciciones[index].filesUpload = uploadedFiles.map((e) {
+          return TraFileUploadModel(system: e.system, original: e.original);
+        }).toList();
+      }
+    } catch (e) {
+      error = e.toString();
     } finally {
       isLoading = false;
       notifyListeners();
@@ -180,6 +231,46 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  Future<void> subirTodasLasFotos() async {
+    for (var t in transaciciones) {
+      print("Producto: ${t.producto.productoId} | files: ${t.files}");
+    }
+
+    try {
+      isLoading = true;
+
+      for (var tra in transaciciones.where((t) => t.isChecked == true)) {
+        if (tra.files == null || tra.files!.isEmpty) continue;
+
+        final fotosLocales = tra.files!.where((f) => f.contains("/")).toList();
+
+        if (fotosLocales.isEmpty) continue;
+
+        final uploadedFiles = await _uploadService.uploadImages(
+          imagePaths: fotosLocales,
+          token: Preferences.token,
+          urlCarpeta: r"C:\Archivos\Uploads",
+        );
+        for (var file in uploadedFiles) {
+          print("📸 ORIGINAL: ${file.original}");
+          print("🗂 SYSTEM: ${file.system}");
+        }
+
+        tra.filesUpload = uploadedFiles
+            .map(
+              (e) => TraFileUploadModel(original: e.original, system: e.system),
+            )
+            .toList();
+      }
+    } catch (e) {
+      error = e.toString();
+      rethrow;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   // ================================
