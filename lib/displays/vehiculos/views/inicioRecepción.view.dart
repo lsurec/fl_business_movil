@@ -102,18 +102,23 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
                 onPressed: vm.formularioValido
                     ? () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => ChangeNotifierProvider.value(
-                              value: context.read<ItemsVehiculoViewModel>(),
-                              child: const ItemsVehiculoScreen(),
-                            ),
-                          ),
-                        );
+                        // 1. Crear vehículo PRIMERO
+                        final ok = await vm.guardarVehiculoEnCatalogo(context);
 
-                        final ok = await vm.guardarVehiculoEnCatalogo();
                         if (!context.mounted) return;
+
+                        if (ok) {
+                          // 2. Navegar DESPUÉS
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChangeNotifierProvider.value(
+                                value: context.read<ItemsVehiculoViewModel>(),
+                                child: const ItemsVehiculoScreen(),
+                              ),
+                            ),
+                          );
+                        }
                       }
                     : null,
               ),

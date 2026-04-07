@@ -4,17 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:fl_business/shared_preferences/preferences.dart';
 
 class CatalogoVehiculosService {
-  Map<String, String> get headers => {
-    "Authorization": "bearer ${Preferences.token}",
-    "Content-Type": "application/json",
-    "UserName": Preferences.userName,
-    "empresa": '1',
-  };
 
   String get baseUrl => "${Preferences.urlApi}v2/catalogo-vehiculos";
 
   //  CREAR VEHÍCULO (SOLO POST)
-  Future<bool> crearVehiculo(CatalogoVehiculosModel model) async {
+  Future<bool> crearVehiculo(CatalogoVehiculosModel model, String usuario, int empresa, token) async {
     final url = Uri.parse("$baseUrl/crear");
 
     final body = model.toJson();
@@ -24,7 +18,12 @@ class CatalogoVehiculosService {
 
     final response = await http.post(
       url,
-      headers: headers,
+      headers: {
+    "Authorization": "bearer ${token}",
+    "Content-Type": "application/json",
+    "UserName": usuario,
+    "empresa": empresa.toString(),
+  },
       body: jsonEncode(body),
     );
 

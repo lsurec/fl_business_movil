@@ -661,7 +661,18 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   //enviar datos del vehiculo al catalogo
-  Future<bool> guardarVehiculoEnCatalogo() async {
+  Future<bool> guardarVehiculoEnCatalogo(BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+    final empresa = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.empresa;
+    final estacionTrabajo = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEstacion!.estacionTrabajo;
+
     if (marcaSeleccionada == null ||
         modeloSeleccionado == null ||
         anioSeleccionado == null ||
@@ -688,7 +699,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         NotificationService.showSnackbar(
           'La placa $placa ya existe en el catálogo',
         );
-        return false; // no hacemos POST
+        return true; // no hacemos POST
       }
 
       // 🔹 Si no existe, construimos el modelo y hacemos POST
@@ -708,7 +719,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         userName: Preferences.userName,
       );
 
-      await _catalogoVehiculosService.crearVehiculo(model);
+      await _catalogoVehiculosService.crearVehiculo(model, user, empresa, token );
       return true;
     } catch (e) {
       error = e.toString();
@@ -1913,7 +1924,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     // 🔹 Verificar que haya transacciones cargadas
     if (itemsVM.transaciciones.isEmpty) {
       print('⚠️ Transacciones vacías, cargando...');
-      await itemsVM.loadItems();
+      await itemsVM.loadItems(context);
     }
 
     // 🔹 PRIMERO: Resetear todos a false

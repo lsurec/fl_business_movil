@@ -1,48 +1,94 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:fl_business/displays/vehiculos/models/upload_file_model.dart';
 import 'package:http/http.dart' as http;
+import 'package:fl_business/shared_preferences/preferences.dart';
+import '../models/upload_file_model.dart';
 import '../models/upload_response_model.dart';
 
 class UploadService {
-  final String baseUrl = "http://192.168.100.38:9085";
 
   Future<List<FileNameModel>> uploadImages({
-  required List<String> imagePaths,
-  required String token,
-  required String urlCarpeta,
-}) async {
-  var uri = Uri.parse("$baseUrl/api/v2/Shared/files");
+    required List<String> imagePaths,
+    required String token,
+    required String urlCarpeta,
+    required String user,
+  }) async {
 
-  var request = http.MultipartRequest("POST", uri);
+    final String url = "${Preferences.urlApi}v2/Shared/files";
 
-  request.headers['Authorization'] = 'bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1laWQiOiJhZG1pbiIsIm5iZiI6MTc1MDM0NjcyNCwiZXhwIjoxNzgxNDUwNzI0LCJpYXQiOjE3NTAzNDY3MjR9.NChZbZBfi3IZIVidfWujhmcwgtFYF4hDM1Xg7Z7z5J0';
+    var uri = Uri.parse(url);
 
-  request.fields['urlCarpeta'] = urlCarpeta;
+    var request = http.MultipartRequest("POST", uri);
 
-  for (var path in imagePaths) {
-    request.files.add(
-      await http.MultipartFile.fromPath('file', path),
-    );
-  }
+    // 🔹 HEADERS DINÁMICOS
+    request.headers.addAll({
+      "Authorization": "bearer $token",
+      "UserName": user,
+    });
 
-  var response = await request.send();
-  var responseBody = await response.stream.bytesToString();
+    // 🔹 FIELD
+    request.fields['urlCarpeta'] = urlCarpeta;
 
-  print("STATUS CODE: ${response.statusCode}");
-  print("BODY: $responseBody");
+    // 🔍 LOGS DE DEPURACIÓN
+    print("📤 URL: $url");
 
-  if (response.statusCode == 200) {
-    final decoded = json.decode(responseBody);
-    final uploadResponse = UploadResponseModel.fromJson(decoded);
+    print("📤 HEADERS:");
+    request.headers.forEach((key, value) {
+      print("$key: $value");
+    });
 
-    if (uploadResponse.status) {
-      return uploadResponse.data;
-    } else {
-      throw Exception(uploadResponse.message);
+    print("📤 PARAMS:");
+    print("urlCarpeta: $urlCarpeta");
+
+    print("📤 ARCHIVOS:");
+    for (var path in imagePaths) {
+      print("Archivo: $path");
+
+      request.files.add(
+        await http.MultipartFile.fromPath('file', path),
+      );
     }
-  } else {
-    throw Exception("Error ${response.statusCode}: $responseBody");
+
+    try {
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      print("📥 STATUS CODE: ${response.statusCode}");
+      print("📥 RESPONSE BODY:");
+      print(responseBody);
+
+      if (response.statusCode == 200) {
+
+        final decoded = json.decode(responseBody);
+
+        print("📥 JSON DECODIFICADO:");
+        print(decoded);
+
+        final uploadResponse = UploadResponseModel.fromJson(decoded);
+
+        if (uploadResponse.status) {
+          print("✅ SUBIDA EXITOSA");
+          print("📦 ARCHIVOS SUBIDOS: ${uploadResponse.data.length}");
+
+          return uploadResponse.data;
+        } else {
+          print("⚠️ ERROR LÓGICO API:");
+          print(uploadResponse.message);
+
+          throw Exception(uploadResponse.message);
+        }
+      }
+
+      print("❌ ERROR HTTP:");
+      print("Código: ${response.statusCode}");
+      print("Body: $responseBody");
+
+      throw Exception("Error HTTP ${response.statusCode}: $responseBody");
+
+    } catch (e) {
+      print("❌ EXCEPCIÓN en uploadImages:");
+      print(e);
+      return [];
+    }
   }
-}
 }

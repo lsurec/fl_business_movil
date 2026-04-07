@@ -293,7 +293,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                             ? null
                             : () async {
                                 await _enviarDocumento(context);
-                                // ❌ No necesitas este setState aquí, ya se maneja dentro de _enviarDocumento
+                                
                               },
                       ),
 
@@ -836,7 +836,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       // 🔥 CARGAR TRANSAcCIONES SI ESTÁN VACÍAS
       if (itemsVM.transaciciones.isEmpty) {
         print('Cargando transacciones desde API...');
-        await itemsVM.loadItems();
+        await itemsVM.loadItems(context);
         print(
           'Transacciones después de carga: ${itemsVM.transaciciones.length}',
         );
@@ -855,7 +855,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         print('Fotos locales: ${t.files?.length ?? 0}');
       }
 
-      await itemsVM.subirTodasLasFotos();
+      await itemsVM.subirTodasLasFotos(context);
 
       print('Subida de fotos completada');
 

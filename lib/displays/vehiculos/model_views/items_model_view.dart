@@ -1,9 +1,13 @@
 import 'dart:io';
 
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
+import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
+import 'package:fl_business/view_models/login_view_model.dart';
+import 'package:fl_business/view_models/menu_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -11,6 +15,7 @@ import 'package:fl_business/displays/vehiculos/services/ItemsVehiculo_service.da
 import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart'
     as api;
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 class ItemsVehiculoViewModel extends ChangeNotifier {
   bool _isLoading = false;
@@ -36,23 +41,47 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   // ================================
   //   CARGAR ÍTEMS
   // ================================
-  Future<void> loadItems() async {
+  Future<void> loadItems(BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+    final empresa = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.empresa;
+
+    final estacionTrabajo = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEstacion!.estacionTrabajo;
+    final serie = Provider.of<InicioVehiculosViewModel>(
+      context,
+      listen: false,
+    ).serieSelect!.serieDocumento;
+
+    final MenuViewModel vmMenu = Provider.of<MenuViewModel>(
+      context,
+      listen: false,
+    );
+
     if (transaciciones.isNotEmpty) {
       print("⚠️ loadItems cancelado - ya existen transacciones");
       return;
     }
 
-    print("🔥 LOAD ITEMS EJECUTADO");
+    print("LOAD ITEMS EJECUTADO");
 
     try {
       isLoading = true;
       notifyListeners();
 
       items = await _service.getItemsVehiculo(
-        tipoDocumento: '28',
-        serieDocumento: '1',
-        empresa: '1',
-        estacionTrabajo: '2',
+        tipoDocumento: vmMenu.documento.toString(),
+        serieDocumento: serie!, // Viene de la pantalla de Inicio
+        empresa: empresa.toString(),
+        estacionTrabajo: estacionTrabajo.toString(),
+        token: token,
+        user: user,
       );
       final Map<String, List<String>> fotosGuardadas = {};
 
@@ -128,6 +157,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   Future<void> subirFotosItem({
     required String idProducto,
     required String token,
+    required String user,
   }) async {
     try {
       isLoading = true;
@@ -139,7 +169,9 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       final uploadedFiles = await _uploadService.uploadImages(
         imagePaths: fotosLocales,
         token: token,
-        urlCarpeta: r"C:\Bussines_AppMovilV2\fl_business_movil\assets\ImagenesTaller", // tu ruta real del server
+        user: user,
+        urlCarpeta:
+            r"C:\Bussines_AppMovilV2\fl_business_movil\assets\ImagenesTaller", // tu ruta real del server
       );
 
       // 📌 Guardar nombres SYSTEM en la transacción
@@ -233,7 +265,9 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> subirTodasLasFotos() async {
+  Future<void> subirTodasLasFotos(BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
     for (var t in transaciciones) {
       print("Producto: ${t.producto.productoId} | files: ${t.files}");
     }
@@ -250,7 +284,8 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
         final uploadedFiles = await _uploadService.uploadImages(
           imagePaths: fotosLocales,
-          token: Preferences.token,
+          token: token,
+          user: user,
           urlCarpeta: r"C:\Archivos\Uploads",
         );
         for (var file in uploadedFiles) {

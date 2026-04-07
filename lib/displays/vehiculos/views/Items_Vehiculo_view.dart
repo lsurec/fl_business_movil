@@ -21,7 +21,7 @@ class ItemsVehiculoScreen extends StatelessWidget {
     // Solo cargar si está vacío
     if (vm.items.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        vm.loadItems();
+        vm.loadItems(context);
       });
     }
 
@@ -56,7 +56,7 @@ class _ItemsVehiculoView extends StatelessWidget {
       children: [
         Scaffold(
           appBar: AppBar(
-            title: Text(t.translate(BlockTranslate.vehiculos, 'titulo')),
+            title: Text(t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo')),
 
             backgroundColor: Color(0xff134895),
           ),
@@ -146,7 +146,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                                       content: Text(
                                         t.translate(
                                           BlockTranslate.vehiculos,
-                                          'escribeDetalle',
+                                          'itemsVehiculo_escribeDetalle',
                                         ),
                                       ),
                                     ),
@@ -183,7 +183,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                         decoration: InputDecoration(
                           labelText: t.translate(
                             BlockTranslate.vehiculos,
-                            'detalleLabel',
+                            'itemsVehiculo_escribeDetalle',
                           ),
 
                           border: OutlineInputBorder(),
@@ -275,7 +275,7 @@ class _ItemsVehiculoView extends StatelessWidget {
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: const Color(0xff134895),
             icon: const Icon(Icons.save),
-            label: Text(t.translate(BlockTranslate.vehiculos, 'guardarItems')),
+            label: Text(t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_guardarItems')),
 
             onPressed: () {
               // 1. Usar getItemsSeleccionados en lugar de TODOS los items
