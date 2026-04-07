@@ -866,7 +866,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       }
       // ================= DEBUG JSON FINAL =================
       print('=== JSON FINAL A ENVIAR ===');
-      
 
       final documentoJson = vm.docGlobal?.toJson();
       print(documentoJson);

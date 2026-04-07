@@ -4,6 +4,7 @@ import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_
 import 'package:fl_business/displays/restaurant/view_models/view_models.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/displays/tareas/view_models/view_models.dart';
+import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
 import 'package:fl_business/models/models.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/services.dart';
@@ -63,6 +64,30 @@ class MenuViewModel extends ChangeNotifier {
     final String token = vmLogin.token;
 
     tipoCambio = 0;
+
+    if (route.toLowerCase() == AppRoutes.vehiculos.toLowerCase()) {
+      final vm = Provider.of<InicioVehiculosViewModel>(context, listen: false);
+
+      vmHome.isLoading = true;
+
+      await vm.cargarDatosIniciales(context);
+
+      if (vm.tiposVehiculo.isEmpty) {
+        vmHome.isLoading = false;
+        NotificationService.showSnackbar(
+          AppLocalizations.of(
+            context,
+          )!.translate(BlockTranslate.notificacion, 'sinTiposVehiculo'),
+        );
+        return;
+      }
+
+      vmHome.isLoading = false;
+
+      Navigator.pushNamed(context, AppRoutes.vehiculos);
+
+      return;
+    }
 
     //Restaurante
     if (route.toLowerCase() == "prcrestaurante") {

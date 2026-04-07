@@ -55,9 +55,9 @@ class SelectClienteRecepcionView extends StatelessWidget {
                         Text("(${client.desCuentaCta})"),
                       ],
                     ),
-                    onTap: () =>
-    context.read<InicioVehiculosViewModel>().selectClient(true, client, context),
-
+                    onTap: () => context
+                        .read<InicioVehiculosViewModel>()
+                        .selectClient(true, client, context),
                   );
                 },
               ),

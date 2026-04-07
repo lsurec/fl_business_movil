@@ -25,11 +25,11 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final vehiculoVM = context.read<CatalogoVehiculosViewModel>();
-      await vehiculoVM.cargarMarcas();
+      await vehiculoVM.cargarMarcas(context);
 
       final elemento = context.read<ElementoAsigandoViewModel>().elemento;
       if (elemento?.marca != null) {
-        await vehiculoVM.cargarModelos(elemento!.marca!);
+        await vehiculoVM.cargarModelos(elemento!.marca!, context);
       }
     });
   }
@@ -233,6 +233,7 @@ class _CatalogoVehiculosViewState extends State<CatalogoVehiculosView> {
                   ? vehiculoVM.obtenerDescripcionModeloPorId(
                       elemento.marca!,
                       elemento.modelo!,
+                      context,
                     )
                   : Future.value(''),
               builder: (_, snap) => item('Modelo', snap.data ?? ''),

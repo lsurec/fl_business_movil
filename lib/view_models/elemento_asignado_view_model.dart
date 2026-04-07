@@ -55,15 +55,16 @@ class ElementoAsigandoViewModel extends ChangeNotifier {
     mostrarResultados = false;
     notifyListeners();
   }
-  void mostrarLista() {
-  mostrarResultados = true;
-  notifyListeners();
-}
 
-void ocultarLista() {
-  mostrarResultados = false;
-  notifyListeners();
-}
+  void mostrarLista() {
+    mostrarResultados = true;
+    notifyListeners();
+  }
+
+  void ocultarLista() {
+    mostrarResultados = false;
+    notifyListeners();
+  }
 
   //Buscar Id Referencia
   Future<void> getElementoAsignado(BuildContext context) async {
@@ -123,14 +124,12 @@ void ocultarLista() {
   // para el apartado de vehiculos
   void limpiarElemento() {
     elemento = null;
-    elementos.clear(); 
-    buscarElementoAsignado.clear(); 
+    elementos.clear();
+    buscarElementoAsignado.clear();
     notifyListeners();
   }
+
   void cancelar() {
-
     buscarElementoAsignado.clear();
-    
-
-      }
+  }
 }
