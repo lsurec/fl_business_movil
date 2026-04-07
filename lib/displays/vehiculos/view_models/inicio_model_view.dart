@@ -26,7 +26,7 @@ import 'package:fl_business/displays/prc_documento_3/view_models/document_view_m
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
-import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
+import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/TipoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';

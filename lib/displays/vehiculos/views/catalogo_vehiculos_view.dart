@@ -1,4 +1,4 @@
-import 'package:fl_business/displays/vehiculos/model_views/vehiculos_catalogo_viewmodel.dart';
+import 'package:fl_business/displays/vehiculos/view_models/vehiculos_catalogo_viewmodel.dart';
 import 'package:fl_business/displays/vehiculos/views/inicioRecepci%C3%B3n.view.dart';
 import 'package:fl_business/models/elemento_asignado_model.dart';
 import 'package:fl_business/services/language_service.dart';

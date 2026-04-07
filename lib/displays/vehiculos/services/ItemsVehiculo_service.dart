@@ -13,28 +13,22 @@ class ItemVehiculoService {
     required String user,
   }) async {
 
-    // final String url = "${Preferences.urlApi}v2/ItemsVehiculo/items";
-    final String url = "http://192.168.0.14:9085/api/v2/ItemsVehiculo/items";
+    final String url = "${Preferences.urlApi}v2/ItemsVehiculo/items";
 
     final headers = {
       "Content-Type": "application/json",
       "Authorization": "bearer $token",
-      //"UserName": user,
-      "UserName": 'recepcionv',
-      //"tipoDocumento": tipoDocumento,
-      "tipoDocumento": '28',
-      //"serieDocumento": serieDocumento,
-      "serieDocumento": '1',
-      // "empresa": empresa,
-      "empresa": '1',
-      // "estacionTrabajo": estacionTrabajo,
-      "estacionTrabajo": '2',
+      "UserName": user,
+      "tipoDocumento": tipoDocumento,
+      "serieDocumento": serieDocumento,
+      "empresa": empresa,
+      "estacionTrabajo": estacionTrabajo,
     };
 
-    // 🔍 PRINTS DE DEPURACIÓN
-    print("📤 URL: $url");
+    //  PRINTS DE DEPURACIÓN
+    print(" URL: $url");
 
-    print("📤 HEADERS:");
+    print(" HEADERS:");
     headers.forEach((key, value) {
       print("$key: $value");
     });
@@ -45,32 +39,32 @@ class ItemVehiculoService {
         headers: headers,
       );
 
-      print("📥 STATUS CODE: ${response.statusCode}");
-      print("📥 RESPONSE BODY:");
+      print(" STATUS CODE: ${response.statusCode}");
+      print(" RESPONSE BODY:");
       print(response.body);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
 
-        print("📥 JSON DECODIFICADO:");
+        print(" JSON DECODIFICADO:");
         print(jsonResponse);
 
         if (jsonResponse["status"] == true && jsonResponse["data"] != null) {
           final List<dynamic> data = jsonResponse["data"];
 
-          print("📦 ITEMS RECIBIDOS: ${data.length}");
+          print(" ITEMS RECIBIDOS: ${data.length}");
 
           return data
               .map<ItemVehiculoApi>((json) => ItemVehiculoApi.fromJson(json))
               .toList();
         } else {
-          print("⚠️ ERROR LÓGICO API:");
+          print(" ERROR LÓGICO API:");
           print(jsonResponse["message"]);
           throw Exception("Error en API: ${jsonResponse["message"]}");
         }
       }
 
-      print("❌ ERROR HTTP:");
+      print(" ERROR HTTP:");
       print("Código: ${response.statusCode}");
       print("Mensaje: ${response.reasonPhrase}");
 
@@ -78,7 +72,7 @@ class ItemVehiculoService {
         "Error HTTP ${response.statusCode}: ${response.reasonPhrase}\n${response.body}",
       );
     } catch (e) {
-      print("❌ EXCEPCIÓN en getItemsVehiculo:");
+      print(" EXCEPCIÓN en getItemsVehiculo:");
       print(e);
       return [];
     }

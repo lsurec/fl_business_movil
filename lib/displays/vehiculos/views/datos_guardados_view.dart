@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
+import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
 import 'package:fl_business/services/language_service.dart';
@@ -18,7 +18,7 @@ import 'package:signature/signature.dart';
 import 'package:share_plus/share_plus.dart';
 
 // ViewModel
-import '../model_views/inicio_model_view.dart';
+import '../view_models/inicio_model_view.dart';
 
 class DatosGuardadosScreen extends StatefulWidget {
   const DatosGuardadosScreen({super.key});
@@ -833,7 +833,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       print('=== PASO 1: Verificar transacciones ===');
       print('Transacciones cargadas: ${itemsVM.transaciciones.length}');
 
-      // 🔥 CARGAR TRANSAcCIONES SI ESTÁN VACÍAS
+      //  CARGAR TRANSAcCIONES SI ESTÁN VACÍAS
       if (itemsVM.transaciciones.isEmpty) {
         print('Cargando transacciones desde API...');
         await itemsVM.loadItems(context);
@@ -897,11 +897,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           _documentoEnviado = true;
         });
       } else {
-        // ❌ ERROR
+        //  ERROR
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              res.response?.toString() ?? '❌ Error al enviar documento',
+              res.response?.toString() ?? ' Error al enviar documento',
             ),
             backgroundColor: Colors.red,
             duration: Duration(seconds: 4),
@@ -911,7 +911,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('❌ Error: ${e.toString()}'),
+          content: Text(' Error: ${e.toString()}'),
           backgroundColor: Colors.red,
         ),
       );

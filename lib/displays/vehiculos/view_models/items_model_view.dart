@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
-import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
+import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -174,7 +174,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
             r"C:\Bussines_AppMovilV2\fl_business_movil\assets\ImagenesTaller", // tu ruta real del server
       );
 
-      // 📌 Guardar nombres SYSTEM en la transacción
+      //  Guardar nombres SYSTEM en la transacción
       final index = transaciciones.indexWhere(
         (t) => t.producto.productoId == idProducto,
       );
@@ -213,21 +213,21 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
     if (foto == null) return;
 
-    // 📌 Directorio persistente de la app
+    //  Directorio persistente de la app
     final appDir = await getApplicationDocumentsDirectory();
 
-    // 📌 Crear nombre único
+    //  Crear nombre único
     final String fileName = "${DateTime.now().millisecondsSinceEpoch}.jpg";
     final String savedPath = "${appDir.path}/$fileName";
 
-    // 📌 Copiar la foto al directorio persistente
+    //  Copiar la foto al directorio persistente
     final File newImage = await File(foto.path).copy(savedPath);
 
-    // 📌 Guardar el path REAL en fotosPorItem
+    //  Guardar el path REAL en fotosPorItem
     fotosPorItem[idProducto] ??= [];
     fotosPorItem[idProducto]!.add(newImage.path);
 
-    // 📌 Guardarlo también en la transacción (si lo necesitas después)
+    //  Guardarlo también en la transacción (si lo necesitas después)
     final index = transaciciones.indexWhere(
       (t) => t.producto.productoId == idProducto,
     );

@@ -13,7 +13,7 @@ class CatalogoVehiculosService {
 
     final body = model.toJson();
 
-    print('📤 REQUEST BODY:');
+    print(' REQUEST BODY:');
     print(jsonEncode(body));
 
     final response = await http.post(
@@ -27,8 +27,8 @@ class CatalogoVehiculosService {
       body: jsonEncode(body),
     );
 
-    print('📥 STATUS CODE: ${response.statusCode}');
-    print('📥 RESPONSE BODY: ${response.body}');
+    print(' STATUS CODE: ${response.statusCode}');
+    print(' RESPONSE BODY: ${response.body}');
 
     final decoded = jsonDecode(response.body);
 

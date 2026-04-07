@@ -45,7 +45,7 @@ class TipoVehiculoService {
         "Error HTTP ${response.statusCode}: ${response.reasonPhrase}\n${response.body}",
       );
     } catch (e) {
-      print("❌ Error en TipoVehiculoService.getTiposVehiculo(): $e");
+      print(" Error en TipoVehiculoService.getTiposVehiculo(): $e");
       return [];
     }
   }

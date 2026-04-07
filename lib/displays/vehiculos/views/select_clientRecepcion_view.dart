@@ -1,5 +1,5 @@
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
-import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
+import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
 import 'package:flutter/material.dart';

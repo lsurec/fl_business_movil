@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart'
+import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart'
     as model;
-import 'package:fl_business/displays/vehiculos/model_views/items_model_view.dart';
+import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/app_theme.dart';

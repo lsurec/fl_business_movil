@@ -29,18 +29,18 @@ class UploadService {
     // 🔹 FIELD
     request.fields['urlCarpeta'] = urlCarpeta;
 
-    // 🔍 LOGS DE DEPURACIÓN
-    print("📤 URL: $url");
+    //  LOGS DE DEPURACIÓN
+    print(" URL: $url");
 
-    print("📤 HEADERS:");
+    print(" HEADERS:");
     request.headers.forEach((key, value) {
       print("$key: $value");
     });
 
-    print("📤 PARAMS:");
+    print(" PARAMS:");
     print("urlCarpeta: $urlCarpeta");
 
-    print("📤 ARCHIVOS:");
+    print(" ARCHIVOS:");
     for (var path in imagePaths) {
       print("Archivo: $path");
 
@@ -53,40 +53,40 @@ class UploadService {
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
-      print("📥 STATUS CODE: ${response.statusCode}");
-      print("📥 RESPONSE BODY:");
+      print(" STATUS CODE: ${response.statusCode}");
+      print(" RESPONSE BODY:");
       print(responseBody);
 
       if (response.statusCode == 200) {
 
         final decoded = json.decode(responseBody);
 
-        print("📥 JSON DECODIFICADO:");
+        print(" JSON DECODIFICADO:");
         print(decoded);
 
         final uploadResponse = UploadResponseModel.fromJson(decoded);
 
         if (uploadResponse.status) {
-          print("✅ SUBIDA EXITOSA");
-          print("📦 ARCHIVOS SUBIDOS: ${uploadResponse.data.length}");
+          print(" SUBIDA EXITOSA");
+          print(" ARCHIVOS SUBIDOS: ${uploadResponse.data.length}");
 
           return uploadResponse.data;
         } else {
-          print("⚠️ ERROR LÓGICO API:");
+          print(" ERROR LÓGICO API:");
           print(uploadResponse.message);
 
           throw Exception(uploadResponse.message);
         }
       }
 
-      print("❌ ERROR HTTP:");
+      print(" ERROR HTTP:");
       print("Código: ${response.statusCode}");
       print("Body: $responseBody");
 
       throw Exception("Error HTTP ${response.statusCode}: $responseBody");
 
     } catch (e) {
-      print("❌ EXCEPCIÓN en uploadImages:");
+      print(" EXCEPCIÓN en uploadImages:");
       print(e);
       return [];
     }

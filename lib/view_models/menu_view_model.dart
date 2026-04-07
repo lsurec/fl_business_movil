@@ -4,7 +4,7 @@ import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_
 import 'package:fl_business/displays/restaurant/view_models/view_models.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
 import 'package:fl_business/displays/tareas/view_models/view_models.dart';
-import 'package:fl_business/displays/vehiculos/model_views/inicio_model_view.dart';
+import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/models/models.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/services.dart';
