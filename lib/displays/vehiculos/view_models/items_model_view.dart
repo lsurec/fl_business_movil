@@ -209,6 +209,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   // ================================
   Future<void> tomarFoto(String idProducto) async {
     final picker = ImagePicker();
+    /// Aqui Se toma la foto
     final XFile? foto = await picker.pickImage(source: ImageSource.camera);
 
     if (foto == null) return;
@@ -221,6 +222,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     final String savedPath = "${appDir.path}/$fileName";
 
     //  Copiar la foto al directorio persistente
+    // Se guarda Localmente
     final File newImage = await File(foto.path).copy(savedPath);
 
     //  Guardar el path REAL en fotosPorItem
@@ -264,7 +266,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
     notifyListeners();
   }
-
+// Se sube la foto con el api
   Future<void> subirTodasLasFotos(BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
     final token = Provider.of<LoginViewModel>(context, listen: false).token;
@@ -292,7 +294,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
           print("📸 ORIGINAL: ${file.original}");
           print("🗂 SYSTEM: ${file.system}");
         }
-
+        //Aqui se guarda
         tra.filesUpload = uploadedFiles
             .map(
               (e) => TraFileUploadModel(original: e.original, system: e.system),

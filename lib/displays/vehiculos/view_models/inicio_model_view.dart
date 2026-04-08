@@ -386,11 +386,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
   }
 
-  Future<bool> placaExiste(String placa) async {
+  Future<bool> placaExiste(String placa, BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+    final empresa = Provider.of<LocalSettingsViewModel>(context, listen: false,).selectedEmpresa!.empresa;
+
     try {
-      final token = Preferences.token; // asumiendo que guardas el token
-      final user = Preferences.userName; // o el usuario que corresponda
-      final empresa = 1; // o la empresa correspondiente
       final res = await ElementoAsignadoService().getElementoAsignado(
         empresa,
         placa,
@@ -693,7 +694,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       final placa = placaController.text.trim();
 
       // 🔹 Verificamos si la placa ya existe
-      final existe = await placaExiste(placa);
+      final existe = await placaExiste(placa, context);
 
       if (existe) {
         NotificationService.showSnackbar(
@@ -719,7 +720,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         userName: Preferences.userName,
       );
 
-      await _catalogoVehiculosService.crearVehiculo(model, user, empresa, token );
+      await _catalogoVehiculosService.crearVehiculo(
+        model,
+        user,
+        empresa,
+        token,
+      );
       return true;
     } catch (e) {
       error = e.toString();
