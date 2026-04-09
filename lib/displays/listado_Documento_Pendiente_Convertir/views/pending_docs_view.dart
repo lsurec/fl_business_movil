@@ -31,7 +31,7 @@ class PendingDocsView extends StatelessWidget {
             ),
           ),
           body: RefreshIndicator(
-            onRefresh: () => vm.laodData(context),
+            onRefresh: () => vm.laodData(context, false),
             child: ListView(
               children: [
                 Padding(

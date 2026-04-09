@@ -38,7 +38,7 @@ class TypesDocViewModel extends ChangeNotifier {
     penVM.tipoDoc = tipo.tipoDocumento;
 
     //Cragar documentos pendientes de recepcionar
-    await penVM.laodData(context);
+    await penVM.laodData(context, true);
 
     //navegar a pantalla documentos endentes
     Navigator.pushNamed(context, AppRoutes.pendingDocs, arguments: tipo);
