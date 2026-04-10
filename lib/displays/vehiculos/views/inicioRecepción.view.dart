@@ -1,4 +1,5 @@
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/convert_doc_view_model.dart';
+import 'package:fl_business/displays/prc_documento_3/models/seller_model.dart';
 import 'package:fl_business/displays/prc_documento_3/models/serie_model.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
@@ -418,6 +419,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             ),
                         ],
                       ),
+
+                      
                       const SizedBox(height: 10),
                       Text(
                         vm.clienteSelect!.facturaNit,
@@ -455,6 +458,39 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     ],
                   ),
                 const SizedBox(height: 15),
+                Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 10),
+                          const Divider(),
+                          const SizedBox(height: 10),
+                          Text(
+                            AppLocalizations.of(
+                              context,
+                            )!.translate(BlockTranslate.factura, 'vendedor'),
+                            style: StyleApp.title,
+                          ),
+                          DropdownButton<SellerModel>(
+                            isExpanded: true,
+                            dropdownColor: AppTheme.isDark()
+                                ? AppTheme.darkBackroundColor
+                                : AppTheme.backroundColor,
+                            hint: Text(
+                              AppLocalizations.of(
+                                context,
+                              )!.translate(BlockTranslate.factura, 'opcion'),
+                            ),
+                            value: vm.vendedorSelect,
+                            onChanged: (value) => vm.changeSeller(value),
+                            items: vm.cuentasCorrentistasRef.map((seller) {
+                              return DropdownMenuItem<SellerModel>(
+                                value: seller,
+                                child: Text(seller.nomCuentaCorrentista),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
 
                 // 🔹 Sección Identificación Vehículo 🔹
                 _buildModernSection(

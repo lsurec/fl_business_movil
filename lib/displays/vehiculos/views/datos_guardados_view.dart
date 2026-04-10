@@ -1,5 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
+import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
+import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
@@ -7,8 +11,10 @@ import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
+import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -28,9 +34,10 @@ class DatosGuardadosScreen extends StatefulWidget {
 }
 
 class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
+  final GlobalKey _vehiculoKey = GlobalKey();
   late SignatureController _firmaMecanico;
   late SignatureController _firmaCliente;
-  bool _documentoEnviado = false; // 🔒 Bloquea el botón enviar
+  bool _documentoEnviado = false; //  Bloquea el botón enviar
   bool _pdfGenerado = false;
 
   @override
@@ -133,11 +140,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
                 // ================= VEHÍCULO MARCADO =================
                 if (vm.imagenTipoVehiculo != null) ...[
-                  VehiculoMarcadoWidget(
-                    imagePath: vm.imagenTipoVehiculo!,
-                    marcas: vm.marcasVehiculo,
-                    onTap: vm.agregarMarca,
+                  RepaintBoundary(
+                    key: _vehiculoKey,
+                    child: VehiculoMarcadoWidget(
+                      imagePath: vm.imagenTipoVehiculo!,
+                      marcas: vm.marcasVehiculo,
+                      onTap: vm.agregarMarca,
+                    ),
                   ),
+                  // VehiculoMarcadoWidget(
+                  //   imagePath: vm.imagenTipoVehiculo!,
+                  //   marcas: vm.marcasVehiculo,
+                  //   onTap: vm.agregarMarca,
+                  // ),
                   const SizedBox(height: 12),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -293,7 +308,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                             ? null
                             : () async {
                                 await _enviarDocumento(context);
-                                
                               },
                       ),
 
@@ -419,6 +433,62 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         ),
       ],
     );
+  }
+
+  // FUNCIÓN PARA CAPTURAR IMAGen
+  Future<Uint8List?> _capturarVehiculo() async {
+    try {
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      final boundary =
+          _vehiculoKey.currentContext!.findRenderObject()
+              as RenderRepaintBoundary;
+
+      final image = await boundary.toImage(pixelRatio: 3);
+      final byteData = await image.toByteData(format: ImageByteFormat.png);
+
+      return byteData?.buffer.asUint8List();
+    } catch (e) {
+      debugPrint('Error capturando vehículo: $e');
+      return null;
+    }
+  }
+
+  // GUARDAR COMO ARCHIVO
+  Future<String?> _guardarVehiculoTemp(Uint8List bytes) async {
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/vehiculo_marcado.png');
+    await file.writeAsBytes(bytes);
+    return file.path;
+  }
+
+  // Subir Imagen del vehiculo con marcas seleccionadas
+  Future<void> _subirImagenVehiculo(BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(context, listen: false,).selectedEmpresa!.uploadLocal;
+
+    final vm = context.read<InicioVehiculosViewModel>();
+
+    final bytes = await _capturarVehiculo();
+    if (bytes == null) return;
+
+    final path = await _guardarVehiculoTemp(bytes);
+
+    final uploadService = UploadService(); // usa el tuyo real
+
+    final uploaded = await uploadService.uploadImages(
+      imagePaths: [path!],
+      token: token,
+      user: user,
+      urlCarpeta: destinoImagenes,
+      
+    );
+
+    //  GUARDAR EN docGlobal (AJUSTA SEGÚN TU MODELO)
+    vm.docGlobal?.vehiculoImagen = uploaded.map((e) {
+      return TraFileUploadModel(system: e.system, original: e.original);
+    }).toList();
   }
 
   /// Carga la imagen del vehículo (asset) y la convierte en ImageProvider para PDF
@@ -858,7 +928,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       await itemsVM.subirTodasLasFotos(context);
 
       print('Subida de fotos completada');
+      print('=== PASO 2.6: Subiendo imagen vehículo ===');
 
+      await _subirImagenVehiculo(context);
       // Verificar que ahora existan los uploads
       for (var t in itemsVM.transaciciones) {
         print('Producto: ${t.producto.productoId}');

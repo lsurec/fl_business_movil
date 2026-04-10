@@ -76,6 +76,9 @@ class DocEstructuraModel {
   String? kilometraje;
   String? cc;
   String? cil;
+  List<TraFileUploadModel>? vehiculoImagen;
+
+  /// Aqui va la imagen con puntos seleccionados
 
   DocEstructuraModel({
     required this.docVersionApp,
@@ -136,6 +139,7 @@ class DocEstructuraModel {
     this.kilometraje,
     this.cc,
     this.cil,
+    this.vehiculoImagen,
   });
 
   factory DocEstructuraModel.fromJson(String str) =>
@@ -221,6 +225,13 @@ class DocEstructuraModel {
         kilometraje: json["Kilometraje"],
         cc: json["CC"],
         cil: json["Cil"],
+        vehiculoImagen: json["Vehiculo_Imagen"] != null
+            ? List<TraFileUploadModel>.from(
+                json["Vehiculo_Imagen"].map(
+                  (x) => TraFileUploadModel.fromMap(x),
+                ),
+              )
+            : null,
       );
 
   Map<String, dynamic> toMap() => {
@@ -284,6 +295,9 @@ class DocEstructuraModel {
     "Kilometraje": kilometraje,
     "CC": cc,
     "Cil": cil,
+    "Vehiculo_Imagen": vehiculoImagen != null
+    ? List<dynamic>.from(vehiculoImagen!.map((x) => x.toMap()))
+    : null,
   };
 }
 
@@ -411,9 +425,10 @@ class DocTransaccion {
     traMonto: json["Tra_Monto"].toDouble(),
     traMontoDias: json["Tra_Monto_Dias"]?.toDouble(),
     traArchivos: json["Tra_Archivos"] != null
-    ? List<TraFileUploadModel>.from(
-        json["Tra_Archivos"].map((x) => TraFileUploadModel.fromMap(x)))
-    : null,
+        ? List<TraFileUploadModel>.from(
+            json["Tra_Archivos"].map((x) => TraFileUploadModel.fromMap(x)),
+          )
+        : null,
   );
 
   Map<String, dynamic> toMap() => {
@@ -433,9 +448,8 @@ class DocTransaccion {
     "Tra_Monto": traMonto,
     "Tra_Monto_Dias": traMontoDias,
     "Tra_Archivos": traArchivos != null
-    ? List<dynamic>.from(traArchivos!.map((x) => x.toMap()))
-    : null,
-
+        ? List<dynamic>.from(traArchivos!.map((x) => x.toMap()))
+        : null,
   };
 }
 

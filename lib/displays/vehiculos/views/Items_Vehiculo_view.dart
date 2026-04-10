@@ -56,7 +56,9 @@ class _ItemsVehiculoView extends StatelessWidget {
       children: [
         Scaffold(
           appBar: AppBar(
-            title: Text(t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo')),
+            title: Text(
+              t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo'),
+            ),
 
             backgroundColor: Color(0xff134895),
           ),
@@ -104,68 +106,54 @@ class _ItemsVehiculoView extends StatelessWidget {
                               // 1. Actualizar estado local
                               vm.toggleCheck(item.idProducto, value ?? false);
 
-                              // 2. Obtener el texto actual
-                              final text = vm.controllers[item.idProducto]!.text
-                                  .trim();
+                              // 2. Obtener el texto actual (puede estar vacío)
+                              final text =
+                                  vm.controllers[item.idProducto]?.text
+                                      .trim() ??
+                                  '';
 
                               if (value == true) {
-                                // ✅ MARCAR CHECKBOX
-                                if (text.isNotEmpty) {
-                                  // Actualizar o crear ítem en InicioVehiculosViewModel
-                                  final index = vmInicio.itemsAsignados
-                                      .indexWhere(
-                                        (item) =>
-                                            item.idProducto == item.idProducto,
-                                      );
-
-                                  if (index != -1) {
-                                    vmInicio.itemsAsignados[index].completado =
-                                        true;
-                                    vmInicio.itemsAsignados[index].detalle =
-                                        text;
-                                  } else {
-                                    vmInicio.itemsAsignados.add(
-                                      model.ItemVehiculo(
-                                        idProducto: item.idProducto,
-                                        desProducto: item.desProducto,
-                                        detalle: text,
-                                        completado: true,
-                                        fotos:
-                                            vm.fotosPorItem[item.idProducto] ??
-                                            [],
-                                      ),
-                                    );
-                                  }
-
-                                  vm.moveItemToTop(item.idProducto);
-                                  vmInicio.notifyListeners();
-                                } else {
-                                  // No puede marcar sin detalle
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        t.translate(
-                                          BlockTranslate.vehiculos,
-                                          'itemsVehiculo_escribeDetalle',
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                  vm.toggleCheck(item.idProducto, false);
-                                }
-                              } else {
-                                // ✅ DESMARCAR CHECKBOX
+                                // ✅ MARCAR CHECKBOX (sin requerir detalle)
                                 final index = vmInicio.itemsAsignados
                                     .indexWhere(
                                       (i) => i.idProducto == item.idProducto,
                                     );
 
                                 if (index != -1) {
-                                  // Opción 1: Marcar como NO completado (conserva detalle y fotos)
+                                  // Actualizar ítem existente
+                                  vmInicio.itemsAsignados[index].completado =
+                                      true;
+                                  vmInicio.itemsAsignados[index].detalle = text;
+                                } else {
+                                  // Crear nuevo ítem
+                                  vmInicio.itemsAsignados.add(
+                                    model.ItemVehiculo(
+                                      idProducto: item.idProducto,
+                                      desProducto: item.desProducto,
+                                      detalle: text, // Puede ser vacío
+                                      completado: true,
+                                      fotos:
+                                          vm.fotosPorItem[item.idProducto] ??
+                                          [],
+                                    ),
+                                  );
+                                }
+
+                                vm.moveItemToTop(item.idProducto);
+                                vmInicio.notifyListeners();
+                              } else {
+                                // DESMARCAR CHECKBOX
+                                final index = vmInicio.itemsAsignados
+                                    .indexWhere(
+                                      (i) => i.idProducto == item.idProducto,
+                                    );
+
+                                if (index != -1) {
+                                  // Mantener el ítem pero marcarlo como no completado
                                   vmInicio.itemsAsignados[index].completado =
                                       false;
 
-                                  // Opción 2: Eliminar el ítem completamente (si prefieres)
+                                  // Si prefieres eliminarlo completamente, usa:
                                   // vmInicio.itemsAsignados.removeAt(index);
                                 }
 
@@ -275,7 +263,12 @@ class _ItemsVehiculoView extends StatelessWidget {
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: const Color(0xff134895),
             icon: const Icon(Icons.save),
-            label: Text(t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_guardarItems')),
+            label: Text(
+              t.translate(
+                BlockTranslate.vehiculos,
+                'itemsVehiculo_guardarItems',
+              ),
+            ),
 
             onPressed: () {
               // 1. Usar getItemsSeleccionados en lugar de TODOS los items

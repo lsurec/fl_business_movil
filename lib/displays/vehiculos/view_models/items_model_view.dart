@@ -154,11 +154,9 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> subirFotosItem({
-    required String idProducto,
-    required String token,
-    required String user,
-  }) async {
+  Future<void> subirFotosItem({required String idProducto, required String token, required String user, context}) async {
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(context, listen: false,).selectedEmpresa!.uploadLocal;
+
     try {
       isLoading = true;
 
@@ -170,8 +168,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         imagePaths: fotosLocales,
         token: token,
         user: user,
-        urlCarpeta:
-            r"C:\Bussines_AppMovilV2\fl_business_movil\assets\ImagenesTaller", // tu ruta real del server
+        urlCarpeta: destinoImagenes, // tu ruta real del server
       );
 
       //  Guardar nombres SYSTEM en la transacción
