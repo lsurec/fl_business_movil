@@ -93,7 +93,7 @@ class DetailsDestinationDocViewModel extends ChangeNotifier {
     isLoading = true;
 
     //cardar documentos origrn
-    await vmPend.laodData(context);
+    await vmPend.laodData(context, true);
 
     //regresar a docuemntos pendientes de recepcionar
     Navigator.popUntil(context, ModalRoute.withName(AppRoutes.pendingDocs));

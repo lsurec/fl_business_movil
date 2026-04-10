@@ -63,7 +63,7 @@ class PendingDocsViewModel extends ChangeNotifier {
     timer = Timer(
       const Duration(seconds: 1),
       () {
-        laodData(context);
+        laodData(context, false);
       },
     ); // Establecer el período de retardo en milisegundos (en este caso, 1000 ms o 1 segundo)
   }
@@ -126,7 +126,7 @@ class PendingDocsViewModel extends ChangeNotifier {
     }
 
     fechaIni = pickedDate;
-    laodData(context);
+    laodData(context, false);
   }
 
   Future<void> showPickerFin(BuildContext context) async {
@@ -140,7 +140,7 @@ class PendingDocsViewModel extends ChangeNotifier {
     if (pickedDate == null) return;
 
     fechaFin = pickedDate;
-    laodData(context);
+    laodData(context, false);
   }
 
   //navgear a pantalla de documentos destino
@@ -285,11 +285,11 @@ class PendingDocsViewModel extends ChangeNotifier {
 
     notifyListeners();
 
-    if (serieSelect != null) laodData(context);
+    if (serieSelect != null) laodData(context, false);
   }
 
   //Cargar datos
-  Future<void> laodData(BuildContext context) async {
+  Future<void> laodData(BuildContext context, bool looadSeries) async {
     //datos externos
 
     final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
@@ -305,23 +305,23 @@ class PendingDocsViewModel extends ChangeNotifier {
     //limpiar docuemntos existentes
     documents.clear();
 
-    final ApiResModel resSeries = await loadSeries(context);
-
-    if (!resSeries.succes) {
-      isLoading = false;
-      NotificationService.showErrorView(context, resSeries);
-      return;
-    }
-
-    if (serieSelect == null) {
-      NotificationService.showSnackbar(
-        "No se encontró serie para el tipo de documento $tipoDoc",
-      );
-      return;
-    }
-
     isLoading = true;
-    //consumo del api
+    if (looadSeries) {
+      final ApiResModel resSeries = await loadSeries(context);
+
+      if (!resSeries.succes) {
+        isLoading = false;
+        NotificationService.showErrorView(context, resSeries);
+        return;
+      }
+
+      if (serieSelect == null) {
+        NotificationService.showSnackbar(
+          "No se encontró serie para el tipo de documento $tipoDoc",
+        );
+        return;
+      }
+    } //consumo del api
     final ApiResModel res = await receptionService.getPendindgDocs(
       user,
       token,
