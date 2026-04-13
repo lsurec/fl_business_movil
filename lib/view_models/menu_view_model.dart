@@ -199,7 +199,7 @@ class MenuViewModel extends ChangeNotifier {
         final ApiResModel res = await receptionService.getPendindgDocs(
           user,
           token,
-          documento!,
+          penVM.tipoDoc,
           empresa,
           penVM.serieSelect!.serieDocumento!,
           penVM.formatStrFilterDate(penVM.fechaIni!),
