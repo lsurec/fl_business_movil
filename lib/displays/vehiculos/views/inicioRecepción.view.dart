@@ -420,7 +420,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ],
                       ),
 
-                      
                       const SizedBox(height: 10),
                       Text(
                         vm.clienteSelect!.facturaNit,
@@ -459,38 +458,38 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                   ),
                 const SizedBox(height: 15),
                 Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          const Divider(),
-                          const SizedBox(height: 10),
-                          Text(
-                            AppLocalizations.of(
-                              context,
-                            )!.translate(BlockTranslate.factura, 'vendedor'),
-                            style: StyleApp.title,
-                          ),
-                          DropdownButton<SellerModel>(
-                            isExpanded: true,
-                            dropdownColor: AppTheme.isDark()
-                                ? AppTheme.darkBackroundColor
-                                : AppTheme.backroundColor,
-                            hint: Text(
-                              AppLocalizations.of(
-                                context,
-                              )!.translate(BlockTranslate.factura, 'opcion'),
-                            ),
-                            value: vm.vendedorSelect,
-                            onChanged: (value) => vm.changeSeller(value),
-                            items: vm.cuentasCorrentistasRef.map((seller) {
-                              return DropdownMenuItem<SellerModel>(
-                                value: seller,
-                                child: Text(seller.nomCuentaCorrentista),
-                              );
-                            }).toList(),
-                          ),
-                        ],
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    const Divider(),
+                    const SizedBox(height: 10),
+                    Text(
+                      AppLocalizations.of(
+                        context,
+                      )!.translate(BlockTranslate.factura, 'vendedor'),
+                      style: StyleApp.title,
+                    ),
+                    DropdownButton<SellerModel>(
+                      isExpanded: true,
+                      dropdownColor: AppTheme.isDark()
+                          ? AppTheme.darkBackroundColor
+                          : AppTheme.backroundColor,
+                      hint: Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.factura, 'opcion'),
                       ),
+                      value: vm.vendedorSelect,
+                      onChanged: (value) => vm.changeSeller(value),
+                      items: vm.cuentasCorrentistasRef.map((seller) {
+                        return DropdownMenuItem<SellerModel>(
+                          value: seller,
+                          child: Text(seller.nomCuentaCorrentista),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
 
                 // 🔹 Sección Identificación Vehículo 🔹
                 _buildModernSection(
@@ -526,7 +525,24 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ),
                       ),
                     ),
-                    if (elVM.mostrarResultados)
+                    if (elVM.mostrarResultados) ...[
+                      // Mostrar la cantidad de registros encontrados
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, bottom: 4),
+                        child: Text(
+                          elVM.elementos.isEmpty
+                              ? 'No se encontraron registros'
+                              : 'Se encontraron ${elVM.elementos.length} '
+                                    '${elVM.elementos.length == 1 ? 'registro' : 'registros'}',
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+
+                      // Lista de resultados
                       Container(
                         constraints: const BoxConstraints(maxHeight: 250),
                         margin: const EdgeInsets.only(top: 4),
@@ -572,6 +588,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           },
                         ),
                       ),
+                    ],
                     const SizedBox(height: 16),
                     _buildTextField(
                       t.translate(BlockTranslate.vehiculos, 'placa'),

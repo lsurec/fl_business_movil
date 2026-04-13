@@ -4,6 +4,7 @@ import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dar
     as model;
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
+import 'package:fl_business/displays/vehiculos/views/widgets/CustomCheckSwitch.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
@@ -100,11 +101,11 @@ class _ItemsVehiculoView extends StatelessWidget {
                             ),
                           ),
 
-                          Checkbox(
+                          CustomCheckSwitch(
                             value: vm.isChecked[item.idProducto] ?? false,
-                            onChanged: (value) {
+                            onChanged: (nuevoValor) {
                               // 1. Actualizar estado local
-                              vm.toggleCheck(item.idProducto, value ?? false);
+                              vm.toggleCheck(item.idProducto, nuevoValor);
 
                               // 2. Obtener el texto actual (puede estar vacío)
                               final text =
@@ -112,25 +113,23 @@ class _ItemsVehiculoView extends StatelessWidget {
                                       .trim() ??
                                   '';
 
-                              if (value == true) {
-                                // ✅ MARCAR CHECKBOX (sin requerir detalle)
+                              if (nuevoValor) {
+                                // ✅ MARCAR COMO COMPLETADO
                                 final index = vmInicio.itemsAsignados
                                     .indexWhere(
                                       (i) => i.idProducto == item.idProducto,
                                     );
 
                                 if (index != -1) {
-                                  // Actualizar ítem existente
                                   vmInicio.itemsAsignados[index].completado =
                                       true;
                                   vmInicio.itemsAsignados[index].detalle = text;
                                 } else {
-                                  // Crear nuevo ítem
                                   vmInicio.itemsAsignados.add(
                                     model.ItemVehiculo(
                                       idProducto: item.idProducto,
                                       desProducto: item.desProducto,
-                                      detalle: text, // Puede ser vacío
+                                      detalle: text,
                                       completado: true,
                                       fotos:
                                           vm.fotosPorItem[item.idProducto] ??
@@ -140,25 +139,20 @@ class _ItemsVehiculoView extends StatelessWidget {
                                 }
 
                                 vm.moveItemToTop(item.idProducto);
-                                vmInicio.notifyListeners();
                               } else {
-                                // DESMARCAR CHECKBOX
+                                // ❌ MARCAR COMO NO COMPLETADO
                                 final index = vmInicio.itemsAsignados
                                     .indexWhere(
                                       (i) => i.idProducto == item.idProducto,
                                     );
 
                                 if (index != -1) {
-                                  // Mantener el ítem pero marcarlo como no completado
                                   vmInicio.itemsAsignados[index].completado =
                                       false;
-
-                                  // Si prefieres eliminarlo completamente, usa:
-                                  // vmInicio.itemsAsignados.removeAt(index);
                                 }
-
-                                vmInicio.notifyListeners();
                               }
+
+                              vmInicio.notifyListeners();
                             },
                           ),
                         ],
@@ -271,29 +265,57 @@ class _ItemsVehiculoView extends StatelessWidget {
             ),
 
             onPressed: () {
-              // 1. Usar getItemsSeleccionados en lugar de TODOS los items
+              // 1. Validar si todos los ítems están marcados
+              if (!vm.todosLosItemsMarcados()) {
+                final itemsFaltantes = vm.obtenerItemsSinCheck();
+
+                // Mostrar mensaje con los ítems faltantes
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('Ítems pendientes De Revisar'),
+                      content: SingleChildScrollView(
+                        child: ListBody(
+                          children: [
+                            const Text(
+                              'Debes Revisar todos los ítems antes de continuar:',
+                            ),
+                            const SizedBox(height: 10),
+                            ...itemsFaltantes.map((item) => Text('• $item')),
+                          ],
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          child: const Text('Aceptar'),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
+                    );
+                  },
+                );
+                return; // ❌ No continuar con el guardado ni la navegación
+              }
+
+              // 2. Si todos están marcados, proceder con el guardado
               final itemsSeleccionados = vm.getItemsSeleccionados();
 
               print('=== GUARDANDO ÍTEMS ===');
               print('Total items en VM: ${vm.items.length}');
               print('Items seleccionados: ${itemsSeleccionados.length}');
 
-              // 2. Limpiar items anteriores
+              // 3. Limpiar items anteriores
               vmInicio.limpiarItems();
 
-              // 3. Agregar SOLO los seleccionados
+              // 4. Agregar los ítems seleccionados
               for (var itemData in itemsSeleccionados) {
-                print(
-                  '  - ${itemData['idProducto']}: completado=${itemData['completado']}',
-                );
-
                 vmInicio.itemsAsignados.add(
                   model.ItemVehiculo(
                     idProducto: itemData['idProducto'],
                     desProducto: itemData['desProducto'],
                     detalle: itemData['detalle'],
-                    completado:
-                        itemData['completado'], // ← USA EL VALOR DEL CHECKBOX
+                    completado: itemData['completado'],
                     fotos: List<String>.from(itemData['fotos']),
                   ),
                 );
@@ -301,15 +323,17 @@ class _ItemsVehiculoView extends StatelessWidget {
 
               vmInicio.notifyListeners();
 
+              // 5. Mostrar confirmación
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    '${itemsSeleccionados.length} ítem(s) guardados',
+                    '${itemsSeleccionados.length} ítem(s) guardados correctamente',
                   ),
+                  backgroundColor: Colors.green,
                 ),
               );
 
-              // 4. Navegar
+              // 6. Navegar a la siguiente pantalla
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const DatosGuardadosScreen()),

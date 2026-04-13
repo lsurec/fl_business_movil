@@ -154,8 +154,16 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> subirFotosItem({required String idProducto, required String token, required String user, context}) async {
-    final destinoImagenes = Provider.of<LocalSettingsViewModel>(context, listen: false,).selectedEmpresa!.uploadLocal;
+  Future<void> subirFotosItem({
+    required String idProducto,
+    required String token,
+    required String user,
+    context,
+  }) async {
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.uploadLocal;
 
     try {
       isLoading = true;
@@ -206,6 +214,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   // ================================
   Future<void> tomarFoto(String idProducto) async {
     final picker = ImagePicker();
+
     /// Aqui Se toma la foto
     final XFile? foto = await picker.pickImage(source: ImageSource.camera);
 
@@ -263,7 +272,8 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
     notifyListeners();
   }
-// Se sube la foto con el api
+
+  // Se sube la foto con el api
   Future<void> subirTodasLasFotos(BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
     final token = Provider.of<LoginViewModel>(context, listen: false).token;
@@ -393,5 +403,17 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       c.dispose();
     }
     super.dispose();
+  }
+
+  ////// Asegurarse que todos los items esten seleccionados
+  List<String> obtenerItemsSinCheck() {
+    return items
+        .where((item) => !(isChecked[item.idProducto] ?? false))
+        .map((item) => item.desProducto)
+        .toList();
+  }
+
+  bool todosLosItemsMarcados() {
+    return items.every((item) => isChecked[item.idProducto] ?? false);
   }
 }

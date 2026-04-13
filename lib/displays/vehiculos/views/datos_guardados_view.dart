@@ -265,28 +265,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 Center(
                   child: Column(
                     children: [
-                      // Generar PDF
-                      // ElevatedButton.icon(
-                      //   style: ElevatedButton.styleFrom(
-                      //     backgroundColor: const Color(0xff134895),
-                      //     padding: const EdgeInsets.symmetric(
-                      //       horizontal: 20,
-                      //       vertical: 12,
-                      //     ),
-                      //   ),
-                      //   onPressed: _prepararYGenerarPdf,
-                      //   icon: const Icon(
-                      //     Icons.picture_as_pdf,
-                      //     color: Colors.white,
-                      //   ),
-                      //   label: const Text(
-                      //     'Generar PDF',
-                      //     style: TextStyle(color: Colors.white),
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 16),
-
-                      // Enviar Documento
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,

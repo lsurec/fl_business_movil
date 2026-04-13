@@ -799,6 +799,29 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  
+  // String? getColor(int color) {
+  //   // Texto por defecto
+  //   String? name;
+
+  //   //sino existe serie, retornar false
+  //   if (serieSelect == null) return name;
+
+  //   // Recorrer lista de parámetros
+  //   for (var item in colores) {
+  //     // Buscar el nombre en el parámetro 57
+  //     if (item.color == color) {
+  //       // Si nombre es nulo, agregar el texto por defecto
+  //       name = item.descripcion;
+  //       break;
+  //     }
+  //   }
+
+  //   // Retornar texto
+  //   return name;
+  // }
+
+
   //Funcion para obtener tipo de Vehiculo
   Future<void> cargarTiposVehiculo(BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
