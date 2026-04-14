@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:fl_business/displays/vehiculos/models/VehiculoColorModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:fl_business/shared_preferences/preferences.dart';
 
@@ -70,23 +71,41 @@ class VehiculoService {
   }
 
   // ====================== OBTENER COLORES ======================
-  Future<List<VehiculoModel>> obtenerColores(String token) async {
-    final url = Uri.parse("$baseUrl/colores");
 
-    final res = await http.get(
-      url,
-      headers: {
-        "Authorization": "bearer $token",
-        "Content-Type": "application/json",
-      },
-    );
+  Future<List<VehiculoColorModel>> obtenerColores(String token) async {
+  final url = Uri.parse("$baseUrl/colores");
 
-    if (res.statusCode == 200) {
-      return VehiculoModel.fromJsonList(res.body);
-    } else {
-      throw Exception("Error al cargar colores (${res.statusCode})");
-    }
+  final res = await http.get(
+    url,
+    headers: {
+      "Authorization": "bearer $token",
+      "Content-Type": "application/json",
+    },
+  );
+
+  if (res.statusCode == 200) {
+    return VehiculoColorModel.fromJsonList(res.body);
+  } else {
+    throw Exception("Error al cargar colores (${res.statusCode})");
   }
+}
+  // Future<List<VehiculoModel>> obtenerColores(String token) async {
+  //   final url = Uri.parse("$baseUrl/colores");
+
+  //   final res = await http.get(
+  //     url,
+  //     headers: {
+  //       "Authorization": "bearer $token",
+  //       "Content-Type": "application/json",
+  //     },
+  //   );
+
+  //   if (res.statusCode == 200) {
+  //     return VehiculoModel.fromJsonList(res.body);
+  //   } else {
+  //     throw Exception("Error al cargar colores (${res.statusCode})");
+  //   }
+  // }
 
   // ====================== GUARDAR DOCUMENTO ======================
   Future<Map<String, dynamic>> enviarDocumento(

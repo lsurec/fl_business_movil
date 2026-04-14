@@ -26,6 +26,7 @@ import 'package:fl_business/displays/prc_documento_3/view_models/document_view_m
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/vehiculos/models/VehiculoColorModel.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/TipoVehiculoModel.dart';
@@ -189,7 +190,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         ? VehiculoYearModel.fromJson(jsonData['anio'])
         : null;
     colorSeleccionado = jsonData['color'] != null
-        ? VehiculoModel.fromJson(jsonData['color'])
+        ? VehiculoColorModel.fromJson(jsonData['color'])
         : null;
 
     itemsAsignados = (jsonData['items'] as List)
@@ -289,7 +290,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   List<VehiculoModel> marcas = [];
   List<VehiculoModel> modelos = [];
   List<VehiculoYearModel> anios = [];
-  List<VehiculoModel> colores = [];
+  List<VehiculoColorModel> colores = [];
 
   /// tipo de Vehiculo
   final TipoVehiculoService _tipoVehiculoService = TipoVehiculoService();
@@ -303,7 +304,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   VehiculoModel? marcaSeleccionada;
   VehiculoModel? modeloSeleccionado;
   VehiculoYearModel? anioSeleccionado;
-  VehiculoModel? colorSeleccionado;
+  VehiculoColorModel? colorSeleccionado;
 
   // ============================================================================
   // LISTA DE ÍTEMS DEL VEHÍCULO
@@ -389,7 +390,10 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   Future<bool> placaExiste(String placa, BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
     final token = Provider.of<LoginViewModel>(context, listen: false).token;
-    final empresa = Provider.of<LocalSettingsViewModel>(context, listen: false,).selectedEmpresa!.empresa;
+    final empresa = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.empresa;
 
     try {
       final res = await ElementoAsignadoService().getElementoAsignado(
@@ -450,7 +454,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   /// Selecciona el color
-  void seleccionarColor(VehiculoModel color) {
+  void seleccionarColor(VehiculoColorModel color) {
     colorSeleccionado = color;
     notifyListeners();
   }
@@ -782,24 +786,46 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     if (modelo.id != 0) {
       seleccionarModelo(modelo);
     }
+    final int? anioElemento = elemento.modeloFecha?.year;
 
+    if (anioElemento != null) {
+      final anio = anios.firstWhere(
+        (a) => a.anio == anioElemento,
+        orElse: () => VehiculoYearModel(anio: 0),
+      );
+
+      if (anio.anio != 0) {
+        seleccionarAnio(anio);
+      }
+    }
     // ---------------------------
     // COLOR
     // ---------------------------
+    final int? colorId = _parseToInt(elemento.color);
+
     final color = colores.firstWhere(
-      (c) =>
-          c.descripcion.toUpperCase() == (elemento.color ?? '').toUpperCase(),
-      orElse: () => VehiculoModel(id: 0, descripcion: ''),
+      (c) => c.color == colorId,
+      orElse: () => VehiculoColorModel(color: 0, descripcion: ''),
     );
 
-    if (color.id != 0) {
+    if (color.color != 0) {
       seleccionarColor(color);
     }
 
     notifyListeners();
   }
 
-  
+  int? _parseToInt(dynamic value) {
+    if (value == null) return null;
+
+    if (value is int) return value;
+
+    if (value is String) return int.tryParse(value);
+
+    if (value is double) return value.toInt();
+
+    return null;
+  }
   // String? getColor(int color) {
   //   // Texto por defecto
   //   String? name;
@@ -820,7 +846,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   //   // Retornar texto
   //   return name;
   // }
-
 
   //Funcion para obtener tipo de Vehiculo
   Future<void> cargarTiposVehiculo(BuildContext context) async {
