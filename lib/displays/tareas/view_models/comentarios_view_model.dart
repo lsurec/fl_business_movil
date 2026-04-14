@@ -131,13 +131,22 @@ class ComentariosViewModel extends ChangeNotifier {
 
       FilesService filesService = FilesService();
 
+      if (empresa.uploadLocal == null) {
+        isLoading = false;
+
+        NotificationService.showSnackbar(
+          "Error: No se ha configurado la ruta de destino para las imágenes. Por favor, configure 'uploadLocal' en la sección empresa.",
+        );
+        return;
+      }
+
       ApiResModel resFiles = await filesService.posFilesComent(
         token,
         user,
         files,
         idTarea!,
         idComentario,
-        empresa.uploadLocal,
+        empresa.uploadLocal!,
       );
 
       //si el consumo salió mal

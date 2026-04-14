@@ -22,7 +22,7 @@ class EmpresaModel {
   String monedaIsoCode;
   String absolutePathPicture;
   String productoImgUrl;
-  String uploadLocal;
+  String? uploadLocal;
 
   EmpresaModel({
     required this.empresa,
