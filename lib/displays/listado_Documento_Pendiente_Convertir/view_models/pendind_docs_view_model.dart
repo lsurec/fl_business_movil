@@ -239,18 +239,15 @@ class PendingDocsViewModel extends ChangeNotifier {
     final vmLogin = Provider.of<LoginViewModel>(context, listen: false);
     final vmLocal = Provider.of<LocalSettingsViewModel>(context, listen: false);
 
-    final vmMenu = Provider.of<MenuViewModel>(context, listen: false);
-
     final int empresa = vmLocal.selectedEmpresa!.empresa;
     final int estacion = vmLocal.selectedEstacion!.estacionTrabajo;
     final String user = vmLogin.user;
     final String token = vmLogin.token;
-    final int tipoDocumento = vmMenu.documento!;
 
     final SerieService serieService = SerieService();
 
     final ApiResModel res = await serieService.getSerie(
-      tipoDocumento,
+      tipoDoc,
       empresa,
       estacion,
       user,

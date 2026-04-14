@@ -5,7 +5,7 @@ import 'package:fl_business/displays/shr_local_config/view_models/local_settings
 import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
-import 'package:fl_business/shared_preferences/preferences.dart';
+import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:fl_business/view_models/menu_view_model.dart';
 import 'package:flutter/material.dart';
@@ -171,6 +171,15 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       final fotosLocales = fotosPorItem[idProducto] ?? [];
 
       if (fotosLocales.isEmpty) return;
+
+      if (destinoImagenes == null || destinoImagenes.isEmpty) {
+        isLoading = false;
+
+        NotificationService.showSnackbar(
+          "Error: No se ha configurado la ruta de destino para las imágenes. Por favor, configure 'uploadLocal' en la sección empresa.",
+        );
+        return;
+      }
 
       final uploadedFiles = await _uploadService.uploadImages(
         imagePaths: fotosLocales,

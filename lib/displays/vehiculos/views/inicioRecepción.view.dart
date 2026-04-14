@@ -19,6 +19,7 @@ import 'package:fl_business/view_models/theme_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:fl_business/widgets/not_found_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class InicioVehiculosView extends StatefulWidget {
@@ -874,15 +875,18 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   Widget _buildTextField(
     String label,
     TextEditingController controller, {
-    Color? fillColor, // Nullable para calcular según tema
-    Color? textColor, // Nullable para calcular según tema
+    Color? fillColor,
+    Color? textColor,
+    TextInputType keyboardType = TextInputType.text,
+    TextInputAction textInputAction = TextInputAction.next,
   }) {
-    // Colores calculados según modo oscuro si no se pasan
+    // Colores calculados según el tema
     final bgColor =
         fillColor ??
         (AppTheme.isDark()
             ? AppTheme.backroundDarkSecondary
             : const Color(0xFFFEF5E7));
+
     final txtColor =
         textColor ?? (AppTheme.isDark() ? Colors.white : Colors.black87);
 
@@ -890,6 +894,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: controller,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
         onChanged: (_) {
           context.read<InicioVehiculosViewModel>().notifyListeners();
         },
@@ -905,6 +911,57 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     );
   }
 
+  /// widget para numero
+  Widget _buildNumberTextField(
+    String label,
+    TextEditingController controller, {
+    Color? fillColor,
+    Color? textColor,
+    int? maxLength,
+    bool allowDecimal = false,
+    int decimalRange = 2, // Cantidad de decimales permitidos
+  }) {
+    // Colores según el tema
+    final bgColor =
+        fillColor ??
+        (AppTheme.isDark()
+            ? AppTheme.backroundDarkSecondary
+            : const Color(0xFFFEF5E7));
+
+    final txtColor =
+        textColor ?? (AppTheme.isDark() ? Colors.white : Colors.black87);
+
+    // InputFormatter según si permite decimales
+    final List<TextInputFormatter> formatters = allowDecimal
+        ? [
+            FilteringTextInputFormatter.allow(
+              RegExp(r'^\d*\.?\d{0,' + decimalRange.toString() + r'}'),
+            ),
+          ]
+        : [FilteringTextInputFormatter.digitsOnly];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: TextField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        inputFormatters: formatters,
+        maxLength: maxLength,
+        onChanged: (_) {
+          context.read<InicioVehiculosViewModel>().notifyListeners();
+        },
+        style: TextStyle(color: txtColor),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: txtColor),
+          filled: true,
+          fillColor: bgColor,
+          counterText: '', // Oculta el contador si se usa maxLength
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
+  }
   // Detalle del trabajo
 
   Widget _buildDetalleTrabajo(
@@ -926,13 +983,16 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           ),
         ),
         const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
-        _buildTextField(
+        _buildNumberTextField(
           t.translate(BlockTranslate.vehiculos, 'celular'),
           vm.celularController,
+          maxLength: 8, // Cantidad de dígitos para Guatemala
         ),
         _buildTextField(
           t.translate(BlockTranslate.vehiculos, 'email'),
           vm.emailController,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: 20),
 
@@ -946,17 +1006,21 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           ),
         ),
         const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
-        _buildTextField(
+        _buildNumberTextField(
           t.translate(BlockTranslate.vehiculos, 'kilometraje'),
           vm.kilometrajeController,
         ),
-        _buildTextField(
+        _buildNumberTextField(
           t.translate(BlockTranslate.vehiculos, 'cc'),
           vm.ccController,
+          allowDecimal: true,
+          decimalRange: 2,
         ),
-        _buildTextField(
+        _buildNumberTextField(
           t.translate(BlockTranslate.vehiculos, 'cil'),
           vm.cilController,
+          allowDecimal: true,
+          decimalRange: 2,
         ),
         const SizedBox(height: 20),
 

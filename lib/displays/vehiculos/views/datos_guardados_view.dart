@@ -8,6 +8,7 @@ import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
 import 'package:fl_business/services/language_service.dart';
+import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
@@ -99,7 +100,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'celular'),
-                  vm.clienteSelect?.telefono ?? "",
+                  vm.clienteSelect?.telefono ?? vm.celularController.text,
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'email'),
@@ -444,7 +445,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   Future<void> _subirImagenVehiculo(BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
     final token = Provider.of<LoginViewModel>(context, listen: false).token;
-    final destinoImagenes = Provider.of<LocalSettingsViewModel>(context, listen: false,).selectedEmpresa!.uploadLocal;
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.uploadLocal;
 
     final vm = context.read<InicioVehiculosViewModel>();
 
@@ -455,12 +459,18 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
     final uploadService = UploadService(); // usa el tuyo real
 
+    if (destinoImagenes == null || destinoImagenes.isEmpty) {
+      NotificationService.showSnackbar(
+        "Error: No se ha configurado la ruta de destino para las imágenes. Por favor, configure 'uploadLocal' en la sección empresa.",
+      );
+      return;
+    }
+
     final uploaded = await uploadService.uploadImages(
       imagePaths: [path!],
       token: token,
       user: user,
       urlCarpeta: destinoImagenes,
-      
     );
 
     //  GUARDAR EN docGlobal (AJUSTA SEGÚN TU MODELO)
