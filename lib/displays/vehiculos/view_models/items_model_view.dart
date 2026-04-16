@@ -209,14 +209,14 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   // ================================
   //   MOVER ÍTEM ARRIBA
   // ================================
-  void moveItemToTop(String idProducto) {
-    final index = items.indexWhere((i) => i.idProducto == idProducto);
-    if (index > 0) {
-      final item = items.removeAt(index);
-      items.insert(0, item);
-      notifyListeners();
-    }
-  }
+  // void moveItemToTop(String idProducto) {
+  //   final index = items.indexWhere((i) => i.idProducto == idProducto);
+  //   if (index > 0) {
+  //     final item = items.removeAt(index);
+  //     items.insert(0, item);
+  //     notifyListeners();
+  //   }
+  // }
 
   // ================================
   //   TOMAR FOTO
@@ -424,5 +424,45 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
   bool todosLosItemsMarcados() {
     return items.every((item) => isChecked[item.idProducto] ?? false);
+  }
+
+  ////////////////// eliminar datos seleccionados
+  // ================================
+  //   LIMPIAR TODOS LOS DATOS
+  // ================================
+  Future<void> limpiarDatosItems() async {
+    // 1. Limpiar textos y checks
+    for (var idProducto in controllers.keys) {
+      controllers[idProducto]?.clear();
+      isChecked[idProducto] = false;
+    }
+
+    // 2. Eliminar fotos físicas y limpiar mapas
+    for (var fotos in fotosPorItem.values) {
+      for (var path in fotos) {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete(); // Elimina la imagen del almacenamiento
+        }
+      }
+    }
+    fotosPorItem.clear();
+
+    // 3. Limpiar transacciones internas
+    for (var tra in transaciciones) {
+      tra.isChecked = false;
+      tra.observacion = '';
+      tra.files?.clear();
+      tra.filesUpload?.clear();
+    }
+    transaciciones.clear();
+
+    // 4. Limpiar lista de ítems cargados (opcional según tu flujo)
+    items.clear();
+
+    // 5. Limpiar errores
+    error = null;
+
+    notifyListeners();
   }
 }

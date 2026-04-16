@@ -137,8 +137,6 @@ class _ItemsVehiculoView extends StatelessWidget {
                                     ),
                                   );
                                 }
-
-                                vm.moveItemToTop(item.idProducto);
                               } else {
                                 // ❌ MARCAR COMO NO COMPLETADO
                                 final index = vmInicio.itemsAsignados
