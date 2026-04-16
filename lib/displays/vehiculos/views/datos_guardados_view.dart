@@ -248,7 +248,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     'vehiculos_firmaMecanico',
                   ),
                 ),
-                _firmaBox(_firmaMecanico),
+                _firmaBox(_firmaMecanico, enabled: !_documentoEnviado),
 
                 const SizedBox(height: 20),
 
@@ -258,7 +258,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     'vehiculos_firmaCliente',
                   ),
                 ),
-                _firmaBox(_firmaCliente),
+                _firmaBox(_firmaCliente, enabled: !_documentoEnviado),
 
                 const SizedBox(height: 30),
 
@@ -286,6 +286,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         onPressed: (_documentoEnviado || vm.isLoading)
                             ? null
                             : () async {
+                                // setState(() {
+                                //   _documentoEnviado = true;
+                                // });
                                 await _enviarDocumento(context);
                               },
                       ),
@@ -393,19 +396,22 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   }
 
   // ================= FIRMA UI =================
-  Widget _firmaBox(SignatureController controller) {
+  Widget _firmaBox(SignatureController controller, {bool enabled = true}) {
     return Column(
       children: [
         Container(
           height: 150,
           decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
-          child: Signature(
-            controller: controller,
-            backgroundColor: Colors.white,
+          child: IgnorePointer(
+            ignoring: !enabled, // 🔥 bloquea interacción
+            child: Signature(
+              controller: controller,
+              backgroundColor: Colors.white,
+            ),
           ),
         ),
         TextButton(
-          onPressed: controller.clear,
+          onPressed: enabled ? controller.clear : null, // 🔥 deshabilita botón
           child: Text(
             AppLocalizations.of(
               context,
