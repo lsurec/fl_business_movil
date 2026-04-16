@@ -404,8 +404,8 @@ class ConvertDocViewModel extends ChangeNotifier {
     vmDoc.serieSelect?.serieDocumento = serieDocEdit;
 
     cliente = ClientModel(
-      cuentaCorrentista: originalDoc.cuentaCorrentista,
-      cuentaCta: originalDoc.cuentaCta,
+      cuentaCorrentista: originalDoc.cuentaCorrentista ?? 0,
+      cuentaCta: originalDoc.cuentaCta ?? "",
       facturaNombre: originalDoc.cliente,
       facturaNit: originalDoc.nit,
       facturaDireccion: originalDoc.direccion,
@@ -596,7 +596,7 @@ class ConvertDocViewModel extends ChangeNotifier {
     if (existClient == -1) {
       vmDocumento.clienteSelect = ClientModel(
         cuentaCorrentista: 1,
-        cuentaCta: docOriginSelect!.cuentaCta,
+        cuentaCta: docOriginSelect?.cuentaCta ?? "",
         facturaNombre: docOriginSelect!.cliente,
         facturaNit: docOriginSelect!.nit,
         facturaDireccion: docOriginSelect!.direccion,
