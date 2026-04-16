@@ -250,21 +250,13 @@ class _CardDoc extends StatelessWidget {
     final vm = Provider.of<PendingDocsViewModel>(context);
 
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "${AppLocalizations.of(context)!.translate(BlockTranslate.home, 'idDoc')} ${document.iDDocumento}",
-                style: StyleApp.normalBold,
-              ),
-              Text(
-                "${AppLocalizations.of(context)!.translate(BlockTranslate.general, 'usuario')}: ${document.usuario}",
-                style: StyleApp.normalBold,
-              ),
-            ],
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text(
+            "${AppLocalizations.of(context)!.translate(BlockTranslate.general, 'usuario')}: ${document.usuario}",
+            style: StyleApp.normalBold,
           ),
         ),
         GestureDetector(
@@ -275,6 +267,11 @@ class _CardDoc extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    "${AppLocalizations.of(context)!.translate(BlockTranslate.home, 'idDoc')} ${document.iDDocumento}",
+                    style: StyleApp.normalBold,
+                  ),
+                  const SizedBox(height: 5),
                   TextsWidget(
                     title: AppLocalizations.of(
                       context,
