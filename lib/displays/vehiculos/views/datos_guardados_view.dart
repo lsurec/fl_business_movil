@@ -268,7 +268,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     children: [
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: const Color(0xff134895),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                             vertical: 14,
@@ -348,17 +348,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           ),
                           style: const TextStyle(color: Colors.white),
                         ),
-
-                        onPressed: () {
+                        onPressed: () async {
                           final vm = context.read<InicioVehiculosViewModel>();
                           final elVM = context
                               .read<ElementoAsigandoViewModel>();
+                          final itemsVM = context
+                              .read<ItemsVehiculoViewModel>();
 
-                          // ✅ Limpiar datos
+                          // Limpiar datos de todos los ViewModels
+                          await itemsVM.limpiarDatosItems();
                           vm.cancelar();
                           elVM.cancelar();
 
-                          // ✅ Regresar al inicio
+                          // Regresar al inicio
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             final navigator = Navigator.of(context);
                             try {

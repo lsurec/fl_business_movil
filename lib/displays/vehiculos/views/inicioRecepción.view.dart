@@ -4,6 +4,7 @@ import 'package:fl_business/displays/prc_documento_3/models/serie_model.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
+import 'package:fl_business/displays/vehiculos/FormatoMiles/ThousandsFormatter.dart';
 import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
@@ -29,6 +30,19 @@ class InicioVehiculosView extends StatefulWidget {
   State<InicioVehiculosView> createState() => _InicioVehiculosViewState();
 }
 
+class UpperCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    return TextEditingValue(
+      text: newValue.text.toUpperCase(),
+      selection: newValue.selection,
+    );
+  }
+}
+
 class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   @override
   void initState() {
@@ -38,7 +52,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       // Agregar listeners después de cargar datos
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final vm = context
-            .read<InicioVehiculosViewModel>(); // 👈 OTRA VEZ AQUÍ (seguro)
+            .read<InicioVehiculosViewModel>(); // OTRA VEZ AQUÍ (seguro)
         vm.placaController.addListener(_revalidar);
         vm.chasisController.addListener(_revalidar);
       });
@@ -125,7 +139,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     : null,
               ),
               IconButton(
-                icon: const Icon(Icons.cancel_rounded, color: Colors.white),
+                icon: const Icon(Icons.note_add_outlined, color: Colors.white),
                 tooltip: AppLocalizations.of(
                   context,
                 )!.translate(BlockTranslate.botones, 'cancelar'),
@@ -596,6 +610,12 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       vm.placaController,
                       fillColor: cardColor,
                       textColor: textColor,
+                      inputFormatters: [
+                        UpperCaseTextFormatter(),
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'[A-Z0-9-]'),
+                        ), // Opcional
+                      ],
                     ),
                     const SizedBox(height: 8),
                     _buildTextField(
@@ -879,6 +899,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     Color? textColor,
     TextInputType keyboardType = TextInputType.text,
     TextInputAction textInputAction = TextInputAction.next,
+    List<TextInputFormatter>? inputFormatters, // Nuevo parámetro
   }) {
     // Colores calculados según el tema
     final bgColor =
@@ -896,6 +917,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         controller: controller,
         keyboardType: keyboardType,
         textInputAction: textInputAction,
+        inputFormatters: inputFormatters, // Se aplican aquí
         onChanged: (_) {
           context.read<InicioVehiculosViewModel>().notifyListeners();
         },
@@ -919,9 +941,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     Color? textColor,
     int? maxLength,
     bool allowDecimal = false,
-    int decimalRange = 2, // Cantidad de decimales permitidos
+    int decimalRange = 2,
+    bool useThousandsSeparator = false, // Nuevo parámetro
   }) {
-    // Colores según el tema
     final bgColor =
         fillColor ??
         (AppTheme.isDark()
@@ -931,20 +953,27 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     final txtColor =
         textColor ?? (AppTheme.isDark() ? Colors.white : Colors.black87);
 
-    // InputFormatter según si permite decimales
-    final List<TextInputFormatter> formatters = allowDecimal
-        ? [
-            FilteringTextInputFormatter.allow(
-              RegExp(r'^\d*\.?\d{0,' + decimalRange.toString() + r'}'),
-            ),
-          ]
-        : [FilteringTextInputFormatter.digitsOnly];
+    final List<TextInputFormatter> formatters = [];
+
+    if (allowDecimal) {
+      formatters.add(
+        FilteringTextInputFormatter.allow(
+          RegExp(r'^\d*\.?\d{0,' + decimalRange.toString() + r'}'),
+        ),
+      );
+    } else {
+      formatters.add(FilteringTextInputFormatter.digitsOnly);
+    }
+
+    if (useThousandsSeparator) {
+      formatters.add(ThousandsFormatter()); // Formatear inputs de miles
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: TextField(
         controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        keyboardType: TextInputType.number,
         inputFormatters: formatters,
         maxLength: maxLength,
         onChanged: (_) {
@@ -956,7 +985,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           labelStyle: TextStyle(color: txtColor),
           filled: true,
           fillColor: bgColor,
-          counterText: '', // Oculta el contador si se usa maxLength
+          counterText: '',
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
       ),
@@ -1009,6 +1038,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         _buildNumberTextField(
           t.translate(BlockTranslate.vehiculos, 'kilometraje'),
           vm.kilometrajeController,
+          useThousandsSeparator: true,
         ),
         _buildNumberTextField(
           t.translate(BlockTranslate.vehiculos, 'cc'),

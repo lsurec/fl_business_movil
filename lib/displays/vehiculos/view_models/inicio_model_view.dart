@@ -573,7 +573,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     final valido =
         clienteSelect != null &&
         placaController.text.trim().isNotEmpty &&
-        chasisController.text.trim().isNotEmpty &&
+        // chasisController.text.trim().isNotEmpty &&
         fechaRecibido.isNotEmpty &&
         fechaSalida.isNotEmpty;
 
@@ -964,7 +964,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         desGrupoCuenta: null,
         grupoCuenta: 0,
       );
-      
+
       //Mensaje de confirmacion
       NotificationService.showSnackbar(
         AppLocalizations.of(
@@ -1920,7 +1920,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // Observaciones técnicas
       // --------------------
       detalleTrabajo: recepcionGuardada?.detalleTrabajo,
-      kilometraje: recepcionGuardada?.kilometraje,
+      kilometraje: _cleanNumber(recepcionGuardada?.kilometraje),
+      // kilometraje: recepcionGuardada?.kilometraje,
       cc: recepcionGuardada?.cc,
       cil: recepcionGuardada?.cil,
     );
@@ -2046,4 +2047,13 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       }
     }
   }
+
+  String? _cleanNumber(String? value) {
+  if (value == null || value.trim().isEmpty) {
+    return null;
+  }
+
+  // Eliminar separadores de miles (comas)
+  return value.replaceAll(',', '');
+}
 }
