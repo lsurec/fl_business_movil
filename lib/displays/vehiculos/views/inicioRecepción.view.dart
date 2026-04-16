@@ -382,7 +382,19 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         fillColor: cardColor,
                         suffixIcon: IconButton(
                           icon: const Icon(Icons.search),
-                          onPressed: () => vm.performSearchClient(context),
+                          onPressed: () async {
+                            FocusScope.of(context).unfocus();
+
+                            try {
+                              vm.setLoading(true); //  activar loader
+
+                              await vm.performSearchClient(context);
+                            } catch (e) {
+                              print(e);
+                            } finally {
+                              vm.setLoading(false); //  quitar loader
+                            }
+                          },
                         ),
                       ),
                       validator: (value) {
@@ -532,10 +544,22 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           icon: const Icon(Icons.search),
                           onPressed: () async {
                             FocusScope.of(context).unfocus();
+
                             if (elVM.buscarElementoAsignado.text.trim().isEmpty)
                               return;
-                            await elVM.getElementoAsignado(context);
-                            elVM.mostrarLista();
+
+                            final vm = context.read<InicioVehiculosViewModel>();
+
+                            try {
+                              vm.setLoading(true); // ACTIVAR LOADING
+
+                              await elVM.getElementoAsignado(context);
+                              elVM.mostrarLista();
+                            } catch (e) {
+                              print(e);
+                            } finally {
+                              vm.setLoading(false); // DESACTIVAR LOADING
+                            }
                           },
                         ),
                       ),
