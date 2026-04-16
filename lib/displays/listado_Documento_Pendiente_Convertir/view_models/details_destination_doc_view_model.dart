@@ -2,7 +2,11 @@
 
 import 'package:fl_business/displays/report/reports/documento_conversion/provider.dart';
 import 'package:fl_business/displays/report/reports/documento_conversion/tmu.dart';
+import 'package:fl_business/displays/report/reports/pdf/utilities_pdf.dart';
 import 'package:fl_business/displays/report/utils/pdf_utils.dart';
+import 'package:fl_business/displays/shr_local_config/models/empresa_model.dart';
+import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/services/picture_service.dart';
 import 'package:flutter/services.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/models.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/services/services.dart';
@@ -221,15 +225,18 @@ class DetailsDestinationDocViewModel extends ChangeNotifier {
 
     String vendedor = encabezado.atendio ?? "";
 
-    //Logos para el pdf
-    final ByteData logoEmpresa = await rootBundle.load('assets/empresa.png');
-    final ByteData imgFel = await rootBundle.load('assets/fel.png');
-    final ByteData imgDemo = await rootBundle.load('assets/logo_demosoft.png');
+    PictureService pictureService = PictureService();
 
-    //formato de imagenes valido
-    Uint8List logoData = (logoEmpresa).buffer.asUint8List();
-    Uint8List logoFel = (imgFel).buffer.asUint8List();
-    Uint8List logoDemo = (imgDemo).buffer.asUint8List();
+    final EmpresaModel empresaVm = Provider.of<LocalSettingsViewModel>(
+      contextP,
+      listen: false,
+    ).selectedEmpresa!;
+
+    final ByteData logo = await pictureService.getLogo(
+      empresaVm.absolutePathPicture,
+    );
+
+    final ByteData logoDemo = await rootBundle.load('assets/logo_demosoft.png');
 
     //Estilos para el pdf
     pw.TextStyle font8 = const pw.TextStyle(fontSize: 8);
@@ -685,12 +692,28 @@ class DetailsDestinationDocViewModel extends ChangeNotifier {
             ),
           ];
         },
-        //encabezado
-        header: (pw.Context context) =>
-            buildHeader(contextP, logoData, empresa, documento, false),
-        //pie de pagina
-        footer: (pw.Context context) =>
-            buildFooter(contextP, logoDemo, logoFel, encabezado, false),
+        header: (_) => UtilitiesPdf.buildHeader(
+          logo,
+          [
+            empresa.razonSocial,
+            empresa.nombre,
+            empresa.direccion,
+            "NIT: ${empresa.nit}",
+            "TEL: ${empresa.tel}",
+          ],
+          [
+            AppLocalizations.of(
+              contextP,
+            )!.translate(BlockTranslate.tiket, 'generico'),
+            documento.titulo,
+          ],
+        ),
+        // //pie de pagina
+        footer: (pw.Context context) => UtilitiesPdf.buildFooter(
+          logoDemo,
+          context,
+          "rpt_TD_Documento_Movil",
+        ),
       ),
     );
 
@@ -701,239 +724,6 @@ class DetailsDestinationDocViewModel extends ChangeNotifier {
       contextP,
       pdf,
       AppLocalizations.of(contextP)!.translate(BlockTranslate.tiket, 'pdf'),
-    );
-  }
-
-  //encabezado del pdf
-  pw.Widget buildHeader(
-    BuildContext context,
-    Uint8List logo,
-    Empresa empresa,
-    Documento documento,
-    bool isFel,
-  ) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(bottom: 10),
-      child: pw.Row(
-        children: [
-          // Item 1 (50%)
-          pw.Container(
-            width: PdfPageFormat.letter.width * 0.20,
-            height: 65,
-            child: pw.Image(pw.MemoryImage(logo)),
-          ),
-          pw.Container(width: PdfPageFormat.letter.width * 0.10),
-          // Item 2 (25%)
-          pw.Container(
-            margin: const pw.EdgeInsets.symmetric(horizontal: 15),
-            width: PdfPageFormat.letter.width * 0.40,
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.center,
-              children: [
-                pw.Text(
-                  empresa.razonSocial,
-                  style: pw.TextStyle(
-                    fontSize: 10,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                  textAlign: pw.TextAlign.center,
-                ),
-                pw.Text(
-                  empresa.nombre,
-                  style: const pw.TextStyle(fontSize: 9),
-                  textAlign: pw.TextAlign.center,
-                ),
-                pw.Text(
-                  empresa.direccion,
-                  style: const pw.TextStyle(fontSize: 9),
-                  textAlign: pw.TextAlign.center,
-                ),
-                pw.Text(
-                  "NIT: ${empresa.nit}",
-                  style: const pw.TextStyle(fontSize: 9),
-                  textAlign: pw.TextAlign.center,
-                ),
-                pw.Text(
-                  "TEL: ${empresa.tel}",
-                  style: const pw.TextStyle(fontSize: 9),
-                  textAlign: pw.TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          pw.Container(width: PdfPageFormat.letter.width * 0.02),
-          // Item 3 (25%)
-          pw.Container(
-            width: PdfPageFormat.letter.width * 0.30,
-            child: isFel
-                ? pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        documento.descripcion,
-                        style: pw.TextStyle(
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                      pw.Text(
-                        documento.titulo,
-                        style: pw.TextStyle(
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                      pw.Text(
-                        '${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'serie')} ${documento.serie}',
-                        style: const pw.TextStyle(fontSize: 8),
-                      ),
-                      pw.Text(
-                        '${AppLocalizations.of(context)!.translate(BlockTranslate.tiket, 'numero')} ${documento.no}',
-                        style: const pw.TextStyle(fontSize: 8),
-                      ),
-                      pw.Text(
-                        '${AppLocalizations.of(context)!.translate(BlockTranslate.fecha, 'certificacion')} ${documento.fechaCert}',
-                        style: const pw.TextStyle(fontSize: 8),
-                      ),
-                      pw.Text(
-                        AppLocalizations.of(
-                          context,
-                        )!.translate(BlockTranslate.tiket, 'firma'),
-                        style: const pw.TextStyle(fontSize: 8),
-                      ),
-                      pw.Text(
-                        documento.autorizacion,
-                        style: const pw.TextStyle(fontSize: 8),
-                      ),
-                    ],
-                  )
-                : pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text(
-                        AppLocalizations.of(
-                          context,
-                        )!.translate(BlockTranslate.tiket, 'generico'),
-                        style: pw.TextStyle(
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                      pw.Text(
-                        documento.titulo,
-                        style: pw.TextStyle(
-                          fontSize: 8,
-                          fontWeight: pw.FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget buildFooter(
-    BuildContext context,
-    Uint8List logoDemo,
-    Uint8List logoFel,
-    PrintConvertModel encabezado,
-    bool isFel,
-  ) {
-    return pw.Container(
-      margin: const pw.EdgeInsets.only(top: 10),
-      child: pw.Row(
-        children: [
-          // Item 1 (50%)
-          pw.Container(
-            width: PdfPageFormat.letter.width * 0.20,
-            height: 35,
-            child: pw.Image(pw.MemoryImage(logoFel)),
-          ),
-          // Item 2 (25%)
-          pw.Container(
-            margin: const pw.EdgeInsets.symmetric(horizontal: 15),
-            width: PdfPageFormat.letter.width * 0.70,
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-              children: [
-                if (isFel)
-                  pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.center,
-                    children: [
-                      // pw.Text(
-                      //   AppLocalizations.of(context)!.translate(
-                      //     BlockTranslate.tiket,
-                      //     'certificador',
-                      //   ),
-                      //   style: const pw.TextStyle(
-                      //     fontSize: 8,
-                      //     color: PdfColors.grey,
-                      //   ),
-                      //   textAlign: pw.TextAlign.center,
-                      // ),
-                      // pw.Text(
-                      //   "Nit: ${encabezado.certificadorDteNit}",
-                      //   style: const pw.TextStyle(
-                      //     fontSize: 8,
-                      //     color: PdfColors.grey,
-                      //   ),
-                      //   textAlign: pw.TextAlign.center,
-                      // ),
-                      // pw.Text(
-                      //   "${AppLocalizations.of(context)!.translate(
-                      //     BlockTranslate.tiket,
-                      //     'nombre',
-                      //   )} ${encabezado.certificadorDteNombre}",
-                      //   style: const pw.TextStyle(
-                      //     fontSize: 8,
-                      //     color: PdfColors.grey,
-                      //   ),
-                      //   textAlign: pw.TextAlign.center,
-                      // ),
-                    ],
-                  ),
-                pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
-                  children: [
-                    pw.Text(
-                      "Powered By:",
-                      style: const pw.TextStyle(
-                        fontSize: 8,
-                        color: PdfColors.grey,
-                      ),
-                      textAlign: pw.TextAlign.center,
-                    ),
-                    pw.Text(
-                      "Desarrollo Moderno de Software S.A",
-                      style: const pw.TextStyle(
-                        fontSize: 8,
-                        color: PdfColors.grey,
-                      ),
-                      textAlign: pw.TextAlign.center,
-                    ),
-                    pw.Text(
-                      "www.demosoft.com.gt",
-                      style: const pw.TextStyle(
-                        fontSize: 8,
-                        color: PdfColors.grey,
-                      ),
-                      textAlign: pw.TextAlign.center,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Item 3 (25%)
-          pw.Container(
-            width: PdfPageFormat.letter.width * 0.20,
-            height: 45,
-            child: pw.Image(pw.MemoryImage(logoDemo)),
-          ),
-        ],
-      ),
     );
   }
 }
