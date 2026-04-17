@@ -1842,7 +1842,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docCaMonto: 0,
       docIdCertificador: 1,
       docCuentaVendedor: vendedorSelect?.cuentaCorrentista,
-      docIdDocumentoRef: idDocumentoRef,
+      docIdDocumentoRef:  idDocumentoRef,
       docFelNumeroDocumento: null,
       docFelSerie: null,
       docFelUUID: null,
