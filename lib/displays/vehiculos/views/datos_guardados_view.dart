@@ -18,6 +18,7 @@ import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -102,11 +103,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'celular'),
-                  vm.clienteSelect?.telefono ?? vm.celularController.text,
+                  vm.recepcionGuardada?.celular ?? "",
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'email'),
-                  vm.clienteSelect?.eMail ?? "",
+                  vm.recepcionGuardada?.email ?? "",
                 ),
 
                 const SizedBox(height: 20),
@@ -201,10 +202,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 const SizedBox(height: 20),
 
                 // ================= OBSERVACIONES =================
-                _titulo(t.translate(BlockTranslate.vehiculos, 'observaciones')),
+                _titulo(t.translate(BlockTranslate.vehiculos, 'vehiculos_detalleTrabajo')),
 
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'detalleTrabajo'),
+                  t.translate(BlockTranslate.vehiculos, 'observaciones'),
                   vm.recepcionGuardada?.detalleTrabajo ?? '—',
                 ),
                 _dato(
@@ -218,6 +219,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'cil'),
                   vm.recepcionGuardada?.cil ?? '—',
+                ),
+                _dato(
+                  t.translate(BlockTranslate.vehiculos, 'asesor'),
+                  vm.vendedorSelect?.nomCuentaCorrentista ?? '—',
                 ),
 
                 const SizedBox(height: 30),
@@ -317,20 +322,27 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
                         onPressed: () async {
                           final vm = context.read<InicioVehiculosViewModel>();
-                          final firmaMecBytes = await _firmaMecanico
-                              .toPngBytes();
-                          final firmaCliBytes = await _firmaCliente
-                              .toPngBytes();
 
-                          // Generar PDF temporal
-                          await _generarPdf(
-                            context,
-                            firmaMecanico: firmaMecBytes,
-                            firmaCliente: firmaCliBytes,
-                          );
+                          try {
+                            vm.setLoading(true); // ACTIVAR LOADING
 
-                          // Compartir PDF
-                          await _compartirDocumento();
+                            final firmaMecBytes = await _firmaMecanico
+                                .toPngBytes();
+                            final firmaCliBytes = await _firmaCliente
+                                .toPngBytes();
+
+                            await _generarPdf(
+                              context,
+                              firmaMecanico: firmaMecBytes,
+                              firmaCliente: firmaCliBytes,
+                            );
+
+                            await _compartirDocumento();
+                          } catch (e) {
+                            print(e);
+                          } finally {
+                            vm.setLoading(false); // DESACTIVAR LOADING
+                          }
                         },
                       ),
 
@@ -489,6 +501,12 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     }).toList();
   }
 
+  ///// Imagen Logo
+  Future<Uint8List> cargarImagenDesdeAssets(String path) async {
+    final data = await rootBundle.load(path);
+    return data.buffer.asUint8List();
+  }
+
   /// Carga la imagen del vehículo (asset) y la convierte en ImageProvider para PDF
   Future<pw.ImageProvider?> _cargarImagenPdf(BuildContext context) async {
     final vm = context.read<InicioVehiculosViewModel>();
@@ -571,7 +589,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   //// Aqui importamos el logo de la empresa
   ///
   pw.Widget buildHeader(
-    ByteData logoByte,
+    Uint8List logo,
     List<String> headersStart,
     List<String> headersEnd,
   ) {
@@ -580,10 +598,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     //formato de imagenes valido
     // Uint8List logo = (logoByte).buffer.asUint8List();
 
-    final logo = logoByte.buffer.asUint8List(
-      logoByte.offsetInBytes,
-      logoByte.lengthInBytes,
-    );
+    // final logo = logoByte.buffer.asUint8List(
+    //   logoByte.offsetInBytes,
+    //   logoByte.lengthInBytes,
+    // );
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 10),
@@ -660,6 +678,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final pw.ImageProvider? firmaClientePdf = firmaCliente != null
         ? pw.MemoryImage(firmaCliente)
         : null;
+    final logoBytes = await cargarImagenDesdeAssets(
+      'assets/ImagenesTaller/LubritecLogo.jpg',
+    );
     Uint8List logoTaller = (logo).buffer.asUint8List();
     pdf.addPage(
       pw.MultiPage(
@@ -670,12 +691,12 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           marginRight: 20,
         ),
         header: (_) => buildHeader(
-          logo,
+          logoBytes,
           [
             empresa.empresaNombre,
             empresa.empresaDireccion,
             empresa.empresaNit,
-            'Tel: ${'---'}',
+            'Tel: ---',
           ],
           [
             'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
@@ -832,11 +853,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
+              pw.Text('Asesor: ${vm.vendedorSelect?.nomCuentaCorrentista}', style: pw.TextStyle(fontSize: 12)),
               pw.Text(
-                'Observación: Combustible:',
+                'Observación Combustible:',
                 style: pw.TextStyle(fontSize: 12),
               ),
-              pw.SizedBox(height: 5),
               pw.Text('Obs. Vehículo:', style: pw.TextStyle(fontSize: 12)),
             ],
           ),

@@ -487,8 +487,17 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       nit: clienteSelect?.facturaNit ?? "",
       nombre: clienteSelect?.facturaNombre ?? "",
       direccion: clienteSelect?.facturaDireccion ?? "",
-      celular: clienteSelect?.telefono ?? "",
-      email: clienteSelect?.eMail ?? "",
+      celular: celularController.text.trim().isNotEmpty
+          ? celularController.text.trim()
+          : (clienteSelect?.telefono?.isNotEmpty == true
+                ? clienteSelect!.telefono!
+                : ""),
+
+      email: emailController.text.trim().isNotEmpty
+          ? emailController.text.trim()
+          : (clienteSelect?.eMail?.isNotEmpty == true
+                ? clienteSelect!.eMail!
+                : ""),
 
       // --------------------
       // Datos del vehículo
@@ -1842,7 +1851,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docCaMonto: 0,
       docIdCertificador: 1,
       docCuentaVendedor: vendedorSelect?.cuentaCorrentista,
-      docIdDocumentoRef:  idDocumentoRef,
+      docIdDocumentoRef: idDocumentoRef,
       docFelNumeroDocumento: null,
       docFelSerie: null,
       docFelUUID: null,
@@ -2049,11 +2058,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   String? _cleanNumber(String? value) {
-  if (value == null || value.trim().isEmpty) {
-    return null;
-  }
+    if (value == null || value.trim().isEmpty) {
+      return null;
+    }
 
-  // Eliminar separadores de miles (comas)
-  return value.replaceAll(',', '');
-}
+    // Eliminar separadores de miles (comas)
+    return value.replaceAll(',', '');
+  }
 }
