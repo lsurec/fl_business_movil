@@ -18,6 +18,7 @@ import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -565,13 +566,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     );
   }
 
+  /// Cargar el logo
+  Future<Uint8List> cargarImagenDesdeAssets(String path) async {
+    final data = await rootBundle.load(path);
+    return data.buffer.asUint8List();
+  }
+
   // ================= PDF =================
   final DateTime fechaActual = DateTime.now();
 
   //// Aqui importamos el logo de la empresa
   ///
   pw.Widget buildHeader(
-    ByteData logoByte,
+    Uint8List logo,
     List<String> headersStart,
     List<String> headersEnd,
   ) {
@@ -580,10 +587,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     //formato de imagenes valido
     // Uint8List logo = (logoByte).buffer.asUint8List();
 
-    final logo = logoByte.buffer.asUint8List(
-      logoByte.offsetInBytes,
-      logoByte.lengthInBytes,
-    );
+    // final logo = logoByte.buffer.asUint8List(
+    //   logoByte.offsetInBytes,
+    //   logoByte.lengthInBytes,
+    // );
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 10),
@@ -644,6 +651,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   }) async {
     final empresa = context.read<LocalSettingsViewModel>().selectedEmpresa!;
     final pictureService = PictureService();
+    final logoBytes = await cargarImagenDesdeAssets(
+      'assets/ImagenesTaller/LubritecLogo.jpg',
+    );
 
     final ByteData logo = await pictureService.getLogo(
       empresa.absolutePathPicture,
@@ -670,12 +680,12 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           marginRight: 20,
         ),
         header: (_) => buildHeader(
-          logo,
+          logoBytes,
           [
             empresa.empresaNombre,
             empresa.empresaDireccion,
             empresa.empresaNit,
-            'Tel: ${'---'}',
+            'Tel: ---',
           ],
           [
             'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
