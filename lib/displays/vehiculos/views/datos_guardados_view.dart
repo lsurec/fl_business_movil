@@ -9,8 +9,10 @@ import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
+import 'package:fl_business/services/picture_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
+import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
 import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
@@ -88,11 +90,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'vehiculos_nit'),
-                  vm.clienteSelect?.facturaNit ?? "",
+                  vm.recepcionGuardada?.nit ?? "",
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'vehiculos_nombre'),
-                  vm.clienteSelect?.facturaNombre ?? "",
+                  vm.recepcionGuardada?.nombre ?? "",
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'vehiculos_direccion'),
@@ -403,7 +405,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           height: 150,
           decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
           child: IgnorePointer(
-            ignoring: !enabled, // 🔥 bloquea interacción
+            ignoring: !enabled, //  bloquea interacción
             child: Signature(
               controller: controller,
               backgroundColor: Colors.white,
@@ -411,7 +413,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           ),
         ),
         TextButton(
-          onPressed: enabled ? controller.clear : null, // 🔥 deshabilita botón
+          onPressed: enabled ? controller.clear : null, //  deshabilita botón
           child: Text(
             AppLocalizations.of(
               context,
@@ -564,11 +566,91 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   }
 
   // ================= PDF =================
+  final DateTime fechaActual = DateTime.now();
+
+  //// Aqui importamos el logo de la empresa
+  ///
+  pw.Widget buildHeader(
+    ByteData logoByte,
+    List<String> headersStart,
+    List<String> headersEnd,
+  ) {
+    //Logos para el pdf
+
+    //formato de imagenes valido
+    // Uint8List logo = (logoByte).buffer.asUint8List();
+
+    final logo = logoByte.buffer.asUint8List(
+      logoByte.offsetInBytes,
+      logoByte.lengthInBytes,
+    );
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 10),
+      child: pw.Column(
+        children: [
+          // 🔹 CONTENIDO DEL HEADER (tu Row actual)
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Container(
+                width: PdfPageFormat.letter.width * 0.20,
+                margin: const pw.EdgeInsets.symmetric(horizontal: 15),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    ...headersStart.map(
+                      (text) =>
+                          pw.Text(text, style: const pw.TextStyle(fontSize: 9)),
+                    ),
+                  ],
+                ),
+              ),
+
+              pw.Container(
+                height: 65,
+                child: pw.Image(pw.MemoryImage(logo), fit: pw.BoxFit.contain),
+              ),
+
+              pw.Container(
+                width: PdfPageFormat.letter.width * 0.20,
+                child: pw.Column(
+                  children: [
+                    ...headersEnd.map(
+                      (text) => pw.Text(
+                        text,
+                        style: const pw.TextStyle(fontSize: 9),
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          //DIVIDER AQUÍ
+          pw.SizedBox(height: 5),
+          pw.Divider(thickness: 1),
+        ],
+      ),
+    );
+  }
+
   Future<void> _generarPdf(
     BuildContext context, {
     Uint8List? firmaMecanico,
     Uint8List? firmaCliente,
   }) async {
+    final empresa = context.read<LocalSettingsViewModel>().selectedEmpresa!;
+    final pictureService = PictureService();
+
+    final ByteData logo = await pictureService.getLogo(
+      empresa.absolutePathPicture,
+    );
+
+    // Convertir a formato usable en PDF
+    final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
     final vm = context.read<InicioVehiculosViewModel>();
     final pdf = pw.Document();
     final imagenVehiculoPdf = await _cargarImagenPdf(context);
@@ -578,56 +660,90 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final pw.ImageProvider? firmaClientePdf = firmaCliente != null
         ? pw.MemoryImage(firmaCliente)
         : null;
-
+    Uint8List logoTaller = (logo).buffer.asUint8List();
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: PdfPageFormat.letter.copyWith(
+          marginBottom: 20,
+          marginLeft: 20,
+          marginTop: 20,
+          marginRight: 20,
+        ),
+        header: (_) => buildHeader(
+          logo,
+          [
+            empresa.empresaNombre,
+            empresa.empresaDireccion,
+            empresa.empresaNit,
+            'Tel: ${'---'}',
+          ],
+          [
+            'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
+            'ID Doc: $consecutivoDoc',
+          ],
+        ),
         build: (_) => [
+          pw.SizedBox(height: 10),
+          pw.SizedBox(height: 10),
+
           // ===================== ENCABEZADO =====================
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                'Cliente: ${vm.nombre}',
-                style: pw.TextStyle(
-                  fontSize: 12,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.Text(
-                'Dirección: ${vm.direccion}',
-                style: pw.TextStyle(fontSize: 12),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Row(
-                children: [
-                  pw.Text(
-                    'Marca: ${vm.marcaSeleccionada?.descripcion ?? '—'}',
-                    style: pw.TextStyle(fontSize: 12),
-                  ),
-                  pw.SizedBox(width: 20),
-                  pw.Text(
-                    'Línea: ${vm.modeloSeleccionado?.descripcion ?? '—'}',
-                    style: pw.TextStyle(fontSize: 12),
-                  ),
-                  pw.SizedBox(width: 20),
-                  pw.Text(
-                    'Modelo: ${vm.anioSeleccionado?.anio.toString() ?? '—'}',
-                    style: pw.TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-              // Solo las etiquetas sin contenido
-              pw.Text('Combustible:', style: pw.TextStyle(fontSize: 12)),
-              pw.Text('Obs. Generales:', style: pw.TextStyle(fontSize: 12)),
-              pw.SizedBox(height: 20),
-            ],
+          // ===================== INFORMACIÓN DEL CLIENTE =====================
+          pw.Text(
+            'INFORMACIÓN DEL CLIENTE',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
           ),
+          pw.SizedBox(height: 5),
+
+          _filaDoble(
+            'Nombre',
+            vm.clienteSelect?.facturaNombre ?? '',
+            'NIT',
+            vm.clienteSelect?.facturaNit ?? '',
+          ),
+
+          _filaDoble(
+            'Teléfono',
+            vm.recepcionGuardada?.celular ?? '',
+            'Email',
+            vm.recepcionGuardada?.email ?? '',
+          ),
+
+          pw.SizedBox(height: 10),
+
+          // ===================== INFORMACIÓN DEL VEHÍCULO =====================
+          pw.Text(
+            'INFORMACIÓN DEL VEHÍCULO',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 5),
+
+          _filaDoble(
+            'Marca',
+            vm.marcaSeleccionada?.descripcion ?? '—',
+            'Línea',
+            vm.modeloSeleccionado?.descripcion ?? '—',
+          ),
+
+          _filaDoble(
+            'Placa',
+            vm.recepcionGuardada?.placa ?? '—',
+            'Color',
+            vm.colorSeleccionado?.descripcion ?? '—',
+          ),
+
+          _filaDoble(
+            'Año',
+            vm.anioSeleccionado?.anio.toString() ?? '—',
+            'Chasis',
+            vm.recepcionGuardada?.chasis ?? '—',
+          ),
+
+          pw.SizedBox(height: 20),
 
           // ===================== TÍTULO =====================
           pw.Center(
             child: pw.Text(
-              'DETALLE DEL TRABAJO',
+              'ITEMS VERIFICADOS',
               style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
             ),
           ),
@@ -635,18 +751,78 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
           // ===================== TABLA DE ITEMS (SKU + OBSERVACIÓN) =====================
           if (vm.itemsAsignados.isNotEmpty)
-            pw.Table.fromTextArray(
+            pw.Table(
               border: pw.TableBorder.all(),
-              cellAlignment: pw.Alignment.centerLeft,
-              headerDecoration: pw.BoxDecoration(color: PdfColors.grey200),
-              headers: ['Observación', 'SKU'],
-              data: vm.itemsAsignados.map((item) {
-                // Usar el detalle como observación
-                return [
-                  item.detalle.isEmpty ? '—' : item.detalle,
-                  item.desProducto, // SKU es la descripción del producto
-                ];
-              }).toList(),
+              columnWidths: {
+                0: const pw.FixedColumnWidth(30), // check
+                1: const pw.FlexColumnWidth(2), // SKU
+                2: const pw.FlexColumnWidth(3), // NOTA
+              },
+              children: [
+                // ===================== HEADER =====================
+                pw.TableRow(
+                  decoration: pw.BoxDecoration(color: PdfColors.grey300),
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        '✓',
+                        textAlign: pw.TextAlign.center,
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        'SKU',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        'NOTA',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // ===================== FILAS =====================
+                ...vm.itemsAsignados.map((item) {
+                  return pw.TableRow(
+                    children: [
+                      // ✔ CHECK VERDE
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Center(
+                          child: pw.Text(
+                            'X',
+                            style: pw.TextStyle(
+                              color: PdfColors.green,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // SKU
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Text(item.desProducto),
+                      ),
+
+                      // NOTA
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Text(
+                          item.detalle.isEmpty ? ' ' : item.detalle,
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ],
             )
           else
             pw.Text('No se asignaron ítems'),
@@ -742,27 +918,27 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           pw.SizedBox(height: 20),
 
           // ===================== DATOS CLIENTE COMPLETOS =====================
-          pw.Text(
-            'DATOS COMPLETOS',
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.Divider(),
-          _pdfDato('NIT', vm.nit),
-          _pdfDato('Nombre', vm.nombre),
-          _pdfDato('Dirección', vm.direccion),
-          _pdfDato('Celular', vm.celular),
-          _pdfDato('Email', vm.email),
-          pw.SizedBox(height: 20),
+          // pw.Text(
+          //   'DATOS COMPLETOS',
+          //   style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          // ),
+          // pw.Divider(),
+          // _pdfDato('NIT', vm.nit),
+          // _pdfDato('Nombre', vm.nombre),
+          // _pdfDato('Dirección', vm.direccion),
+          // _pdfDato('Celular', vm.celular),
+          // _pdfDato('Email', vm.email),
+          // pw.SizedBox(height: 20),
 
           // ===================== DATOS VEHÍCULO =====================
-          _pdfDato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
-          _pdfDato('Placa', vm.recepcionGuardada?.placa ?? '—'),
-          _pdfDato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
-          _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
-          _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
-          _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
+          // _pdfDato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
+          // _pdfDato('Placa', vm.recepcionGuardada?.placa ?? '—'),
+          // _pdfDato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
+          // _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
+          // _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
+          // _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
           _pdfDato(
-            'Detalle del trabajo',
+            'Observaciones Generales',
             vm.recepcionGuardada?.detalleTrabajo ?? '—',
           ),
 
@@ -887,6 +1063,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     });
   }
 
+  int consecutivoDoc = 0;
   Future<void> _enviarDocumento(BuildContext context) async {
     final vm = context.read<InicioVehiculosViewModel>();
     final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
@@ -941,6 +1118,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       // ================= PASO 3: ENVIAR DOCUMENTO =================
       print('=== PASO 3: Enviar documento ===');
       final res = await vm.sendDocument(context);
+      consecutivoDoc = res.response["data"];
 
       if (res.succes) {
         // ✅ Guardar referencias ANTES de cualquier cambio
@@ -1098,5 +1276,53 @@ pw.Widget _pdfDato(String titulo, String valor) {
       pw.Container(width: 120, child: pw.Text('$titulo:')),
       pw.Expanded(child: pw.Text(valor.isEmpty ? '—' : valor)),
     ],
+  );
+}
+
+pw.Widget _filaDoble(
+  String label1,
+  String value1,
+  String label2,
+  String value2,
+) {
+  return pw.Padding(
+    padding: const pw.EdgeInsets.symmetric(vertical: 2),
+    child: pw.Row(
+      children: [
+        // Columna izquierda
+        pw.Expanded(
+          child: pw.RichText(
+            text: pw.TextSpan(
+              style: pw.TextStyle(fontSize: 12, color: PdfColors.black),
+              children: [
+                pw.TextSpan(
+                  text: '$label1: ',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+                pw.TextSpan(text: value1),
+              ],
+            ),
+          ),
+        ),
+
+        pw.SizedBox(width: 10),
+
+        // Columna derecha
+        pw.Expanded(
+          child: pw.RichText(
+            text: pw.TextSpan(
+              style: pw.TextStyle(fontSize: 12),
+              children: [
+                pw.TextSpan(
+                  text: '$label2: ',
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                ),
+                pw.TextSpan(text: value2),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
   );
 }
