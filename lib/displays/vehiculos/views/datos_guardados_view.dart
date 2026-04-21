@@ -26,6 +26,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:provider/provider.dart';
 import 'package:signature/signature.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:image/image.dart' as img;
 
 // ViewModel
 import '../view_models/inicio_model_view.dart';
@@ -202,7 +203,12 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 const SizedBox(height: 20),
 
                 // ================= OBSERVACIONES =================
-                _titulo(t.translate(BlockTranslate.vehiculos, 'vehiculos_detalleTrabajo')),
+                _titulo(
+                  t.translate(
+                    BlockTranslate.vehiculos,
+                    'vehiculos_detalleTrabajo',
+                  ),
+                ),
 
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'observaciones'),
@@ -210,7 +216,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'kilometraje'),
-                  vm.recepcionGuardada?.kilometraje ?? '—',
+                  vm.recepcionGuardada?.kilometraje != null
+                      ? '${vm.recepcionGuardada!.kilometraje} ${vm.tipoKilometraje == 0 ? 'Kilómetros' : 'Millas'}'
+                      : '—',
                 ),
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'cc'),
@@ -224,7 +232,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   t.translate(BlockTranslate.vehiculos, 'asesor'),
                   vm.vendedorSelect?.nomCuentaCorrentista ?? '—',
                 ),
-
+                
                 const SizedBox(height: 30),
 
                 // ================= ÍTEMS =================
@@ -593,21 +601,12 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     List<String> headersStart,
     List<String> headersEnd,
   ) {
-    //Logos para el pdf
-
-    //formato de imagenes valido
-    // Uint8List logo = (logoByte).buffer.asUint8List();
-
-    // final logo = logoByte.buffer.asUint8List(
-    //   logoByte.offsetInBytes,
-    //   logoByte.lengthInBytes,
-    // );
+    final image = pw.MemoryImage(logo);
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 10),
       child: pw.Column(
         children: [
-          // 🔹 CONTENIDO DEL HEADER (tu Row actual)
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
@@ -625,10 +624,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
               ),
 
-              pw.Container(
-                height: 65,
-                child: pw.Image(pw.MemoryImage(logo), fit: pw.BoxFit.contain),
-              ),
+              //  FIX AQUÍ
+              pw.Image(image, width: 120, height: 65, fit: pw.BoxFit.contain),
 
               pw.Container(
                 width: PdfPageFormat.letter.width * 0.20,
@@ -647,7 +644,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             ],
           ),
 
-          //DIVIDER AQUÍ
           pw.SizedBox(height: 5),
           pw.Divider(thickness: 1),
         ],
@@ -668,7 +664,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     );
 
     // Convertir a formato usable en PDF
-    final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
+    // final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
     final vm = context.read<InicioVehiculosViewModel>();
     final pdf = pw.Document();
     final imagenVehiculoPdf = await _cargarImagenPdf(context);
@@ -678,10 +674,29 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final pw.ImageProvider? firmaClientePdf = firmaCliente != null
         ? pw.MemoryImage(firmaCliente)
         : null;
-    final logoBytes = await cargarImagenDesdeAssets(
-      'assets/ImagenesTaller/LubritecLogo.jpg',
+    // final logoBytes = await cargarImagenDesdeAssets(
+    //   'assets/ImagenesTaller/LubritecLogo.jpg',
+    // );
+    final Uint8List rawBytes = logo.buffer.asUint8List(
+      logo.offsetInBytes,
+      logo.lengthInBytes,
     );
-    Uint8List logoTaller = (logo).buffer.asUint8List();
+
+    // DECODIFICAR
+    final decodedImage = img.decodeImage(rawBytes);
+
+    if (decodedImage == null) {
+      throw Exception("No se pudo decodificar la imagen del logo");
+    }
+
+    //  OPCIONAL: redimensionar (recomendado)
+    final resized = img.copyResize(decodedImage, width: 300);
+
+    // RE-ENCODIFICAR (CLAVE)
+    final Uint8List logoBytes = Uint8List.fromList(
+      img.encodeJpg(resized, quality: 90),
+    );
+    // Uint8List logoTaller = (logo).buffer.asUint8List();
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.letter.copyWith(
@@ -691,7 +706,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           marginRight: 20,
         ),
         header: (_) => buildHeader(
-          logoBytes,
+          logoBytes, // ✅ ahora sí el logo dinámico
           [
             empresa.empresaNombre,
             empresa.empresaDireccion,
@@ -703,6 +718,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             'ID Doc: $consecutivoDoc',
           ],
         ),
+        // header: (_) => buildHeader(
+        //   logoBytes,
+        //   [
+        //     empresa.empresaNombre,
+        //     empresa.empresaDireccion,
+        //     empresa.empresaNit,
+        //     'Tel: ---',
+        //   ],
+        //   [
+        //     'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
+        //     'ID Doc: $consecutivoDoc',
+        //   ],
+        // ),
         build: (_) => [
           pw.SizedBox(height: 10),
           pw.SizedBox(height: 10),
@@ -853,7 +881,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text('Asesor: ${vm.vendedorSelect?.nomCuentaCorrentista}', style: pw.TextStyle(fontSize: 12)),
+              pw.Text(
+                'Asesor: ${vm.vendedorSelect?.nomCuentaCorrentista}',
+                style: pw.TextStyle(fontSize: 12),
+              ),
               pw.Text(
                 'Observación Combustible:',
                 style: pw.TextStyle(fontSize: 12),

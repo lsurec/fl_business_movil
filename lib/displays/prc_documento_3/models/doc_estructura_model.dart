@@ -74,6 +74,7 @@ class DocEstructuraModel {
   // --------------------
   String? detalleTrabajo;
   String? kilometraje;
+  int? KilometrajeMillaje;
   String? cc;
   String? cil;
   List<TraFileUploadModel>? vehiculoImagen;
@@ -137,6 +138,7 @@ class DocEstructuraModel {
     this.fechaSalida,
     this.detalleTrabajo,
     this.kilometraje,
+    this.KilometrajeMillaje,
     this.cc,
     this.cil,
     this.vehiculoImagen,
@@ -223,6 +225,7 @@ class DocEstructuraModel {
 
         detalleTrabajo: json["Detalle_Trabajo"],
         kilometraje: json["Kilometraje"],
+        KilometrajeMillaje: json["KilometrajeMillaje"],
         cc: json["CC"],
         cil: json["Cil"],
         vehiculoImagen: json["Vehiculo_Imagen"] != null
@@ -293,6 +296,7 @@ class DocEstructuraModel {
 
     "Detalle_Trabajo": detalleTrabajo,
     "Kilometraje": kilometraje,
+    "KilometrajeMillaje": KilometrajeMillaje,
     "CC": cc,
     "Cil": cil,
     "Vehiculo_Imagen": vehiculoImagen != null

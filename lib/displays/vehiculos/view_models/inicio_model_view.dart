@@ -236,12 +236,14 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String direccion = '';
   String celular = '';
   String email = '';
+  
 
   // ============================================================================
   // OBSERVACIONES DEL VEHÍCULO
   // ============================================================================
   String detalleTrabajo = '';
   String kilometraje = '';
+  int tipoKilometraje = 0; // 0 = KM, 1 = Millas
   String cc = '';
   String cil = '';
   String placa = '';
@@ -544,6 +546,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     // Limpiar detalle y datos de vehículo
     detalleTrabajo = '';
     kilometraje = '';
+    tipoKilometraje = 0;
     cc = '';
     cil = '';
     placa = '';
@@ -902,7 +905,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     '3': 'assets/TiposdeVehiculos/Convertible.jpg',
     '4': 'assets/TiposdeVehiculos/SUV.png',
     '5': 'assets/TiposdeVehiculos/PickUp.png',
-    '6': 'assets/TiposdeVehiculos/Camioneta.jpg',
+    '6': 'assets/TiposdeVehiculos/CAMIONETA1.png',
     '7': 'assets/TiposdeVehiculos/Panel.jpg',
   };
 
@@ -1930,12 +1933,16 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       detalleTrabajo: recepcionGuardada?.detalleTrabajo,
       kilometraje: _cleanNumber(recepcionGuardada?.kilometraje),
+      KilometrajeMillaje: tipoKilometraje,
+
       // kilometraje: recepcionGuardada?.kilometraje,
       cc: recepcionGuardada?.cc,
       cil: recepcionGuardada?.cil,
     );
 
     final estructuraJson = docGlobal!.toJson();
+
+    debugPrint('KILOMETRAJE TEST: ${docGlobal!.KilometrajeMillaje}');
     debugPrint('===== DOC ESTRUCTURA JSON =====');
     debugPrint(jsonEncode(estructuraJson));
 

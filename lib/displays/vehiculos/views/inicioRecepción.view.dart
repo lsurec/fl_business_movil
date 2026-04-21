@@ -1059,6 +1059,36 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           ),
         ),
         const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
+        Consumer<InicioVehiculosViewModel>(
+          builder: (context, vm, _) {
+            return Row(
+              children: [
+                Expanded(
+                  child: RadioListTile<int>(
+                    title: const Text("Kms"),
+                    value: 0,
+                    groupValue: vm.tipoKilometraje,
+                    onChanged: (value) {
+                      vm.tipoKilometraje = value!;
+                      vm.notifyListeners();
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: RadioListTile<int>(
+                    title: const Text("Millas"),
+                    value: 1,
+                    groupValue: vm.tipoKilometraje,
+                    onChanged: (value) {
+                      vm.tipoKilometraje = value!;
+                      vm.notifyListeners();
+                    },
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
         _buildNumberTextField(
           t.translate(BlockTranslate.vehiculos, 'kilometraje'),
           vm.kilometrajeController,
