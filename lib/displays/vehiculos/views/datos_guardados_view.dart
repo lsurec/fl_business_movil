@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:fl_business/displays/report/reports/pdf/utilities_pdf.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
@@ -676,6 +677,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final pw.ImageProvider? firmaClientePdf = firmaCliente != null
         ? pw.MemoryImage(firmaCliente)
         : null;
+        final ByteData logoDemo = await rootBundle.load('assets/logo_demosoft.png');
     // final logoBytes = await cargarImagenDesdeAssets(
     //   'assets/ImagenesTaller/LubritecLogo.jpg',
     // );
@@ -702,13 +704,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.letter.copyWith(
-          marginBottom: 20,
+          marginBottom: 30,
           marginLeft: 20,
           marginTop: 20,
           marginRight: 20,
         ),
         header: (_) => buildHeader(
-          logoBytes, // ✅ ahora sí el logo dinámico
+          logoBytes, //  ahora sí el logo dinámico
           [
             empresa.empresaNombre,
             empresa.empresaDireccion,
@@ -717,8 +719,14 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           ],
           [
             'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
+            'Serie: ${vm.serieSelect?.descripcion ?? '-'} (${vm.serieSelect?.serieDocumento ?? '—'})',
             'ID Doc: $consecutivoDoc',
           ],
+        ),
+        footer: (context) => UtilitiesPdf.buildFooter(
+          logoDemo, //  ByteData original (NO logoBytes)
+          context,
+          ' ', //  aquí tu storeProcedure
         ),
 
         build: (_) => [
@@ -1253,7 +1261,7 @@ Widget _itemCard(item) {
         children: [
           Row(
             children: [
-              const Icon(Icons.inventory_2_rounded, color: Color(0xff134895)),
+              const Icon(Icons.add_task, color: Color(0xff134895)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
