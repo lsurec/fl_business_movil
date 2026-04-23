@@ -898,15 +898,20 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     return imagenPorTipoVehiculo[key];
   }
 
+  /// Cambiar input de km y mill
+  String get labelKilometraje {
+  return tipoKilometraje == 0 ? 'kilometraje' : 'millaje';
+}
+
   // String o int, usa el tipo real de tu modelo
   final Map<String, String> imagenPorTipoVehiculo = {
     '1': 'assets/TiposdeVehiculos/Sedan.jpg',
-    '2': 'assets/TiposdeVehiculos/Hatchback.png',
+    '2': 'assets/TiposdeVehiculos/HATCHBACK1.png',
     '3': 'assets/TiposdeVehiculos/Convertible.jpg',
-    '4': 'assets/TiposdeVehiculos/SUV.png',
-    '5': 'assets/TiposdeVehiculos/PickUp.png',
+    '4': 'assets/TiposdeVehiculos/SUV1.png',
+    '5': 'assets/TiposdeVehiculos/PICKUP1.png',
     '6': 'assets/TiposdeVehiculos/CAMIONETA1.png',
-    '7': 'assets/TiposdeVehiculos/Panel.jpg',
+    '7': 'assets/TiposdeVehiculos/PANEL1.png',
   };
 
   // marcar areas del vehiculo

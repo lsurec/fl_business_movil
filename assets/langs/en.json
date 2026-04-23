@@ -25,6 +25,7 @@
         "email": "Email",
         "datosTecnicos": "Technical Data",
         "kilometraje": "Mileage",
+        "millaje": "Mileage",
         "cc": "Engine CC",
         "cil": "Cylinders",
         "observaciones": "Observations",

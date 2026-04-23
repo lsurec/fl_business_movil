@@ -1090,7 +1090,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           },
         ),
         _buildNumberTextField(
-          t.translate(BlockTranslate.vehiculos, 'kilometraje'),
+          t.translate(BlockTranslate.vehiculos, vm.labelKilometraje),
           vm.kilometrajeController,
           useThousandsSeparator: true,
         ),

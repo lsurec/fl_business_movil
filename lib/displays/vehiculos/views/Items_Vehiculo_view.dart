@@ -58,13 +58,13 @@ class _ItemsVehiculoView extends StatelessWidget {
         Scaffold(
           appBar: AppBar(
             title: Text(
-              t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo'),
+              '${t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo')}  (${vm.items.length})',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-
             backgroundColor: Color(0xff134895),
           ),
           body: ListView.builder(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 100),
             itemCount: vm.items.length,
             itemBuilder: (context, index) {
               final item = vm.items[index];
@@ -79,7 +79,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                       // ------------ Título + Check ----------------
                       Row(
                         children: [
-                          Icon(Icons.inventory_2, color: Color(0xff134895)),
+                          Icon(Icons.add_task, color: Color(0xff134895)),
                           SizedBox(width: 8),
 
                           Expanded(

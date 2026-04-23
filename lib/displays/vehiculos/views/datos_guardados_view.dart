@@ -215,7 +215,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   vm.recepcionGuardada?.detalleTrabajo ?? '—',
                 ),
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'kilometraje'),
+                  vm.tipoKilometraje == 0
+                      ? t.translate(BlockTranslate.vehiculos, 'kilometraje')
+                      : t.translate(BlockTranslate.vehiculos, 'millaje'),
                   vm.recepcionGuardada?.kilometraje != null
                       ? '${vm.recepcionGuardada!.kilometraje} ${vm.tipoKilometraje == 0 ? 'Kilómetros' : 'Millas'}'
                       : '—',
@@ -232,7 +234,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   t.translate(BlockTranslate.vehiculos, 'asesor'),
                   vm.vendedorSelect?.nomCuentaCorrentista ?? '—',
                 ),
-                
+
                 const SizedBox(height: 30),
 
                 // ================= ÍTEMS =================
@@ -510,10 +512,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   }
 
   ///// Imagen Logo
-  Future<Uint8List> cargarImagenDesdeAssets(String path) async {
-    final data = await rootBundle.load(path);
-    return data.buffer.asUint8List();
-  }
+  // Future<Uint8List> cargarImagenDesdeAssets(String path) async {
+  //   final data = await rootBundle.load(path);
+  //   return data.buffer.asUint8List();
+  // }
 
   /// Carga la imagen del vehículo (asset) y la convierte en ImageProvider para PDF
   Future<pw.ImageProvider?> _cargarImagenPdf(BuildContext context) async {
@@ -718,19 +720,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             'ID Doc: $consecutivoDoc',
           ],
         ),
-        // header: (_) => buildHeader(
-        //   logoBytes,
-        //   [
-        //     empresa.empresaNombre,
-        //     empresa.empresaDireccion,
-        //     empresa.empresaNit,
-        //     'Tel: ---',
-        //   ],
-        //   [
-        //     'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
-        //     'ID Doc: $consecutivoDoc',
-        //   ],
-        // ),
+
         build: (_) => [
           pw.SizedBox(height: 10),
           pw.SizedBox(height: 10),
@@ -882,7 +872,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'Asesor: ${vm.vendedorSelect?.nomCuentaCorrentista}',
+                'Vendedor: ${vm.vendedorSelect?.nomCuentaCorrentista}',
                 style: pw.TextStyle(fontSize: 12),
               ),
               pw.Text(
