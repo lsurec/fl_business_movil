@@ -7,6 +7,7 @@ import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
+import 'package:fl_business/displays/vehiculos/views/vista_Imagenes_view.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
@@ -949,8 +950,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           if (file.existsSync()) {
                             final imgBytes = file.readAsBytesSync();
                             return pw.Container(
-                              width: 80,
-                              height: 80,
+                              width: 150,
+                              height: 150,
                               decoration: pw.BoxDecoration(
                                 border: pw.Border.all(color: PdfColors.grey300),
                                 borderRadius: pw.BorderRadius.circular(5),
@@ -1319,15 +1320,28 @@ Widget _itemCard(item) {
                 scrollDirection: Axis.horizontal,
                 itemCount: item.fotos.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, fotoIndex) {
+                itemBuilder: (context, fotoIndex) {
                   final foto = item.fotos[fotoIndex];
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.file(
-                      File(foto),
-                      width: 100,
-                      height: 100,
-                      fit: BoxFit.cover,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => VistaImagenScreen(imagePath: foto),
+                          ),
+                        );
+                      },
+                      child: Hero(
+                        tag: foto,
+                        child: Image.file(
+                          File(foto),
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
                     ),
                   );
                 },
