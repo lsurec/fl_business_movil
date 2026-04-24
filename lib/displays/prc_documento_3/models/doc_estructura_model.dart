@@ -47,37 +47,37 @@ class DocEstructuraModel {
   // --------------------
   // Datos del cliente
   // --------------------
-  String? nit;
-  String? nombreCliente;
-  String? direccionCliente;
-  String? celularCliente;
-  String? emailCliente;
+  String? docNit;
+  String? docNombreCliente;
+  String? docDireccionCliente;
+  String? docCelularCliente;
+  String? docEmailCliente;
 
   // --------------------
   // Datos del vehículo
   // --------------------
-  String? placa;
-  String? chasis;
-  String? marca;
-  String? modelo;
-  String? anio;
-  String? color;
+  String? docPlaca;
+  String? docChasis;
+  String? docMarca;
+  String? docModelo;
+  String? docAnio;
+  String? docColor;
 
   // --------------------
   // Fechas
   // --------------------
-  DateTime? fechaRecibido;
-  DateTime? fechaSalida;
+  DateTime? docFechaRecibido;
+  DateTime? docFechaSalida;
 
   // --------------------
   // Observaciones técnicas
   // --------------------
-  String? detalleTrabajo;
-  String? kilometraje;
-  int? KilometrajeMillaje;
-  String? cc;
-  String? cil;
-  List<TraFileUploadModel>? vehiculoImagen;
+  String? docDetalleTrabajo;
+  String? docKilometraje;
+  int? docKilometrajeMillaje;
+  String? docCc;
+  String? docCil;
+  List<TraFileUploadModel>? docVehiculoImagen;
 
   /// Aqui va la imagen con puntos seleccionados
 
@@ -123,25 +123,25 @@ class DocEstructuraModel {
     required this.docRefObservacion,
     required this.docReferencia,
 
-    this.nit,
-    this.nombreCliente,
-    this.direccionCliente,
-    this.celularCliente,
-    this.emailCliente,
-    this.placa,
-    this.chasis,
-    this.marca,
-    this.modelo,
-    this.anio,
-    this.color,
-    this.fechaRecibido,
-    this.fechaSalida,
-    this.detalleTrabajo,
-    this.kilometraje,
-    this.KilometrajeMillaje,
-    this.cc,
-    this.cil,
-    this.vehiculoImagen,
+    this.docNit,
+    this.docNombreCliente,
+    this.docDireccionCliente,
+    this.docCelularCliente,
+    this.docEmailCliente,
+    this.docPlaca,
+    this.docChasis,
+    this.docMarca,
+    this.docModelo,
+    this.docAnio,
+    this.docColor,
+    this.docFechaRecibido,
+    this.docFechaSalida,
+    this.docDetalleTrabajo,
+    this.docKilometraje,
+    this.docKilometrajeMillaje,
+    this.docCc,
+    this.docCil,
+    this.docVehiculoImagen,
   });
 
   factory DocEstructuraModel.fromJson(String str) =>
@@ -203,34 +203,40 @@ class DocEstructuraModel {
         docRefObservacion3: json["Doc_Ref_Observacion_3"],
         docRefObservacion: json["Doc_Ref_Observacion"],
         docReferencia: json["Doc_Referencia"],
-        nit: json["Nit"],
-        nombreCliente: json["Nombre_Cliente"],
-        direccionCliente: json["Direccion_Cliente"],
-        celularCliente: json["Celular_Cliente"],
-        emailCliente: json["Email_Cliente"],
+        docNit: json["Doc_Nit"],
+        docNombreCliente: json["Doc_Nombre_Cliente"],
+        docDireccionCliente: json["Doc_Direccion_Cliente"],
+        docCelularCliente: json["Doc_Celular_Cliente"],
+        docEmailCliente: json["Doc_Email_Cliente"],
 
-        placa: json["Placa"],
-        chasis: json["Chasis"],
-        marca: json["Marca"],
-        modelo: json["Modelo"],
-        anio: json["Anio"],
-        color: json["Color"],
+        //  VEHÍCULO
+        docPlaca: json["Doc_Placa"],
+        docChasis: json["Doc_Chasis"],
+        docMarca: json["Doc_Marca"],
+        docModelo: json["Doc_Modelo"],
+        docAnio: json["Doc_Anio"],
+        docColor: json["Doc_Color"],
 
-        fechaRecibido: json["Fecha_Recibido"] != null
-            ? DateTime.parse(json["Fecha_Recibido"])
+        //  FECHAS
+        docFechaRecibido: json["Doc_Fecha_Recibido"] != null
+            ? DateTime.parse(json["Doc_Fecha_Recibido"])
             : null,
-        fechaSalida: json["Fecha_Salida"] != null
-            ? DateTime.parse(json["Fecha_Salida"])
+
+        docFechaSalida: json["Doc_Fecha_Salida"] != null
+            ? DateTime.parse(json["Doc_Fecha_Salida"])
             : null,
 
-        detalleTrabajo: json["Detalle_Trabajo"],
-        kilometraje: json["Kilometraje"],
-        KilometrajeMillaje: json["KilometrajeMillaje"],
-        cc: json["CC"],
-        cil: json["Cil"],
-        vehiculoImagen: json["Vehiculo_Imagen"] != null
+        //  OBSERVACIONES
+        docDetalleTrabajo: json["Doc_Detalle_Trabajo"],
+        docKilometraje: json["Doc_Kilometraje"],
+        docKilometrajeMillaje: json["Doc_KilometrajeMillaje"],
+        docCc: json["Doc_CC"],
+        docCil: json["Doc_Cil"],
+
+        //  IMAGEN VEHÍCULO ()
+        docVehiculoImagen: json["Doc_Vehiculo_Imagen"] != null
             ? List<TraFileUploadModel>.from(
-                json["Vehiculo_Imagen"].map(
+                json["Doc_Vehiculo_Imagen"].map(
                   (x) => TraFileUploadModel.fromMap(x),
                 ),
               )
@@ -278,30 +284,31 @@ class DocEstructuraModel {
     "Doc_Ref_Observacion_3": docRefObservacion3,
     "Doc_Ref_Observacion": docRefObservacion,
     "Doc_Referencia": docReferencia,
-    "Nit": nit,
-    "Nombre_Cliente": nombreCliente,
-    "Direccion_Cliente": direccionCliente,
-    "Celular_Cliente": celularCliente,
-    "Email_Cliente": emailCliente,
 
-    "Placa": placa,
-    "Chasis": chasis,
-    "Marca": marca,
-    "Modelo": modelo,
-    "Anio": anio,
-    "Color": color,
+    "Doc_Nit": docNit,
+    "Doc_Nombre_Cliente": docNombreCliente,
+    "Doc_Direccion_Cliente": docDireccionCliente,
+    "Doc_Celular_Cliente": docCelularCliente,
+    "Doc_Email_Cliente": docEmailCliente,
 
-    "Fecha_Recibido": fechaRecibido?.toIso8601String(),
-    "Fecha_Salida": fechaSalida?.toIso8601String(),
+    "Doc_Placa": docPlaca,
+    "Doc_Chasis": docChasis,
+    "Doc_Marca": docMarca,
+    "Doc_Modelo": docModelo,
+    "Doc_Anio": docAnio,
+    "Doc_Color": docColor,
 
-    "Detalle_Trabajo": detalleTrabajo,
-    "Kilometraje": kilometraje,
-    "KilometrajeMillaje": KilometrajeMillaje,
-    "CC": cc,
-    "Cil": cil,
-    "Vehiculo_Imagen": vehiculoImagen != null
-    ? List<dynamic>.from(vehiculoImagen!.map((x) => x.toMap()))
-    : null,
+    "Doc_Fecha_Recibido": docFechaRecibido?.toIso8601String(),
+    "Doc_Fecha_Salida": docFechaSalida?.toIso8601String(),
+
+    "Doc_Detalle_Trabajo": docDetalleTrabajo,
+    "Doc_Kilometraje": docKilometraje,
+    "Doc_KilometrajeMillaje": docKilometrajeMillaje,
+    "Doc_CC": docCc,
+    "Doc_Cil": docCil,
+    "Doc_Vehiculo_Imagen": docVehiculoImagen != null
+        ? List<dynamic>.from(docVehiculoImagen!.map((x) => x.toMap()))
+        : null,
   };
 }
 

@@ -236,7 +236,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String direccion = '';
   String celular = '';
   String email = '';
-  
 
   // ============================================================================
   // OBSERVACIONES DEL VEHÍCULO
@@ -900,8 +899,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   /// Cambiar input de km y mill
   String get labelKilometraje {
-  return tipoKilometraje == 0 ? 'kilometraje' : 'millaje';
-}
+    return tipoKilometraje == 0 ? 'kilometraje' : 'millaje';
+  }
 
   // String o int, usa el tipo real de tu modelo
   final Map<String, String> imagenPorTipoVehiculo = {
@@ -1829,7 +1828,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
 
     for (var t in itemsVM.transaciciones) {
-      debugPrint('Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
+      // debugPrint('Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
     }
 
     if (products.isEmpty) {
@@ -1907,58 +1906,56 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       // Datos del cliente
       // --------------------
-      nit: recepcionGuardada?.nit,
-      nombreCliente: recepcionGuardada?.nombre,
-      direccionCliente: recepcionGuardada?.direccion,
-      celularCliente: recepcionGuardada?.celular,
-      emailCliente: recepcionGuardada?.email,
+      // --------------------
+      // Datos del cliente
+      // --------------------
+      docNit: recepcionGuardada?.nit,
+      docNombreCliente: recepcionGuardada?.nombre,
+      docDireccionCliente: recepcionGuardada?.direccion,
+      docCelularCliente: recepcionGuardada?.celular,
+      docEmailCliente: recepcionGuardada?.email,
 
       // --------------------
       // Datos del vehículo
       // --------------------
-      placa: recepcionGuardada?.placa,
-      chasis: recepcionGuardada?.chasis,
-      marca: recepcionGuardada?.marca,
-      modelo: recepcionGuardada?.modelo,
-      anio: recepcionGuardada?.anio.toString(),
-
-      color: recepcionGuardada?.color,
+      docPlaca: recepcionGuardada?.placa,
+      docChasis: recepcionGuardada?.chasis,
+      docMarca: recepcionGuardada?.marca,
+      docModelo: recepcionGuardada?.modelo,
+      docAnio: recepcionGuardada?.anio.toString(),
+      docColor: recepcionGuardada?.color,
 
       // --------------------
       // Fechas
       // --------------------
-      // --------------------
-      // Fechas
-      // --------------------
-      fechaRecibido: _parseFecha(recepcionGuardada?.fechaRecibido),
-      fechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
+      docFechaRecibido: _parseFecha(recepcionGuardada?.fechaRecibido),
+      docFechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
 
       // --------------------
       // Observaciones técnicas
       // --------------------
-      detalleTrabajo: recepcionGuardada?.detalleTrabajo,
-      kilometraje: _cleanNumber(recepcionGuardada?.kilometraje),
-      KilometrajeMillaje: tipoKilometraje,
+      docDetalleTrabajo: recepcionGuardada?.detalleTrabajo,
+      docKilometraje: _cleanNumber(recepcionGuardada?.kilometraje),
+      docKilometrajeMillaje: tipoKilometraje,
 
-      // kilometraje: recepcionGuardada?.kilometraje,
-      cc: recepcionGuardada?.cc,
-      cil: recepcionGuardada?.cil,
+      docCc: recepcionGuardada?.cc,
+      docCil: recepcionGuardada?.cil,
     );
 
     final estructuraJson = docGlobal!.toJson();
 
-    debugPrint('KILOMETRAJE TEST: ${docGlobal!.KilometrajeMillaje}');
-    debugPrint('===== DOC ESTRUCTURA JSON =====');
+    // debugPrint('KILOMETRAJE TEST: ${docGlobal!.docKilometrajeMillaje}');
+    // debugPrint('===== DOC ESTRUCTURA JSON =====');
     debugPrint(jsonEncode(estructuraJson));
 
     for (var t in itemsVM.transaciciones) {
-      debugPrint('Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
+      // debugPrint('Producto ${t.producto.producto} - isChecked: ${t.isChecked}');
     }
 
     for (var t in itemsVM.transaciciones) {
-      debugPrint(
-        'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
-      );
+      // debugPrint(
+        // 'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
+      // );
     }
 
     //objeto enviar documento
@@ -1995,11 +1992,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   Future<void> sincronizarTransacciones(BuildContext context) async {
     final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
 
-    print('=== SINCRONIZANDO TRANSAcCIONES ===');
+    // print('=== SINCRONIZANDO TRANSAcCIONES ===');
 
     // 🔹 Verificar que haya transacciones cargadas
     if (itemsVM.transaciciones.isEmpty) {
-      print('⚠️ Transacciones vacías, cargando...');
+      // print('⚠️ Transacciones vacías, cargando...');
       await itemsVM.loadItems(context);
     }
 
@@ -2017,22 +2014,22 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       );
 
       if (index != -1) {
-        // ✅ USAR COMPLETADO, NO DETALLE
+        //  USAR COMPLETADO, NO DETALLE
         if (item.completado) {
           itemsVM.transaciciones[index].isChecked = true;
           itemsVM.transaciciones[index].observacion = item.detalle;
           contador++;
-          print('✅ ${item.idProducto} - sincronizado (completado=true)');
+          print(' ${item.idProducto} - sincronizado (completado=true)');
         } else {
-          print('❌ ${item.idProducto} - NO sincronizado (completado=false)');
+          print(' ${item.idProducto} - NO sincronizado (completado=false)');
         }
       } else {
-        print('❌ ${item.idProducto} - No encontrado en transaciciones');
+        print(' ${item.idProducto} - No encontrado en transaciciones');
       }
     }
 
     itemsVM.notifyListeners();
-    print('=== SINCRONIZADAS: $contador transacciones ===');
+    // print('=== SINCRONIZADAS: $contador transacciones ===');
   }
 
   DateTime? _parseFecha(String? fechaStr) {

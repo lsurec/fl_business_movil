@@ -65,11 +65,11 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     );
 
     if (transaciciones.isNotEmpty) {
-      print("⚠️ loadItems cancelado - ya existen transacciones");
+      print(" loadItems cancelado - ya existen transacciones");
       return;
     }
 
-    print("LOAD ITEMS EJECUTADO");
+    // print("LOAD ITEMS EJECUTADO");
 
     try {
       isLoading = true;
@@ -207,18 +207,6 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   }
 
   // ================================
-  //   MOVER ÍTEM ARRIBA
-  // ================================
-  // void moveItemToTop(String idProducto) {
-  //   final index = items.indexWhere((i) => i.idProducto == idProducto);
-  //   if (index > 0) {
-  //     final item = items.removeAt(index);
-  //     items.insert(0, item);
-  //     notifyListeners();
-  //   }
-  // }
-
-  // ================================
   //   TOMAR FOTO
   // ================================
   Future<void> tomarFoto(String idProducto) async {
@@ -286,6 +274,10 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   Future<void> subirTodasLasFotos(BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
     final token = Provider.of<LoginViewModel>(context, listen: false).token;
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.uploadLocal;
     for (var t in transaciciones) {
       print("Producto: ${t.producto.productoId} | files: ${t.files}");
     }
@@ -299,12 +291,20 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         final fotosLocales = tra.files!.where((f) => f.contains("/")).toList();
 
         if (fotosLocales.isEmpty) continue;
+        if (destinoImagenes == null || destinoImagenes.isEmpty) {
+          isLoading = false;
+
+          NotificationService.showSnackbar(
+            "Error: No se ha configurado la ruta de destino para las imágenes. Por favor, configure 'uploadLocal' en la sección empresa.",
+          );
+          return;
+        }
 
         final uploadedFiles = await _uploadService.uploadImages(
           imagePaths: fotosLocales,
           token: token,
           user: user,
-          urlCarpeta: r"C:\Archivos\Uploads",
+          urlCarpeta: destinoImagenes,
         );
         for (var file in uploadedFiles) {
           print("📸 ORIGINAL: ${file.original}");

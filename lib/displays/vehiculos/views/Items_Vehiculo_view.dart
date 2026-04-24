@@ -299,9 +299,9 @@ class _ItemsVehiculoView extends StatelessWidget {
               // 2. Si todos están marcados, proceder con el guardado
               final itemsSeleccionados = vm.getItemsSeleccionados();
 
-              print('=== GUARDANDO ÍTEMS ===');
-              print('Total items en VM: ${vm.items.length}');
-              print('Items seleccionados: ${itemsSeleccionados.length}');
+              // print('=== GUARDANDO ÍTEMS ===');
+              // print('Total items en VM: ${vm.items.length}');
+              // print('Items seleccionados: ${itemsSeleccionados.length}');
 
               // 3. Limpiar items anteriores
               vmInicio.limpiarItems();
