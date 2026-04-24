@@ -485,33 +485,53 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
     final vm = context.read<InicioVehiculosViewModel>();
 
+    // 1. Capturar imagen del widget
     final bytes = await _capturarVehiculo();
-    if (bytes == null) return;
+    if (bytes == null) {
+      print(" No se pudo capturar imagen del vehículo");
+      return;
+    }
 
+    // 2. Guardar temporal
     final path = await _guardarVehiculoTemp(bytes);
+    if (path == null) {
+      print(" No se pudo guardar imagen temporal");
+      return;
+    }
 
-    final uploadService = UploadService(); // usa el tuyo real
+    final uploadService = UploadService();
 
+    // 3. Validar ruta servidor
     if (destinoImagenes == null || destinoImagenes.isEmpty) {
       NotificationService.showSnackbar(
-        "Error: No se ha configurado la ruta de destino para las imágenes. Por favor, configure 'uploadLocal' en la sección empresa.",
+        "Error: No se ha configurado la ruta de destino para las imágenes.",
       );
       return;
     }
 
+    // 4. Subir imagen
     final uploaded = await uploadService.uploadImages(
-      imagePaths: [path!],
+      imagePaths: [path],
       token: token,
       user: user,
       urlCarpeta: destinoImagenes,
     );
 
-    //  GUARDAR EN docGlobal (AJUSTA SEGÚN TU MODELO)
-    vm.docGlobal?.vehiculoImagen = uploaded.map((e) {
-      return TraFileUploadModel(system: e.system, original: e.original);
-    }).toList();
-  }
+    // 5. VALIDAR respuesta
+    if (uploaded.isEmpty) {
+      print(" La API no devolvió archivos");
+      return;
+    }
 
+    // 6. GUARDAR EN EL DOCUMENTO (CLAVE 🔥)
+    vm.docGlobal?.docVehiculoImagen = uploaded.map((e) {
+      return TraFileUploadModel(original: e.original, system: e.system);
+    }).toList();
+
+    // 7. DEBUG FINAL (MUY IMPORTANTE)
+    print(" Imagen vehículo guardada en docGlobal:");
+    print(vm.docGlobal?.docVehiculoImagen?.map((e) => e.system).toList());
+  }
   ///// Imagen Logo
   // Future<Uint8List> cargarImagenDesdeAssets(String path) async {
   //   final data = await rootBundle.load(path);
@@ -677,7 +697,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final pw.ImageProvider? firmaClientePdf = firmaCliente != null
         ? pw.MemoryImage(firmaCliente)
         : null;
-        final ByteData logoDemo = await rootBundle.load('assets/logo_demosoft.png');
+    final ByteData logoDemo = await rootBundle.load('assets/logo_demosoft.png');
     // final logoBytes = await cargarImagenDesdeAssets(
     //   'assets/ImagenesTaller/LubritecLogo.jpg',
     // );
@@ -1100,8 +1120,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final Uint8List? firmaMecanicoBytes = await _firmaMecanico.toPngBytes();
     final Uint8List? firmaClienteBytes = await _firmaCliente.toPngBytes();
 
-    debugPrint('Firma mecánico bytes: ${firmaMecanicoBytes?.length}');
-    debugPrint('Firma cliente bytes: ${firmaClienteBytes?.length}');
+    // debugPrint('Firma mecánico bytes: ${firmaMecanicoBytes?.length}');
+    // debugPrint('Firma cliente bytes: ${firmaClienteBytes?.length}');
 
     await _generarPdf(
       context,
@@ -1123,20 +1143,20 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       vm.setLoading(true);
 
       // ================= PASO 1: CARGAR TRANSAcCIONES =================
-      print('=== PASO 1: Verificar transacciones ===');
-      print('Transacciones cargadas: ${itemsVM.transaciciones.length}');
+      // print('=== PASO 1: Verificar transacciones ===');
+      // print('Transacciones cargadas: ${itemsVM.transaciciones.length}');
 
       //  CARGAR TRANSAcCIONES SI ESTÁN VACÍAS
       if (itemsVM.transaciciones.isEmpty) {
-        print('Cargando transacciones desde API...');
+        // print('Cargando transacciones desde API...');
         await itemsVM.loadItems(context);
-        print(
-          'Transacciones después de carga: ${itemsVM.transaciciones.length}',
-        );
+        // print(
+        //   'Transacciones después de carga: ${itemsVM.transaciciones.length}',
+        // );
       }
 
       // ================= PASO 2: SINCRONIZAR =================
-      print('=== PASO 2: Sincronizar ===');
+      // print('=== PASO 2: Sincronizar ===');
       await vm.sincronizarTransacciones(context);
       // ================= PASO 2.5: SUBIR FOTOS =================
       print('=== PASO 2.5: Subiendo fotos ===');
