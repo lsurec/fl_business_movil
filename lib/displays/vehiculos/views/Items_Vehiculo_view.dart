@@ -4,6 +4,7 @@ import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dar
     as model;
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
+import 'package:fl_business/displays/vehiculos/views/vista_Imagenes_view.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/CustomCheckSwitch.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
@@ -138,7 +139,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                                   );
                                 }
                               } else {
-                                // ❌ MARCAR COMO NO COMPLETADO
+                                //  MARCAR COMO NO COMPLETADO
                                 final index = vmInicio.itemsAsignados
                                     .indexWhere(
                                       (i) => i.idProducto == item.idProducto,
@@ -206,11 +207,32 @@ class _ItemsVehiculoView extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
-                                          child: Image.file(
-                                            File(foto),
-                                            width: 80,
-                                            height: 80,
-                                            fit: BoxFit.cover,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) =>
+                                                        VistaImagenScreen(
+                                                          imagePath: foto,
+                                                        ),
+                                                  ),
+                                                );
+                                              },
+                                              child: Hero(
+                                                tag: foto,
+                                                child: Image.file(
+                                                  File(foto),
+                                                  width: 80,
+                                                  height: 80,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
 
@@ -293,7 +315,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                     );
                   },
                 );
-                return; // ❌ No continuar con el guardado ni la navegación
+                return; //  No continuar con el guardado ni la navegación
               }
 
               // 2. Si todos están marcados, proceder con el guardado
