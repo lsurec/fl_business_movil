@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, library_prefixes, avoid_print
 import 'dart:convert';
 import 'package:fl_business/demos/printer/service/impresion_ticket.dart';
+import 'package:fl_business/displays/prc_documento_3/models/mensaje_model.dart';
 import 'package:fl_business/displays/report/reports/factura/provider.dart';
 import 'package:fl_business/displays/report/reports/factura/tmu.dart';
 import 'package:flutter_esc_pos_utils/flutter_esc_pos_utils.dart';
@@ -1059,7 +1060,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
 
     //usuario token y cadena de conexion
     String user = loginVM.user;
-    String tokenUser = loginVM.token;
+    String token = loginVM.token;
 
     //valores necesarios para el docuemento
     int? cuentaVendedor = docVM.cuentasCorrentistasRef.isEmpty
@@ -1073,6 +1074,112 @@ class ConfirmDocViewModel extends ChangeNotifier {
     int estacion = localVM.selectedEstacion!.estacionTrabajo;
     List<AmountModel> amounts = paymentVM.amounts;
     List<TraInternaModel> products = detailsVM.traInternas;
+
+    final confirmVM = Provider.of<ConfirmDocViewModel>(
+      scaffoldKey.currentContext!,
+      listen: false,
+    );
+
+    final ProductService productService = ProductService();
+
+    //validar transaccionnes
+    for (var item in products) {
+      //consumo del api
+      ApiResModel resDisponibiladProducto = await productService
+          .getValidaProducto(
+            user,
+            docVM.serieSelect!.serieDocumento!,
+            menuVM.documento!,
+            localVM.selectedEstacion!.estacionTrabajo,
+            localVM.selectedEmpresa!.empresa,
+            item.bodega!.bodega,
+
+            confirmVM.resolveTipoTransaccion(
+              item.producto.tipoProducto,
+              scaffoldKey.currentContext!,
+            ),
+            item.producto.unidadMedida,
+            item.producto.producto,
+            item.cantidad,
+            menuVM.tipoCambio.toInt(),
+            item.precio!.moneda,
+            item.precio!.id,
+            token,
+            docVM.clienteSelect!.cuentaCorrentista,
+            docVM.clienteSelect!.cuentaCta,
+            docVM.fechaInicial,
+            docVM.fechaFinal,
+            item.cantidad * item.precio!.precioU,
+            item.total,
+          );
+
+      if (!resDisponibiladProducto.succes) {
+        isLoading = false;
+
+        //si algo salio mal mostrar alerta
+        await NotificationService.showErrorView(
+          scaffoldKey.currentContext!,
+          resDisponibiladProducto,
+        );
+
+        return ApiResModel(
+          typeError: 1,
+          succes: false,
+          response: AppLocalizations.of(
+            scaffoldKey.currentContext!,
+          )!.translate(BlockTranslate.notificacion, 'errorValidarProducto'),
+          url: resDisponibiladProducto.url,
+          storeProcedure: resDisponibiladProducto.storeProcedure,
+        );
+      }
+
+      //almacenar los mensajes
+      //almacenar los mensajes
+      final List<MensajeModel> resMensajes = resDisponibiladProducto.response;
+
+      final List<String> mensajes = [];
+
+      for (var element in resMensajes) {
+        if (!element.resultado) {
+          mensajes.add(element.mensaje ?? "");
+        }
+      }
+      if (mensajes.isNotEmpty) {
+        //Lista para agregar las validaciones
+        List<ValidateProductModel> validaciones = [];
+        //detener carga
+        isLoading = false;
+
+        ValidateProductModel validacion = ValidateProductModel(
+          sku: item.producto.productoId,
+          productoDesc: item.producto.desProducto,
+          bodega: "${item.bodega!.nombre} (${item.bodega!.bodega})",
+          tipoDoc: "${menuVM.name} (${menuVM.documento!})",
+          serie:
+              "${docVM.serieSelect!.descripcion!} (${docVM.serieSelect!.serieDocumento!})",
+          mensajes: mensajes,
+        );
+
+        //insertar registros
+        validaciones.add(validacion);
+
+        //aqui abre un dialogo con notificacion
+        await NotificationService.showMessageValidations(
+          scaffoldKey.currentContext!,
+          validaciones,
+        );
+
+        return ApiResModel(
+          typeError: 1,
+          succes: false,
+          response: AppLocalizations.of(
+            scaffoldKey.currentContext!,
+          )!.translate(BlockTranslate.notificacion, 'errorValidarProducto'),
+          url: resDisponibiladProducto.url,
+          storeProcedure: resDisponibiladProducto.storeProcedure,
+        );
+      }
+    }
 
     //pagos agregados
     final List<DocCargoAbono> payments = [];
@@ -1297,7 +1404,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
     DocumentService documentService = DocumentService();
 
     //consumo del api
-    ApiResModel res = await documentService.postDocument(document, tokenUser);
+    ApiResModel res = await documentService.postDocument(document, token);
 
     return res;
   }
