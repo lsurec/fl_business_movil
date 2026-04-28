@@ -1953,6 +1953,7 @@ void setGasolina(double value) {
       docCc: recepcionGuardada?.cc,
       docCil: recepcionGuardada?.cil,
       docNivelGasolina: nivelGasolina,
+      docVehiculoImagen: vehiculoImagen,
 
     );
 

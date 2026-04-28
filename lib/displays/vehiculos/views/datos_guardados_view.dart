@@ -541,8 +541,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       return;
     }
 
-    // 6. GUARDAR EN EL DOCUMENTO (CLAVE 🔥)
-    vm.docGlobal?.docVehiculoImagen = uploaded.map((e) {
+    // 6. GUARDAR EN EL DOCUMENTO (CLAVE )
+    vm.vehiculoImagen = uploaded.map((e) {
       return TraFileUploadModel(original: e.original, system: e.system);
     }).toList();
 
@@ -1257,10 +1257,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     }
   }
 
-
   /// Apartado de Gasolina
-  
-  
 
   Widget _gasolinaSlider() {
     final vm = context.watch<InicioVehiculosViewModel>();
