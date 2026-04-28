@@ -313,6 +313,13 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
   List<ItemVehiculo> itemsAsignados = [];
 
+
+
+//// Nivel de Gasolina
+void setGasolina(double value) {
+  nivelGasolina = value;
+  notifyListeners();
+}
   /// Reemplaza la lista completa de ítems
   void setItemsAsignados(List<ItemVehiculo> items) {
     itemsAsignados = items;
@@ -328,12 +335,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       if (completado != null) item.completado = completado;
       notifyListeners();
     }
-  }
-
-  /// Nivel de gasolina
-  void setGasolina(double value) {
-    nivelGasolina = value;
-    notifyListeners();
   }
 
   /// Elimina todos los ítems y limpia la pantalla
@@ -539,8 +540,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
   void cancelar() {
     recepcionGuardada = null;
-    cf = false;
-    client.text = "";
 
     // Limpiar variables de cliente
     clienteSelect = null;
@@ -550,7 +549,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     direccion = '';
     celular = '';
     email = '';
-    marcasVehiculo.clear();
 
     // Limpiar detalle y datos de vehículo
     detalleTrabajo = '';
@@ -560,7 +558,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     cil = '';
     placa = '';
     chasis = '';
-    nivelGasolina = 50;
 
     marcaSeleccionada = null;
     modeloSeleccionado = null;
@@ -1951,7 +1948,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
       docCc: recepcionGuardada?.cc,
       docCil: recepcionGuardada?.cil,
-      docNivelGasolina: nivelGasolina,
+
     );
 
     final estructuraJson = docGlobal!.toJson();
@@ -1966,7 +1963,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     for (var t in itemsVM.transaciciones) {
       // debugPrint(
-      // 'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
+        // 'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
       // );
     }
 

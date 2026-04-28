@@ -1259,6 +1259,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
 
   /// Apartado de Gasolina
+  
+  
 
   Widget _gasolinaSlider() {
     final vm = context.watch<InicioVehiculosViewModel>();
