@@ -26,6 +26,7 @@ import 'package:fl_business/displays/prc_documento_3/view_models/document_view_m
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/models/VehiculoColorModel.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
@@ -248,6 +249,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String placa = '';
   String chasis = '';
   double nivelGasolina = 50;
+
+
+  List<TraFileUploadModel>? vehiculoImagen;
 
   // ============================================================================
   // CONTROLADORES DE INPUT
@@ -1948,6 +1952,7 @@ void setGasolina(double value) {
 
       docCc: recepcionGuardada?.cc,
       docCil: recepcionGuardada?.cil,
+      docNivelGasolina: nivelGasolina,
 
     );
 
