@@ -21,7 +21,6 @@ import 'package:fl_business/displays/prc_documento_3/services/parametro_service.
 import 'package:fl_business/displays/prc_documento_3/services/serie_service.dart';
 import 'package:fl_business/displays/prc_documento_3/services/tipo_referenci_service.dart';
 import 'package:fl_business/displays/prc_documento_3/services/tipo_transaccion_service.dart';
-import 'package:fl_business/displays/prc_documento_3/view_models/details_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
@@ -52,8 +51,6 @@ import 'package:fl_business/view_models/menu_view_model.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
 import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as context;
-import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
