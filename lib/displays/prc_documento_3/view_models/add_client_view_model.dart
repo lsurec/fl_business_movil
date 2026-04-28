@@ -101,6 +101,7 @@ class AddClientViewModel extends ChangeNotifier {
       user,
       token,
       app,
+      estacion,
     );
     isLoading = false;
 

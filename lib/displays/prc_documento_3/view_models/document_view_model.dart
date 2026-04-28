@@ -610,6 +610,7 @@ class DocumentViewModel extends ChangeNotifier {
       user, // user,
       token, // token,
       app,
+      estacion,
     );
 
     //Stop process
@@ -742,6 +743,7 @@ class DocumentViewModel extends ChangeNotifier {
         user,
         token,
         app,
+        estacion,
       );
 
       //validar respuesta del servico, si es incorrecta

@@ -569,6 +569,7 @@ class ConvertDocViewModel extends ChangeNotifier {
       user,
       token,
       menuVM.app,
+      estacion,
     );
 
     //si algo salio mal

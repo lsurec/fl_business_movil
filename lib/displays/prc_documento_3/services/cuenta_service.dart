@@ -120,21 +120,27 @@ class CuentaService {
     String user,
     String token,
     int app,
+    int estacion,
   ) async {
-    Uri url = Uri.parse("${_baseUrl}Cuenta");
+    String url = "${_baseUrl}V2/shared/Cuenta";
     try {
       //url completa
 
       //Configuraciones del api
-      final response = await http.get(
-        url,
-        headers: {
-          "Authorization": "bearer $token",
-          "user": user,
-          "filter": filter,
-          "empresa": empresa.toString(),
-          "app": app.toString(),
+
+      final uri = Uri.parse(url).replace(
+        queryParameters: {
+          'empresa': empresa.toString(),
+          'user': user,
+          'filter': filter, // aquí puede ir "María"
+          'estacion': estacion.toString(),
+          'app': app.toString(),
         },
+      );
+
+      final response = await http.get(
+        uri,
+        headers: {"Authorization": "Bearer $token"},
       );
 
       ResponseModel res = ResponseModel.fromMap(jsonDecode(response.body));

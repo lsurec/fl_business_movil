@@ -1077,6 +1077,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       user, // user,
       token, // token,
       app,
+      estacion,
     );
 
     //Stop process
@@ -1199,6 +1200,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         user,
         token,
         app,
+        estacion,
       );
 
       //validar respuesta del servico, si es incorrecta
@@ -1954,7 +1956,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     for (var t in itemsVM.transaciciones) {
       // debugPrint(
-        // 'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
+      // 'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
       // );
     }
 
