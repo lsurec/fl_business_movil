@@ -178,7 +178,10 @@ class _DetailsDocViewState extends State<DetailsDocView> {
                           Text(document.documentoDesc, style: StyleApp.normal),
                         ],
                       ),
-                      Column(
+                      
+                    ],
+                  ),
+                  Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -188,8 +191,6 @@ class _DetailsDocViewState extends State<DetailsDocView> {
                           Text(document.serieDesc, style: StyleApp.normal),
                         ],
                       ),
-                    ],
-                  ),
                   const SizedBox(height: 5),
                   const Divider(),
                   const SizedBox(height: 5),

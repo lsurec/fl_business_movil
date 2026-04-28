@@ -9,6 +9,7 @@ import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
 import 'package:fl_business/displays/vehiculos/views/vista_Imagenes_view.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/vehiculo_marcado_widget.dart';
+import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/services/picture_service.dart';
@@ -78,6 +79,15 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               style: TextStyle(color: Colors.white),
             ),
             iconTheme: const IconThemeData(color: Colors.white),
+            actions: [
+              IconButton(
+                tooltip: AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.factura, 'docRecientes'),
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.recent),
+                icon: const Icon(Icons.schedule),
+              ),
+            ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -253,6 +263,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     itemCount: items.length,
                     itemBuilder: (_, i) => _itemCard(items[i]),
                   ),
+
+                // ================= Combustible =================
+                const SizedBox(height: 30),
+
+                // ================= GASOLINA =================
+                _titulo('Nivel de Gasolina'),
+                _gasolinaSlider(),
 
                 const SizedBox(height: 30),
 
@@ -904,10 +921,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 'Vendedor: ${vm.vendedorSelect?.nomCuentaCorrentista}',
                 style: pw.TextStyle(fontSize: 12),
               ),
-              pw.Text(
-                'Observación Combustible:',
-                style: pw.TextStyle(fontSize: 12),
-              ),
+
+              pw.SizedBox(height: 8),
+
+              _buildGasolinaPdf(vm.nivelGasolina),
+
+              pw.SizedBox(height: 8),
+
               pw.Text('Obs. Vehículo:', style: pw.TextStyle(fontSize: 12)),
             ],
           ),
@@ -1236,6 +1256,148 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       vm.setLoading(false);
     }
   }
+
+
+  /// Apartado de Gasolina
+
+  Widget _gasolinaSlider() {
+    final vm = context.watch<InicioVehiculosViewModel>();
+    final int totalBarras = 10;
+    final int barrasActivas = ((vm.nivelGasolina / 100) * totalBarras).round();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Nivel de gasolina',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const SizedBox(height: 12),
+
+        //  BARRAS TIPO TABLERO
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final spacing = 4.0;
+            final totalSpacing = (totalBarras - 1) * spacing;
+            final barraWidth = (width - totalSpacing) / totalBarras;
+
+            return Row(
+              children: List.generate(totalBarras, (index) {
+                final activa = index < barrasActivas;
+
+                return Container(
+                  width: barraWidth,
+                  height: 20,
+                  margin: EdgeInsets.only(
+                    right: index != totalBarras - 1 ? spacing : 0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: activa
+                        ? _colorGasolina(index, totalBarras)
+                        : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                );
+              }),
+            );
+          },
+        ),
+
+        const SizedBox(height: 10),
+
+        // SLIDER (CONTROL)
+        Row(
+          children: [
+            const Icon(Icons.local_gas_station),
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: Slider(
+                value: vm.nivelGasolina,
+                min: 0,
+                max: 100,
+                divisions: 20,
+                label: '${vm.nivelGasolina.toInt()}%',
+                onChanged: vm.setGasolina,
+              ),
+            ),
+
+            SizedBox(
+              width: 50,
+              child: Text(
+                '${vm.nivelGasolina.toInt()}%',
+                textAlign: TextAlign.end,
+              ),
+            ),
+          ],
+        ),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [Text('E'), Text('F')],
+        ),
+      ],
+    );
+  }
+
+  Color _colorGasolina(int index, int total) {
+    final ratio = index / total;
+
+    if (ratio < 0.3) {
+      return Colors.red;
+    } else if (ratio < 0.6) {
+      return Colors.orange;
+    } else {
+      return Colors.green;
+    }
+  }
+}
+
+// Gasolina pdf
+pw.Widget _buildGasolinaPdf(double nivelGasolina) {
+  const totalBarras = 10;
+  final barrasActivas = ((nivelGasolina / 100) * totalBarras).round();
+
+  PdfColor getColor(int index) {
+    final ratio = index / totalBarras;
+
+    if (ratio < 0.3) {
+      return PdfColors.red;
+    } else if (ratio < 0.6) {
+      return PdfColors.orange;
+    } else {
+      return PdfColors.green;
+    }
+  }
+
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [
+      pw.Text(
+        'Observación Combustible: ${nivelGasolina.toInt()}%',
+        style: pw.TextStyle(fontSize: 12),
+      ),
+      pw.SizedBox(height: 6),
+
+      pw.Row(
+        children: List.generate(totalBarras, (index) {
+          final activa = index < barrasActivas;
+
+          return pw.Container(
+            width: 18,
+            height: 12,
+            margin: const pw.EdgeInsets.only(right: 3),
+            decoration: pw.BoxDecoration(
+              color: activa ? getColor(index) : PdfColors.grey300,
+              borderRadius: pw.BorderRadius.circular(2),
+              border: pw.Border.all(color: PdfColors.grey600),
+            ),
+          );
+        }),
+      ),
+    ],
+  );
 }
 
 Widget _titulo(String titulo) {
@@ -1410,3 +1572,6 @@ pw.Widget _filaDoble(
     ),
   );
 }
+
+ /// para la medición de gasolina
+ 

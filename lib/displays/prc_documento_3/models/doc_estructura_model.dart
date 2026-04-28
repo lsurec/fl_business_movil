@@ -78,6 +78,7 @@ class DocEstructuraModel {
   String? docCc;
   String? docCil;
   List<TraFileUploadModel>? docVehiculoImagen;
+  double? docNivelGasolina;
 
   /// Aqui va la imagen con puntos seleccionados
 
@@ -142,6 +143,7 @@ class DocEstructuraModel {
     this.docCc,
     this.docCil,
     this.docVehiculoImagen,
+    this.docNivelGasolina,
   });
 
   factory DocEstructuraModel.fromJson(String str) =>
@@ -241,6 +243,7 @@ class DocEstructuraModel {
                 ),
               )
             : null,
+        docNivelGasolina: json["Doc_Nivel_Gasolina"]?.toDouble(),
       );
 
   Map<String, dynamic> toMap() => {
@@ -309,6 +312,7 @@ class DocEstructuraModel {
     "Doc_Vehiculo_Imagen": docVehiculoImagen != null
         ? List<dynamic>.from(docVehiculoImagen!.map((x) => x.toMap()))
         : null,
+    "Doc_Nivel_Gasolina": docNivelGasolina,
   };
 }
 
