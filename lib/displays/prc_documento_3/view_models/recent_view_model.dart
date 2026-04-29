@@ -276,24 +276,25 @@ class RecentViewModel extends ChangeNotifier {
     );
 
     if (nameClient.data != null) {
-      final ApiResModel resCuentaClient = await cuentaService
+      final ApiResponseModel resCuentaClient = await cuentaService
           .getCuentaCorrentista(
             empresaId,
             nameClient.data,
             user,
             token,
             menuVM.app,
+            estacionid,
           );
 
       //Si el api para  falló
-      if (!resCuentaClient.succes) {
+      if (!resCuentaClient.status) {
         isLoading = false;
 
-        await NotificationService.showErrorView(context, resCuentaClient);
+        await NotificationService.showInfoErrorView(context, resCuentaClient);
         return;
       }
 
-      final List<ClientModel> cuentas = resCuentaClient.response;
+      final List<ClientModel> cuentas = resCuentaClient.data;
 
       for (var i = 0; i < cuentas.length; i++) {
         final ClientModel item = cuentas[i];

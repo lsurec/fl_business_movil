@@ -95,18 +95,19 @@ class AddClientViewModel extends ChangeNotifier {
       return;
     }
 
-    ApiResModel resClient = await cuentaService.getCuentaCorrentista(
+    ApiResponseModel resClient = await cuentaService.getCuentaCorrentista(
       empresa,
       cuenta.nit,
       user,
       token,
       app,
+      estacion,
     );
     isLoading = false;
 
     //validar respuesta del servico, si es incorrecta
-    if (!resClient.succes) {
-      await NotificationService.showErrorView(context, resClient);
+    if (!resClient.status) {
+      await NotificationService.showInfoErrorView(context, resClient);
 
       NotificationService.showSnackbar(
         AppLocalizations.of(
@@ -116,7 +117,7 @@ class AddClientViewModel extends ChangeNotifier {
       return;
     }
 
-    final List<ClientModel> clients = resClient.response;
+    final List<ClientModel> clients = resClient.data;
 
     if (clients.isEmpty) {
       NotificationService.showSnackbar(

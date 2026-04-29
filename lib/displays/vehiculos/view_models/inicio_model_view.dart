@@ -21,7 +21,6 @@ import 'package:fl_business/displays/prc_documento_3/services/parametro_service.
 import 'package:fl_business/displays/prc_documento_3/services/serie_service.dart';
 import 'package:fl_business/displays/prc_documento_3/services/tipo_referenci_service.dart';
 import 'package:fl_business/displays/prc_documento_3/services/tipo_transaccion_service.dart';
-import 'package:fl_business/displays/prc_documento_3/view_models/details_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_model.dart';
@@ -40,10 +39,13 @@ import 'package:fl_business/displays/vehiculos/services/TipoVehiculoService.dart
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
 import 'package:fl_business/fel/models/credencial_model.dart';
 import 'package:fl_business/models/api_res_model.dart';
+import 'package:fl_business/models/api_response_model.dart';
 import 'package:fl_business/models/elemento_asignado_model.dart';
+import 'package:fl_business/models/tipo_cambio_model.dart';
 import 'package:fl_business/services/elemento_asignado_service.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
+import 'package:fl_business/services/tipo_cambio_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
@@ -53,8 +55,6 @@ import 'package:fl_business/view_models/menu_view_model.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
 import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as context;
-import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -357,10 +357,16 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         listen: false,
       ).token;
 
+      final user = Provider.of<LoginViewModel>(context, listen: false).user;
+      final empresa = Provider.of<LocalSettingsViewModel>(
+        context,
+        listen: false,
+      ).selectedEmpresa!.empresa;
+
       isLoading = true;
       notifyListeners();
 
-      // 👇 PRIMERO tipos de vehículo
+      //  PRIMERO tipos de vehículo
       await cargarTiposVehiculo(context);
       setIdDocumentoRef();
 
@@ -385,6 +391,36 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         serieSelect!.serieDocumento!,
         vmMenu.documento!,
       );
+
+      TipoCambioService tipoCambioService = TipoCambioService();
+
+      final ApiResModel resCambio = await tipoCambioService.getTipoCambio(
+        empresa,
+        user,
+        token,
+      );
+
+      if (!resCambio.succes) {
+        isLoading = false;
+        NotificationService.showErrorView(context, resCambio);
+        return;
+      }
+
+      final List<TipoCambioModel> cambios = resCambio.response;
+
+      if (cambios.isNotEmpty) {
+        vmMenu.tipoCambio = cambios[0].tipoCambio;
+      } else {
+        isLoading = false;
+
+        resCambio.response = AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'sinTipoCambio');
+
+        NotificationService.showErrorView(context, resCambio);
+
+        return;
+      }
 
       marcas = await _vehiculoService.obtenerMarcas(token);
       anios = await _vehiculoService.obtenerAnios(token);
@@ -1081,25 +1117,26 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     vmFactura.isLoading = true;
 
     //Consumo del api
-    ApiResModel res = await cuentaService.getCuentaCorrentista(
+    ApiResponseModel res = await cuentaService.getCuentaCorrentista(
       empresa, // empresa,
       client.text, // filter,
       user, // user,
       token, // token,
       app,
+      estacion,
     );
 
     //Stop process
     //valid succes response
-    if (!res.succes) {
+    if (!res.status) {
       //si algo salio mal mostrar alerta
       vmFactura.isLoading = false;
-      await NotificationService.showErrorView(context, res);
+      await NotificationService.showInfoErrorView(context, res);
       return;
     }
 
     //agregar clientes seleccionados
-    cuentasCorrentistas.addAll(res.response);
+    cuentasCorrentistas.addAll(res.data);
 
     // si no se encontró nada mostrar mensaje
     if (cuentasCorrentistas.isEmpty) {
@@ -1203,18 +1240,19 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return;
       }
 
-      ApiResModel resClient = await cuentaService.getCuentaCorrentista(
+      ApiResponseModel resClient = await cuentaService.getCuentaCorrentista(
         empresa,
         cuenta.nit,
         user,
         token,
         app,
+        estacion,
       );
 
       //validar respuesta del servico, si es incorrecta
-      if (!resClient.succes) {
+      if (!resClient.status) {
         vmFactura.isLoading = false;
-        await NotificationService.showErrorView(context, resClient);
+        await NotificationService.showInfoErrorView(context, resClient);
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
@@ -1223,7 +1261,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return;
       }
 
-      final List<ClientModel> clients = resClient.response;
+      final List<ClientModel> clients = resClient.data;
 
       if (clients.isEmpty) {
         vmFactura.isLoading = false;

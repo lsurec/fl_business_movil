@@ -478,79 +478,79 @@ class DetailsViewModel extends ChangeNotifier {
     //validar el producto
     //TODO:Ser quito posee componente
 
-    //consumo del api
-    ApiResModel resDisponibiladProducto = await productService
-        .getValidaProducto(
-          user,
-          docVM.serieSelect!.serieDocumento!,
-          menuVM.documento!,
-          localVM.selectedEstacion!.estacionTrabajo,
-          localVM.selectedEmpresa!.empresa,
-          productVM.selectedBodega!.bodega,
-          confirmVM.resolveTipoTransaccion(producto!.tipoProducto, context),
-          producto!.unidadMedida,
-          producto!.producto,
-          (int.tryParse(productVM.controllerNum.text) ?? 0),
-          menuVM.tipoCambio.toInt(),
-          productVM.selectedPrice!.moneda,
-          productVM.selectedPrice!.id,
-          token,
-          docVM.clienteSelect!.cuentaCorrentista,
-          docVM.clienteSelect!.cuentaCta,
-          docVM.fechaInicial,
-          docVM.fechaFinal,
-          double.parse(
-            (productVM.convertirTextNum(productVM.controllerNum.text)! *
-                    productVM.selectedPrice!.precioU)
-                .toStringAsFixed(2),
-          ),
-          total,
-        );
+    // //consumo del api
+    // ApiResModel resDisponibiladProducto = await productService
+    //     .getValidaProducto(
+    //       user,
+    //       docVM.serieSelect!.serieDocumento!,
+    //       menuVM.documento!,
+    //       localVM.selectedEstacion!.estacionTrabajo,
+    //       localVM.selectedEmpresa!.empresa,
+    //       productVM.selectedBodega!.bodega,
+    //       confirmVM.resolveTipoTransaccion(producto!.tipoProducto, context),
+    //       producto!.unidadMedida,
+    //       producto!.producto,
+    //       (int.tryParse(productVM.controllerNum.text) ?? 0),
+    //       menuVM.tipoCambio.toInt(),
+    //       productVM.selectedPrice!.moneda,
+    //       productVM.selectedPrice!.id,
+    //       token,
+    //       docVM.clienteSelect!.cuentaCorrentista,
+    //       docVM.clienteSelect!.cuentaCta,
+    //       docVM.fechaInicial,
+    //       docVM.fechaFinal,
+    //       double.parse(
+    //         (productVM.convertirTextNum(productVM.controllerNum.text)! *
+    //                 productVM.selectedPrice!.precioU)
+    //             .toStringAsFixed(2),
+    //       ),
+    //       total,
+    //     );
 
-    if (!resDisponibiladProducto.succes) {
-      vmFactura.isLoading = false;
+    // if (!resDisponibiladProducto.succes) {
+    //   vmFactura.isLoading = false;
 
-      //si algo salio mal mostrar alerta
-      await NotificationService.showErrorView(context, resDisponibiladProducto);
-      return;
-    }
+    //   //si algo salio mal mostrar alerta
+    //   await NotificationService.showErrorView(context, resDisponibiladProducto);
+    //   return;
+    // }
 
-    //almacenar los mensajes
-    //almacenar los mensajes
-    final List<MensajeModel> resMensajes = resDisponibiladProducto.response;
+    // //almacenar los mensajes
+    // //almacenar los mensajes
+    // final List<MensajeModel> resMensajes = resDisponibiladProducto.response;
 
-    final List<String> mensajes = [];
+    // final List<String> mensajes = [];
 
-    for (var element in resMensajes) {
-      if (!element.resultado) {
-        mensajes.add(element.mensaje ?? "");
-      }
-    }
-    if (mensajes.isNotEmpty) {
-      //Lista para agregar las validaciones
-      List<ValidateProductModel> validaciones = [];
-      //detener carga
-      vmFactura.isLoading = false;
+    // for (var element in resMensajes) {
+    //   if (!element.resultado) {
+    //     mensajes.add(element.mensaje ?? "");
+    //   }
+    // }
+    // if (mensajes.isNotEmpty) {
+    //   //Lista para agregar las validaciones
+    //   List<ValidateProductModel> validaciones = [];
+    //   //detener carga
+    //   vmFactura.isLoading = false;
 
-      ValidateProductModel validacion = ValidateProductModel(
-        sku: producto!.productoId,
-        productoDesc: producto!.desProducto,
-        bodega:
-            "${productVM.selectedBodega!.nombre} (${productVM.selectedBodega!.bodega})",
-        tipoDoc: "${menuVM.name} (${menuVM.documento!})",
-        serie:
-            "${docVM.serieSelect!.descripcion!} (${docVM.serieSelect!.serieDocumento!})",
-        mensajes: mensajes,
-      );
+    //   ValidateProductModel validacion = ValidateProductModel(
+    //     sku: producto!.productoId,
+    //     productoDesc: producto!.desProducto,
+    //     bodega:
+    //         "${productVM.selectedBodega!.nombre} (${productVM.selectedBodega!.bodega})",
+    //     tipoDoc: "${menuVM.name} (${menuVM.documento!})",
+    //     serie:
+    //         "${docVM.serieSelect!.descripcion!} (${docVM.serieSelect!.serieDocumento!})",
+    //     mensajes: mensajes,
+    //   );
 
-      //insertar registros
-      validaciones.add(validacion);
+    //   //insertar registros
+    //   validaciones.add(validacion);
 
-      //aqui abre un dialogo con notificacion
-      await NotificationService.showMessageValidations(context, validaciones);
+    //   //aqui abre un dialogo con notificacion
+    //   await NotificationService.showMessageValidations(context, validaciones);
 
-      return;
-    }
+    //   return;
+    // }
 
     //Calcular totral de la transaccion
     //SI no hau precio seleccionado no calcular
