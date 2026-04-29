@@ -11,6 +11,9 @@ class RecepcionVehiculoModel {
   final String modelo;
   final int anio;
   final String color;
+  final int? idMarca;
+  final int? idModelo;
+  final int? idColor;
 
   final String fechaRecibido;
   final String fechaSalida;
@@ -32,6 +35,9 @@ class RecepcionVehiculoModel {
     required this.modelo,
     required this.anio,
     required this.color,
+    this.idMarca,
+    this.idModelo,
+    this.idColor,
     required this.fechaRecibido,
     required this.fechaSalida,
     required this.detalleTrabajo,

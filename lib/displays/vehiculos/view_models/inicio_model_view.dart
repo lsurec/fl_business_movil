@@ -422,6 +422,31 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return;
       }
 
+      final vmDoc = Provider.of<DocumentViewModel>(context, listen: false);
+
+      //instancia del servicio
+      vmDoc.tiposTransaccion.clear();
+      TipoTransaccionService tipoTransaccionService = TipoTransaccionService();
+
+      //consumo del api
+      ApiResModel resTiposTra = await tipoTransaccionService.getTipoTransaccion(
+        vmMenu.documento!, // documento,
+        serieSelect!.serieDocumento!, // serie,
+        empresa, // empresa,
+        token, // token,
+        user, // user,
+      );
+
+      //valid succes response
+      if (!resTiposTra.succes) {
+        //si algo salio mal mostrar alerta
+        isLoading = false;
+
+        await NotificationService.showErrorView(context, resTiposTra);
+        return;
+      }
+
+      vmDoc.tiposTransaccion.addAll(resTiposTra.response);
       marcas = await _vehiculoService.obtenerMarcas(token);
       anios = await _vehiculoService.obtenerAnios(token);
       colores = await _vehiculoService.obtenerColores(token);
@@ -555,6 +580,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       modelo: modeloSeleccionado?.descripcion ?? '',
       anio: anioSeleccionado?.anio ?? 0,
       color: colorSeleccionado?.descripcion ?? '',
+      idMarca: marcaSeleccionada?.id,
+      idModelo: modeloSeleccionado?.id,
+      idColor: colorSeleccionado?.color,
 
       // --------------------
       // Fechas
@@ -587,7 +615,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     direccion = '';
     celular = '';
     email = '';
-
+    cf = false;
+    nivelGasolina = 50;
     // Limpiar detalle y datos de vehículo
     detalleTrabajo = '';
     kilometraje = '';
@@ -1761,8 +1790,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
               traFactorConversion: !transaction.precio!.precio
                   ? transaction.precio!.id
                   : null,
-              // traTipoTransaccion: resolveTipoTransaccion(4, context),
-              traTipoTransaccion: 35,
+              traTipoTransaccion: resolveTipoTransaccion(4, context),
+              // traTipoTransaccion: 35,
               traMonto: operacion.cargo,
             ),
           );
@@ -1790,8 +1819,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
               traFactorConversion: !transaction.precio!.precio
                   ? transaction.precio!.id
                   : null,
-              // traTipoTransaccion: resolveTipoTransaccion(3, context),
-              traTipoTransaccion: 35,
+              traTipoTransaccion: resolveTipoTransaccion(3, context),
+              // traTipoTransaccion: 35,
               traMonto: operacion.descuento,
             ),
           );
@@ -1816,11 +1845,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
           traFactorConversion: !transaction.precio!.precio
               ? transaction.precio!.id
               : null,
-          // traTipoTransaccion: resolveTipoTransaccion(
-          //   transaction.producto.tipoProducto,
-          //   context,
-          // ),
-          traTipoTransaccion: 35,
+          traTipoTransaccion: resolveTipoTransaccion(
+            transaction.producto.tipoProducto,
+            context,
+          ),
+          // traTipoTransaccion: 35,
           traMonto: transaction.total,
           traMontoDias: transaction.precioDia,
           traArchivos: transaction.filesUpload,
@@ -1975,6 +2004,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docModelo: recepcionGuardada?.modelo,
       docAnio: recepcionGuardada?.anio.toString(),
       docColor: recepcionGuardada?.color,
+      docIdMarca: recepcionGuardada?.idMarca,
+      docIdModelo: recepcionGuardada?.idModelo,
+      docIdColor: recepcionGuardada?.idColor,
 
       // --------------------
       // Fechas

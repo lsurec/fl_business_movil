@@ -62,6 +62,9 @@ class DocEstructuraModel {
   String? docModelo;
   String? docAnio;
   String? docColor;
+  int? docIdMarca;
+  int? docIdModelo;
+  int? docIdColor;
 
   // --------------------
   // Fechas
@@ -135,6 +138,9 @@ class DocEstructuraModel {
     this.docModelo,
     this.docAnio,
     this.docColor,
+    this.docIdMarca,
+    this.docIdModelo,
+    this.docIdColor,
     this.docFechaRecibido,
     this.docFechaSalida,
     this.docDetalleTrabajo,
@@ -218,6 +224,9 @@ class DocEstructuraModel {
         docModelo: json["Doc_Modelo"],
         docAnio: json["Doc_Anio"],
         docColor: json["Doc_Color"],
+        docIdMarca: json["Doc_Id_Marca"],
+        docIdModelo: json["Doc_Id_Modelo"],
+        docIdColor: json["Doc_Id_Color"],
 
         //  FECHAS
         docFechaRecibido: json["Doc_Fecha_Recibido"] != null
@@ -300,6 +309,9 @@ class DocEstructuraModel {
     "Doc_Modelo": docModelo,
     "Doc_Anio": docAnio,
     "Doc_Color": docColor,
+    "Doc_Id_Marca": docIdMarca,
+    "Doc_Id_Modelo": docIdModelo,
+    "Doc_Id_Color": docIdColor,
 
     "Doc_Fecha_Recibido": docFechaRecibido?.toIso8601String(),
     "Doc_Fecha_Salida": docFechaSalida?.toIso8601String(),
