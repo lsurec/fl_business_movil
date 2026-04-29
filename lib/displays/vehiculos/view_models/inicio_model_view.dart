@@ -774,7 +774,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         modeloFecha: _fechaRecibidoParaCatalogoApi(),
         motor: ccController.text.trim(),
         chasis: chasisController.text.trim(),
-        color: colorSeleccionado!.descripcion,
+        color: colorSeleccionado!.color,
         placa: placa,
         centimetrosCubicos: ccController.text.trim(),
         cilindros: cilController.text.trim(),

@@ -7,7 +7,7 @@ class CatalogoVehiculosModel {
   final String? modeloFecha;
   final String motor;
   final String chasis;
-  final String color;
+  final int color;
   final String placa;
   final String centimetrosCubicos;
   final String cilindros;
