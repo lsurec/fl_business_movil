@@ -40,9 +40,11 @@ import 'package:fl_business/fel/models/credencial_model.dart';
 import 'package:fl_business/models/api_res_model.dart';
 import 'package:fl_business/models/api_response_model.dart';
 import 'package:fl_business/models/elemento_asignado_model.dart';
+import 'package:fl_business/models/tipo_cambio_model.dart';
 import 'package:fl_business/services/elemento_asignado_service.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
+import 'package:fl_business/services/tipo_cambio_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
@@ -345,6 +347,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         listen: false,
       ).token;
 
+      final user = Provider.of<LoginViewModel>(context, listen: false).user;
+      final empresa = Provider.of<LocalSettingsViewModel>(
+        context,
+        listen: false,
+      ).selectedEmpresa!.empresa;
+
       isLoading = true;
       notifyListeners();
 
@@ -373,6 +381,36 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         serieSelect!.serieDocumento!,
         vmMenu.documento!,
       );
+
+      TipoCambioService tipoCambioService = TipoCambioService();
+
+      final ApiResModel resCambio = await tipoCambioService.getTipoCambio(
+        empresa,
+        user,
+        token,
+      );
+
+      if (!resCambio.succes) {
+        isLoading = false;
+        NotificationService.showErrorView(context, resCambio);
+        return;
+      }
+
+      final List<TipoCambioModel> cambios = resCambio.response;
+
+      if (cambios.isNotEmpty) {
+        vmMenu.tipoCambio = cambios[0].tipoCambio;
+      } else {
+        isLoading = false;
+
+        resCambio.response = AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'sinTipoCambio');
+
+        NotificationService.showErrorView(context, resCambio);
+
+        return;
+      }
 
       marcas = await _vehiculoService.obtenerMarcas(token);
       anios = await _vehiculoService.obtenerAnios(token);
