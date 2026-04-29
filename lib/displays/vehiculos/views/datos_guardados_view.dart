@@ -613,18 +613,32 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             ),
 
             // ================= MARCAS =================
-            ...marcas.map((m) {
+            ...marcas.asMap().entries.map((entry) {
+              final index = entry.key;
+              final m = entry.value;
+
               final double dx = offsetX + (m.x * imageWidth);
               final double dy = offsetY + (m.y * imageHeight);
+
               return pw.Positioned(
-                left: dx - 6,
-                top: dy - 6,
+                left: dx - 10,
+                top: dy - 10,
                 child: pw.Container(
-                  width: 12,
-                  height: 12,
+                  width: 20,
+                  height: 20,
                   decoration: const pw.BoxDecoration(
                     color: PdfColors.red,
                     shape: pw.BoxShape.circle,
+                  ),
+                  child: pw.Center(
+                    child: pw.Text(
+                      '${index + 1}', //  número consecutivo
+                      style: pw.TextStyle(
+                        color: PdfColors.white,
+                        fontSize: 10,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
               );
