@@ -356,7 +356,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      // 👇 PRIMERO tipos de vehículo
+      //  PRIMERO tipos de vehículo
       await cargarTiposVehiculo(context);
       setIdDocumentoRef();
 
