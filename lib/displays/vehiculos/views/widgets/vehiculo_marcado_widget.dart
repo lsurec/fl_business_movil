@@ -84,7 +84,7 @@ class _VehiculoMarcadoWidgetState extends State<VehiculoMarcadoWidget> {
 
                   final pos = d.localPosition;
 
-                  // ❌ ignorar taps fuera de la imagen
+                  //  ignorar taps fuera de la imagen
                   if (pos.dx < offsetX ||
                       pos.dx > offsetX + imageWidth ||
                       pos.dy < offsetY ||
@@ -156,10 +156,37 @@ class _MarcasPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = Colors.red;
 
-    for (final m in marcas) {
+    for (int i = 0; i < marcas.length; i++) {
+      final m = marcas[i];
+
       final dx = offsetX + (m.x * imageWidth);
       final dy = offsetY + (m.y * imageHeight);
-      canvas.drawCircle(Offset(dx, dy), 10, paint);
+
+      //  círculo
+      canvas.drawCircle(Offset(dx, dy), 12, paint);
+
+      //  número
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '${i + 1}', //  número consecutivo
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+
+      textPainter.layout();
+
+      textPainter.paint(
+        canvas,
+        Offset(
+          dx - textPainter.width / 2,
+          dy - textPainter.height / 2,
+        ),
+      );
     }
   }
 

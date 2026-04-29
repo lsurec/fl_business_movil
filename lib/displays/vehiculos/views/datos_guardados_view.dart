@@ -175,8 +175,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.undo),
-                        label: const Text('Eliminar última'),
+                        icon: const Icon(Icons.undo, color: Colors.white),
+                        label: const Text(
+                          'Eliminar última',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         onPressed: vm.marcasVehiculo.isEmpty
                             ? null
                             : vm.eliminarUltimaMarca,
@@ -547,8 +550,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     }).toList();
 
     // 7. DEBUG FINAL (MUY IMPORTANTE)
-    print(" Imagen vehículo guardada en docGlobal:");
-    print(vm.docGlobal?.docVehiculoImagen?.map((e) => e.system).toList());
+    print(" Imagen vehículo guardada en VM:");
+    print(vm.vehiculoImagen?.map((e) => e.system).toList());
   }
   ///// Imagen Logo
   // Future<Uint8List> cargarImagenDesdeAssets(String path) async {

@@ -250,7 +250,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String chasis = '';
   double nivelGasolina = 50;
 
-
   List<TraFileUploadModel>? vehiculoImagen;
 
   // ============================================================================
@@ -317,13 +316,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
   List<ItemVehiculo> itemsAsignados = [];
 
+  //// Nivel de Gasolina
+  void setGasolina(double value) {
+    nivelGasolina = value;
+    notifyListeners();
+  }
 
-
-//// Nivel de Gasolina
-void setGasolina(double value) {
-  nivelGasolina = value;
-  notifyListeners();
-}
   /// Reemplaza la lista completa de ítems
   void setItemsAsignados(List<ItemVehiculo> items) {
     itemsAsignados = items;
@@ -1725,7 +1723,8 @@ void setGasolina(double value) {
               traFactorConversion: !transaction.precio!.precio
                   ? transaction.precio!.id
                   : null,
-              traTipoTransaccion: resolveTipoTransaccion(4, context),
+              // traTipoTransaccion: resolveTipoTransaccion(4, context),
+              traTipoTransaccion: 35,
               traMonto: operacion.cargo,
             ),
           );
@@ -1753,7 +1752,8 @@ void setGasolina(double value) {
               traFactorConversion: !transaction.precio!.precio
                   ? transaction.precio!.id
                   : null,
-              traTipoTransaccion: resolveTipoTransaccion(3, context),
+              // traTipoTransaccion: resolveTipoTransaccion(3, context),
+              traTipoTransaccion: 35,
               traMonto: operacion.descuento,
             ),
           );
@@ -1778,10 +1778,11 @@ void setGasolina(double value) {
           traFactorConversion: !transaction.precio!.precio
               ? transaction.precio!.id
               : null,
-          traTipoTransaccion: resolveTipoTransaccion(
-            transaction.producto.tipoProducto,
-            context,
-          ),
+          // traTipoTransaccion: resolveTipoTransaccion(
+          //   transaction.producto.tipoProducto,
+          //   context,
+          // ),
+          traTipoTransaccion: 35,
           traMonto: transaction.total,
           traMontoDias: transaction.precioDia,
           traArchivos: transaction.filesUpload,
@@ -1953,8 +1954,9 @@ void setGasolina(double value) {
       docCc: recepcionGuardada?.cc,
       docCil: recepcionGuardada?.cil,
       docNivelGasolina: nivelGasolina,
-      docVehiculoImagen: vehiculoImagen,
-
+      docVehiculoImagen: context
+          .read<InicioVehiculosViewModel>()
+          .vehiculoImagen,
     );
 
     final estructuraJson = docGlobal!.toJson();
@@ -1969,7 +1971,7 @@ void setGasolina(double value) {
 
     for (var t in itemsVM.transaciciones) {
       // debugPrint(
-        // 'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
+      // 'Producto ${t.producto.producto} | checked=${t.isChecked} | obs=${t.observacion}',
       // );
     }
 
