@@ -768,7 +768,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       final model = CatalogoVehiculosModel(
         descripcion: descripcionVehiculo,
         elementoId: placa,
-        empresa: 1,
+        empresa: empresa,
         marca: marcaSeleccionada!.id,
         modelo: modeloSeleccionado!.id,
         modeloFecha: _fechaRecibidoParaCatalogoApi(),
