@@ -563,7 +563,7 @@ class ConvertDocViewModel extends ChangeNotifier {
 
     //--EMpiezan datos
     //Cargar cliente
-    ApiResModel resClient = await cuentaService.getCuentaCorrentista(
+    ApiResponseModel resClient = await cuentaService.getCuentaCorrentista(
       empresa,
       docOriginSelect!.nit,
       user,
@@ -573,16 +573,16 @@ class ConvertDocViewModel extends ChangeNotifier {
     );
 
     //si algo salio mal
-    if (!resClient.succes) {
+    if (!resClient.status) {
       isLoading = false;
 
-      NotificationService.showErrorView(context, resClient);
+      NotificationService.showInfoErrorView(context, resClient);
 
       return;
     }
 
     //Buscar cliente y asiganrlo
-    List<ClientModel> clients = resClient.response;
+    List<ClientModel> clients = resClient.data;
 
     int existClient = -1;
 

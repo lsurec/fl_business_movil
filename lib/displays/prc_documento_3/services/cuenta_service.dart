@@ -114,7 +114,7 @@ class CuentaService {
   }
 
   //Consumo api buscar clinete
-  Future<ApiResModel> getCuentaCorrentista(
+  Future<ApiResponseModel> getCuentaCorrentista(
     int empresa,
     String filter,
     String user,
@@ -143,43 +143,32 @@ class CuentaService {
         headers: {"Authorization": "Bearer $token"},
       );
 
-      ResponseModel res = ResponseModel.fromMap(jsonDecode(response.body));
-
-      //si el api no responde
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        return ApiResModel(
-          url: url.toString(),
-          succes: false,
-          response: res.data,
-          storeProcedure: res.storeProcedure,
-        );
-      }
-
-      //clientes retornador por el api
-      List<ClientModel> clients = [];
-
-      //recorrer lista api Y  agregar a lista local
-      for (var item in res.data) {
-        //Tipar a map
-        final responseFinally = ClientModel.fromMap(item);
-        //agregar item a la lista
-        clients.add(responseFinally);
-      }
-
-      //retornar respuesta correcta del api
-      return ApiResModel(
-        url: url.toString(),
-        succes: true,
-        response: clients,
-        storeProcedure: null,
+      ApiResponseModel res = ApiResponseModel.fromMap(
+        jsonDecode(response.body),
       );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        List<ClientModel> items = (res.data as List)
+            .map((item) => ClientModel.fromMap(item))
+            .toList();
+
+        res.data = items;
+      }
+
+      res.url = url.toString();
+      return res;
     } catch (e) {
       //en caso de error retornar el error
-      return ApiResModel(
+      return ApiResponseModel(
+        status: false,
+        message: "Excepcion no controlada",
+        error: e.toString(),
+        storedProcedure: "",
+        parameters: null,
+        data: [],
+        timestamp: DateTime.now(),
+        version: "Desconocida",
         url: url.toString(),
-        succes: false,
-        response: e.toString(),
-        storeProcedure: null,
       );
     }
   }

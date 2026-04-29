@@ -38,6 +38,7 @@ import 'package:fl_business/displays/vehiculos/services/TipoVehiculoService.dart
 import 'package:fl_business/displays/vehiculos/services/vehiculos_service.dart';
 import 'package:fl_business/fel/models/credencial_model.dart';
 import 'package:fl_business/models/api_res_model.dart';
+import 'package:fl_business/models/api_response_model.dart';
 import 'package:fl_business/models/elemento_asignado_model.dart';
 import 'package:fl_business/services/elemento_asignado_service.dart';
 import 'package:fl_business/services/language_service.dart';
@@ -1068,7 +1069,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     vmFactura.isLoading = true;
 
     //Consumo del api
-    ApiResModel res = await cuentaService.getCuentaCorrentista(
+    ApiResponseModel res = await cuentaService.getCuentaCorrentista(
       empresa, // empresa,
       client.text, // filter,
       user, // user,
@@ -1079,15 +1080,15 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     //Stop process
     //valid succes response
-    if (!res.succes) {
+    if (!res.status) {
       //si algo salio mal mostrar alerta
       vmFactura.isLoading = false;
-      await NotificationService.showErrorView(context, res);
+      await NotificationService.showInfoErrorView(context, res);
       return;
     }
 
     //agregar clientes seleccionados
-    cuentasCorrentistas.addAll(res.response);
+    cuentasCorrentistas.addAll(res.data);
 
     // si no se encontró nada mostrar mensaje
     if (cuentasCorrentistas.isEmpty) {
@@ -1191,7 +1192,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return;
       }
 
-      ApiResModel resClient = await cuentaService.getCuentaCorrentista(
+      ApiResponseModel resClient = await cuentaService.getCuentaCorrentista(
         empresa,
         cuenta.nit,
         user,
@@ -1201,9 +1202,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       );
 
       //validar respuesta del servico, si es incorrecta
-      if (!resClient.succes) {
+      if (!resClient.status) {
         vmFactura.isLoading = false;
-        await NotificationService.showErrorView(context, resClient);
+        await NotificationService.showInfoErrorView(context, resClient);
         NotificationService.showSnackbar(
           AppLocalizations.of(
             context,
@@ -1212,7 +1213,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return;
       }
 
-      final List<ClientModel> clients = resClient.response;
+      final List<ClientModel> clients = resClient.data;
 
       if (clients.isEmpty) {
         vmFactura.isLoading = false;

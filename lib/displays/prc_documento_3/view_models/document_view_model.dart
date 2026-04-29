@@ -604,7 +604,7 @@ class DocumentViewModel extends ChangeNotifier {
     vmFactura.isLoading = true;
 
     //Consumo del api
-    ApiResModel res = await cuentaService.getCuentaCorrentista(
+    ApiResponseModel res = await cuentaService.getCuentaCorrentista(
       empresa, // empresa,
       client.text, // filter,
       user, // user,
@@ -616,16 +616,16 @@ class DocumentViewModel extends ChangeNotifier {
     //Stop process
 
     //valid succes response
-    if (!res.succes) {
+    if (!res.status) {
       //si algo salio mal mostrar alerta
       vmFactura.isLoading = false;
 
-      await NotificationService.showErrorView(context, res);
+      await NotificationService.showInfoErrorView(context, res);
       return;
     }
 
     //agregar clientes seleccionados
-    cuentasCorrentistas.addAll(res.response);
+    cuentasCorrentistas.addAll(res.data);
 
     // si no se encontró nada mostrar mensaje
     if (cuentasCorrentistas.isEmpty) {
@@ -737,7 +737,7 @@ class DocumentViewModel extends ChangeNotifier {
         return;
       }
 
-      ApiResModel resClient = await cuentaService.getCuentaCorrentista(
+      ApiResponseModel resClient = await cuentaService.getCuentaCorrentista(
         empresa,
         cuenta.nit,
         user,
@@ -747,10 +747,10 @@ class DocumentViewModel extends ChangeNotifier {
       );
 
       //validar respuesta del servico, si es incorrecta
-      if (!resClient.succes) {
+      if (!resClient.status) {
         vmFactura.isLoading = false;
 
-        await NotificationService.showErrorView(context, resClient);
+        await NotificationService.showInfoErrorView(context, resClient);
 
         NotificationService.showSnackbar(
           AppLocalizations.of(
@@ -760,7 +760,7 @@ class DocumentViewModel extends ChangeNotifier {
         return;
       }
 
-      final List<ClientModel> clients = resClient.response;
+      final List<ClientModel> clients = resClient.data;
 
       if (clients.isEmpty) {
         vmFactura.isLoading = false;
