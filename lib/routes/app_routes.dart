@@ -11,9 +11,7 @@ import 'package:fl_business/displays/shr_local_config/views/views.dart';
 import 'package:fl_business/displays/tablero_kanban/views/tablero_view.dart';
 import 'package:fl_business/displays/tareas/views/ea_tareas_view.dart';
 import 'package:fl_business/displays/tareas/views/views.dart';
-import 'package:fl_business/displays/vehiculos/views/catalogo_vehiculos_view.dart';
 import 'package:fl_business/displays/vehiculos/views/inicioRecepci%C3%B3n.view.dart';
-import 'package:fl_business/displays/vehiculos/views/select_clientRecepcion_view.dart';
 import 'package:fl_business/views/error_infor_view.dart';
 import 'package:fl_business/views/views.dart';
 import 'package:flutter/material.dart';
@@ -155,7 +153,6 @@ class AppRoutes {
 
     printerView: (BuildContext context) => const PrinterView(),
     vehiculos: (BuildContext context) => const InicioVehiculosView(),
-    selecClientRecepcion: (BuildContext context) => const SelectClienteRecepcionView(),
   };
 
   //en caso de ruta incorrecta

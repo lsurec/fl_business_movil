@@ -163,6 +163,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                       imagePath: vm.imagenTipoVehiculo!,
                       marcas: vm.marcasVehiculo,
                       onTap: vm.agregarMarca,
+                      readOnly: _documentoEnviado,
                     ),
                   ),
                   // VehiculoMarcadoWidget(
@@ -325,9 +326,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         onPressed: (_documentoEnviado || vm.isLoading)
                             ? null
                             : () async {
-                                // setState(() {
-                                //   _documentoEnviado = true;
-                                // });
+                                setState(() {
+                                  _documentoEnviado = true;
+                                });
                                 await _enviarDocumento(context);
                               },
                       ),
@@ -1335,7 +1336,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 max: 100,
                 divisions: 20,
                 label: '${vm.nivelGasolina.toInt()}%',
-                onChanged: vm.setGasolina,
+                onChanged: _documentoEnviado
+                    ? null // 🔒 bloqueado
+                    : vm.setGasolina,
               ),
             ),
 

@@ -45,6 +45,30 @@ class UpperCaseTextFormatter extends TextInputFormatter {
 
 class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   @override
+  Future<bool?> _mostrarConfirmacionSalir(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('¿Estás seguro de abandonar?'),
+          content: const Text(
+            'Se perderán los datos ingresados.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Sí, salir', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void initState() {
     super.initState();
 
@@ -90,619 +114,662 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
     return Stack(
       children: [
-        Scaffold(
-          backgroundColor: backgroundColor,
-          appBar: AppBar(
-            backgroundColor: AppTheme.primary,
-            elevation: 0,
-            centerTitle: true,
-            title: Text(
-              AppLocalizations.of(
-                context,
-              )!.translate(BlockTranslate.vehiculos, 'recepcionVehiculos'),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
+        WillPopScope(
+          onWillPop: () async {
+            final confirmar = await _mostrarConfirmacionSalir(context);
 
-            actions: [
-              IconButton(
-                icon: Icon(
-                  Icons.save_rounded,
-                  color: vm.formularioValido ? Colors.white : Colors.white54,
-                ),
-                tooltip: AppLocalizations.of(
+            if (confirmar == true) {
+              // 🔹 Limpiar datos antes de salir
+              final itemsVM = context.read<ItemsVehiculoViewModel>();
+              final vm = context.read<InicioVehiculosViewModel>();
+              final elVM = context.read<ElementoAsigandoViewModel>();
+
+              await itemsVM.limpiarDatosItems();
+              vm.cancelar();
+              elVM.cancelar();
+
+              return true; // permite salir
+            }
+
+            return false; // cancela el pop
+          },
+          child: Scaffold(
+            backgroundColor: backgroundColor,
+            appBar: AppBar(
+              backgroundColor: AppTheme.primary,
+              elevation: 0,
+              centerTitle: true,
+              title: Text(
+                AppLocalizations.of(
                   context,
-                )!.translate(BlockTranslate.botones, 'guardar'),
-
-                onPressed: vm.formularioValido
-                    ? () async {
-                        // 1. Crear vehículo PRIMERO
-                        final ok = await vm.guardarVehiculoEnCatalogo(context);
-
-                        if (!context.mounted) return;
-
-                        if (ok) {
-                          // 2. Navegar DESPUÉS
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ChangeNotifierProvider.value(
-                                value: context.read<ItemsVehiculoViewModel>(),
-                                child: const ItemsVehiculoScreen(),
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    : null,
-              ),
-              IconButton(
-                icon: const Icon(Icons.note_add_outlined, color: Colors.white),
-                tooltip: AppLocalizations.of(
-                  context,
-                )!.translate(BlockTranslate.botones, 'cancelar'),
-
-                onPressed: () {
-                  vm.cancelar();
-                  elVM.cancelar();
-                },
-              ),
-            ],
-          ),
-          body: Container(
-            color: backgroundColor,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.translate(BlockTranslate.cotizacion, 'docIdRef'),
-                      style: StyleApp.title.copyWith(color: textColor),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      vm.idDocumentoRef.toString(),
-                      style: StyleApp.normal.copyWith(color: textColor),
-                    ),
-                  ],
+                )!.translate(BlockTranslate.vehiculos, 'recepcionVehiculos'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  AppLocalizations.of(
+              ),
+
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    Icons.save_rounded,
+                    color: vm.formularioValido ? Colors.white : Colors.white54,
+                  ),
+                  tooltip: AppLocalizations.of(
                     context,
-                  )!.translate(BlockTranslate.general, 'serie'),
-                  style: StyleApp.title.copyWith(color: textColor),
+                  )!.translate(BlockTranslate.botones, 'guardar'),
+
+                  onPressed: vm.formularioValido
+                      ? () async {
+                          // 1. Crear vehículo PRIMERO
+                          final ok = await vm.guardarVehiculoEnCatalogo(
+                            context,
+                          );
+
+                          if (!context.mounted) return;
+
+                          if (ok) {
+                            // 2. Navegar DESPUÉS
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChangeNotifierProvider.value(
+                                  value: context.read<ItemsVehiculoViewModel>(),
+                                  child: const ItemsVehiculoScreen(),
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      : null,
                 ),
-                if (vm.series.isEmpty && !vmFactura.editDoc)
-                  NotFoundWidget(
-                    text: AppLocalizations.of(
-                      context,
-                    )!.translate(BlockTranslate.notificacion, 'sinElementos'),
-                    icon: Icon(
-                      Icons.browser_not_supported_outlined,
-                      size: 50,
-                      color: isDark ? Colors.white54 : Colors.grey,
-                    ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.note_add_outlined,
+                    color: Colors.white,
                   ),
-                if (vmFactura.editDoc)
-                  Text(
-                    "${vmConvert.docOriginSelect!.serie} (${vmConvert.docOriginSelect!.serieDocumento})",
-                    style: StyleApp.normal.copyWith(color: textColor),
-                  ),
-                if (vm.series.isNotEmpty && !vmFactura.editDoc)
-                  DropdownButton<SerieModel>(
-                    isExpanded: true,
-                    dropdownColor: cardColor,
-                    hint: Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.translate(BlockTranslate.factura, 'opcion'),
-                      style: TextStyle(color: hintColor),
-                    ),
-                    value: vm.serieSelect,
-                    onChanged: (value) => vm.changeSerie(value, context),
-                    items: vm.series.map((serie) {
-                      return DropdownMenuItem<SerieModel>(
-                        value: serie,
-                        child: Text(
-                          serie.descripcion!,
-                          style: TextStyle(color: textColor),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                if (vm.valueParametro(318))
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.translate(BlockTranslate.botones, 'cancelar'),
+
+                  onPressed: () {
+                    vm.cancelar();
+                    elVM.cancelar();
+                  },
+                ),
+                IconButton(
+                tooltip: AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.factura, 'docRecientes'),
+                onPressed: () => Navigator.pushNamed(context, AppRoutes.recent),
+                icon: const Icon(Icons.schedule),
+              ),
+              ],
+            ),
+            body: Container(
+              color: backgroundColor,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+                children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 10),
-                      RichText(
-                        text: TextSpan(
-                          style: StyleApp.normal.copyWith(color: textColor),
-                          children: [
-                            TextSpan(
-                              text: AppLocalizations.of(
-                                context,
-                              )!.translate(BlockTranslate.tiket, 'latitud'),
-                              style: StyleApp.normalBold,
-                            ),
-                            TextSpan(
-                              text: vmLocation.latitutd,
-                              style: StyleApp.normal,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      RichText(
-                        text: TextSpan(
-                          style: StyleApp.normal.copyWith(color: textColor),
-                          children: [
-                            TextSpan(
-                              text: AppLocalizations.of(
-                                context,
-                              )!.translate(BlockTranslate.tiket, 'longitud'),
-                              style: StyleApp.normalBold,
-                            ),
-                            TextSpan(
-                              text: vmLocation.longitud,
-                              style: StyleApp.normal,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                if (vm.valueParametro(58))
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
                       Text(
                         AppLocalizations.of(
                           context,
-                        )!.translate(BlockTranslate.general, 'referencia'),
+                        )!.translate(BlockTranslate.cotizacion, 'docIdRef'),
                         style: StyleApp.title.copyWith(color: textColor),
                       ),
-
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, AppRoutes.ref),
-                        child: ListTile(
-                          title: Row(
-                            children: [
-                              Text(
-                                refVM.referencia == null
-                                    ? AppLocalizations.of(context)!.translate(
-                                        BlockTranslate.general,
-                                        'buscar',
-                                      )
-                                    : refVM.referencia!.descripcion,
-                                style: StyleApp.normal.copyWith(
-                                  color: Theme.of(context).primaryColor,
-                                ),
-                              ),
-                              const Text(" * ", style: StyleApp.obligatory),
-                              const SizedBox(width: 30),
-                            ],
-                          ),
-                          leading: Icon(
-                            Icons.search,
-                            color: vmTheme.colorPref(AppTheme.idColorTema),
-                          ),
-                          contentPadding: const EdgeInsets.all(0),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ),
-                if (vm.valueParametro(259))
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                      const SizedBox(height: 3),
                       Text(
-                        AppLocalizations.of(context)!.translate(
-                          BlockTranslate.vehiculos,
-                          'elementoAsignado',
-                        ),
-
-                        style: StyleApp.title.copyWith(color: textColor),
+                        vm.idDocumentoRef.toString(),
+                        style: StyleApp.normal.copyWith(color: textColor),
                       ),
-                      TextButton(
-                        onPressed: () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.elementoAsignado,
-                        ),
-                        child: ListTile(
-                          title: Row(
-                            children: [
-                              Text(
-                                elVM.elemento == null
-                                    ? AppLocalizations.of(context)!.translate(
-                                        BlockTranslate.general,
-                                        'buscar',
-                                      )
-                                    : elVM.elemento!.descripcion,
-                                style: StyleApp.normal.copyWith(
-                                  color: Theme.of(context).secondaryHeaderColor,
-                                ),
-                              ),
-                              const Text(" * ", style: StyleApp.obligatory),
-                              const SizedBox(width: 30),
-                            ],
-                          ),
-                          leading: Icon(
-                            Icons.search,
-                            color: vmTheme.colorPref(AppTheme.idColorTema),
-                          ),
-                          contentPadding: const EdgeInsets.all(0),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                     ],
                   ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      vm.getTextCuenta(context),
-                      style: StyleApp.title.copyWith(color: textColor),
-                    ),
-                    IconButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, AppRoutes.addClient),
-                      icon: const Icon(Icons.person_add_outlined),
-                      tooltip: AppLocalizations.of(
-                        context,
-                      )!.translate(BlockTranslate.cuenta, 'nueva'),
-                    ),
-                  ],
-                ),
-                if (vm.clienteSelect == null) const SizedBox(height: 20),
-                if (vm.clienteSelect == null)
-                  Form(
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    key: vm.formKeyClient,
-                    child: TextFormField(
-                      controller: vm.client,
-                      onFieldSubmitted: (value) =>
-                          vm.performSearchClient(context),
-                      textInputAction: TextInputAction.search,
-                      style: TextStyle(color: textColor),
-                      decoration: InputDecoration(
-                        hintText: vm.getTextCuenta(context),
-                        hintStyle: TextStyle(color: hintColor),
-                        filled: true,
-                        fillColor: cardColor,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () async {
-                            FocusScope.of(context).unfocus();
-
-                            try {
-                              vm.setLoading(true); //  activar loader
-
-                              await vm.performSearchClient(context);
-                            } catch (e) {
-                              print(e);
-                            } finally {
-                              vm.setLoading(false); //  quitar loader
-                            }
-                          },
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return AppLocalizations.of(context)!.translate(
-                            BlockTranslate.notificacion,
-                            'requerido',
-                          );
-                        }
-                        return null;
-                      },
-                    ),
-                  ),
-                const SizedBox(height: 10),
-                SwitchListTile(
-                  activeColor: AppTheme.hexToColor(Preferences.valueColor),
-                  contentPadding: EdgeInsets.zero,
-                  value: vm.cf,
-                  onChanged: (value) => vm.changeCF(context, value),
-                  title: Text(
-                    t.translate(BlockTranslate.factura, 'factura_cf'),
+                  const SizedBox(height: 10),
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.translate(BlockTranslate.general, 'serie'),
                     style: StyleApp.title.copyWith(color: textColor),
                   ),
-                ),
-                if (vm.clienteSelect != null)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            vm.getTextCuenta(context),
-                            style: StyleApp.titlegrey.copyWith(
-                              color: textColor,
-                            ),
-                          ),
-                          if (!vm.cf)
-                            IconButton(
-                              onPressed: () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.updateClient,
-                                arguments: vm.clienteSelect,
-                              ),
-                              icon: Icon(
-                                Icons.edit_outlined,
-                                color: AppTheme.grey,
-                              ),
-                            ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 10),
-                      Text(
-                        vm.clienteSelect!.facturaNit,
-                        style: StyleApp.normal.copyWith(color: textColor),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        vm.clienteSelect!.facturaNombre,
-                        style: StyleApp.normal.copyWith(color: textColor),
-                      ),
-                      if (vm.clienteSelect!.facturaDireccion.isNotEmpty &&
-                          vmFactura.editDoc)
-                        Column(
-                          children: [
-                            const SizedBox(height: 10),
-                            Text(
-                              vm.clienteSelect!.facturaDireccion,
-                              style: StyleApp.normal.copyWith(color: textColor),
-                            ),
-                          ],
-                        ),
-                      if (vm.clienteSelect!.desCuentaCta.isNotEmpty &&
-                          vmFactura.editDoc)
-                        Column(
-                          children: [
-                            const SizedBox(height: 10),
-                            Text(
-                              "(${vm.clienteSelect!.desCuentaCta})",
-                              style: StyleApp.greyText.copyWith(
-                                color: textColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                const SizedBox(height: 15),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 10),
-                    const Divider(),
-                    const SizedBox(height: 10),
-                    Text(
-                      AppLocalizations.of(
+                  if (vm.series.isEmpty && !vmFactura.editDoc)
+                    NotFoundWidget(
+                      text: AppLocalizations.of(
                         context,
-                      )!.translate(BlockTranslate.factura, 'vendedor'),
-                      style: StyleApp.title,
+                      )!.translate(BlockTranslate.notificacion, 'sinElementos'),
+                      icon: Icon(
+                        Icons.browser_not_supported_outlined,
+                        size: 50,
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
                     ),
-                    DropdownButton<SellerModel>(
+                  if (vmFactura.editDoc)
+                    Text(
+                      "${vmConvert.docOriginSelect!.serie} (${vmConvert.docOriginSelect!.serieDocumento})",
+                      style: StyleApp.normal.copyWith(color: textColor),
+                    ),
+                  if (vm.series.isNotEmpty && !vmFactura.editDoc)
+                    DropdownButton<SerieModel>(
                       isExpanded: true,
-                      dropdownColor: AppTheme.isDark()
-                          ? AppTheme.darkBackroundColor
-                          : AppTheme.backroundColor,
+                      dropdownColor: cardColor,
                       hint: Text(
                         AppLocalizations.of(
                           context,
                         )!.translate(BlockTranslate.factura, 'opcion'),
+                        style: TextStyle(color: hintColor),
                       ),
-                      value: vm.vendedorSelect,
-                      onChanged: (value) => vm.changeSeller(value),
-                      items: vm.cuentasCorrentistasRef.map((seller) {
-                        return DropdownMenuItem<SellerModel>(
-                          value: seller,
-                          child: Text(seller.nomCuentaCorrentista),
+                      value: vm.serieSelect,
+                      onChanged: (value) => vm.changeSerie(value, context),
+                      items: vm.series.map((serie) {
+                        return DropdownMenuItem<SerieModel>(
+                          value: serie,
+                          child: Text(
+                            serie.descripcion!,
+                            style: TextStyle(color: textColor),
+                          ),
                         );
                       }).toList(),
                     ),
-                  ],
-                ),
-
-                // 🔹 Sección Identificación Vehículo 🔹
-                _buildModernSection(
-                  title: AppLocalizations.of(context)!.translate(
-                    BlockTranslate.vehiculos,
-                    'identificacionVehiculo',
-                  ),
-
-                  icon: Icons.confirmation_number_outlined,
-                  children: [
-                    // Búsqueda de vehículo
-                    TextFormField(
-                      controller: elVM.buscarElementoAsignado,
-                      style: TextStyle(color: textColor),
-                      decoration: InputDecoration(
-                        labelText: t.translate(
-                          BlockTranslate.vehiculos,
-                          'buscarVehiculoPlaca',
-                        ),
-
-                        labelStyle: TextStyle(color: textColor),
-                        filled: true,
-                        fillColor: cardColor,
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: () async {
-                            FocusScope.of(context).unfocus();
-
-                            if (elVM.buscarElementoAsignado.text.trim().isEmpty)
-                              return;
-
-                            final vm = context.read<InicioVehiculosViewModel>();
-
-                            try {
-                              vm.setLoading(true); // ACTIVAR LOADING
-
-                              await elVM.getElementoAsignado(context);
-                              elVM.mostrarLista();
-                            } catch (e) {
-                              print(e);
-                            } finally {
-                              vm.setLoading(false); // DESACTIVAR LOADING
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                    if (elVM.mostrarResultados) ...[
-                      // Mostrar la cantidad de registros encontrados
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8, bottom: 4),
-                        child: Text(
-                          elVM.elementos.isEmpty
-                              ? 'No se encontraron registros'
-                              : 'Se encontraron ${elVM.elementos.length} '
-                                    '${elVM.elementos.length == 1 ? 'registro' : 'registros'}',
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-
-                      // Lista de resultados
-                      Container(
-                        constraints: const BoxConstraints(maxHeight: 250),
-                        margin: const EdgeInsets.only(top: 4),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white12
-                                : Colors.grey.shade300,
-                          ),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: elVM.elementos.length,
-                          itemBuilder: (_, index) {
-                            final item = elVM.elementos[index];
-                            return ListTile(
-                              title: Text(
-                                "${item.descripcion} (${item.elementoAsignado})",
-                                style: TextStyle(color: textColor),
-                              ),
-                              onTap: () async {
-                                elVM.buscarElementoAsignado.text = item.placa
-                                    .toString();
-                                elVM
-                                    .buscarElementoAsignado
-                                    .selection = TextSelection.fromPosition(
-                                  TextPosition(
-                                    offset:
-                                        elVM.buscarElementoAsignado.text.length,
-                                  ),
-                                );
-                                elVM.selectRef(context, item, false);
-                                elVM.ocultarLista();
-                                await inicioVM.cargarDesdeElementoAsignado(
+                  if (vm.valueParametro(318))
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        RichText(
+                          text: TextSpan(
+                            style: StyleApp.normal.copyWith(color: textColor),
+                            children: [
+                              TextSpan(
+                                text: AppLocalizations.of(
                                   context,
-                                  item,
-                                );
-                                vm.notifyListeners();
-                              },
-                            );
-                          },
+                                )!.translate(BlockTranslate.tiket, 'latitud'),
+                                style: StyleApp.normalBold,
+                              ),
+                              TextSpan(
+                                text: vmLocation.latitutd,
+                                style: StyleApp.normal,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    _buildTextField(
-                      t.translate(BlockTranslate.vehiculos, 'placa'),
-                      vm.placaController,
-                      fillColor: cardColor,
-                      textColor: textColor,
-                      inputFormatters: [
-                        UpperCaseTextFormatter(),
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'[A-Z0-9-]'),
-                        ), // Opcional
+                        const SizedBox(height: 5),
+                        RichText(
+                          text: TextSpan(
+                            style: StyleApp.normal.copyWith(color: textColor),
+                            children: [
+                              TextSpan(
+                                text: AppLocalizations.of(
+                                  context,
+                                )!.translate(BlockTranslate.tiket, 'longitud'),
+                                style: StyleApp.normalBold,
+                              ),
+                              TextSpan(
+                                text: vmLocation.longitud,
+                                style: StyleApp.normal,
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      t.translate(BlockTranslate.vehiculos, 'chasis'),
-                      vm.chasisController,
-                      fillColor: cardColor,
-                      textColor: textColor,
+                  if (vm.valueParametro(58))
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 20),
+                        Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.translate(BlockTranslate.general, 'referencia'),
+                          style: StyleApp.title.copyWith(color: textColor),
+                        ),
+
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.pushNamed(context, AppRoutes.ref),
+                          child: ListTile(
+                            title: Row(
+                              children: [
+                                Text(
+                                  refVM.referencia == null
+                                      ? AppLocalizations.of(context)!.translate(
+                                          BlockTranslate.general,
+                                          'buscar',
+                                        )
+                                      : refVM.referencia!.descripcion,
+                                  style: StyleApp.normal.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                ),
+                                const Text(" * ", style: StyleApp.obligatory),
+                                const SizedBox(width: 30),
+                              ],
+                            ),
+                            leading: Icon(
+                              Icons.search,
+                              color: vmTheme.colorPref(AppTheme.idColorTema),
+                            ),
+                            contentPadding: const EdgeInsets.all(0),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                    if (vm.marcaSeleccionada != null ||
-                        vm.modeloSeleccionado != null ||
-                        vm.anioSeleccionado != null ||
-                        vm.colorSeleccionado != null)
-                      _buildVehiculoSeleccionado(vm),
-                    _buildTipoVehiculoDropdown(context),
-                  ],
-                ),
+                  if (vm.valueParametro(259))
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          AppLocalizations.of(context)!.translate(
+                            BlockTranslate.vehiculos,
+                            'elementoAsignado',
+                          ),
 
-                // 🔹 Sección Datos del Vehículo 🔹
-                _buildModernSection(
-                  title: t.translate(BlockTranslate.vehiculos, 'datosVehiculo'),
-                  icon: Icons.directions_car_outlined,
-                  children: [_buildTabsVehiculo(context, vm)],
-                ),
+                          style: StyleApp.title.copyWith(color: textColor),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.elementoAsignado,
+                          ),
+                          child: ListTile(
+                            title: Row(
+                              children: [
+                                Text(
+                                  elVM.elemento == null
+                                      ? AppLocalizations.of(context)!.translate(
+                                          BlockTranslate.general,
+                                          'buscar',
+                                        )
+                                      : elVM.elemento!.descripcion,
+                                  style: StyleApp.normal.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).secondaryHeaderColor,
+                                  ),
+                                ),
+                                const Text(" * ", style: StyleApp.obligatory),
+                                const SizedBox(width: 30),
+                              ],
+                            ),
+                            leading: Icon(
+                              Icons.search,
+                              color: vmTheme.colorPref(AppTheme.idColorTema),
+                            ),
+                            contentPadding: const EdgeInsets.all(0),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        vm.getTextCuenta(context),
+                        style: StyleApp.title.copyWith(color: textColor),
+                      ),
+                      IconButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, AppRoutes.addClient),
+                        icon: const Icon(Icons.person_add_outlined),
+                        tooltip: AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.cuenta, 'nueva'),
+                      ),
+                    ],
+                  ),
+                  if (vm.clienteSelect == null) const SizedBox(height: 20),
+                  if (vm.clienteSelect == null)
+                    Form(
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      key: vm.formKeyClient,
+                      child: TextFormField(
+                        controller: vm.client,
+                        onFieldSubmitted: (value) =>
+                            vm.performSearchClient(context),
+                        textInputAction: TextInputAction.search,
+                        style: TextStyle(color: textColor),
+                        decoration: InputDecoration(
+                          hintText: vm.getTextCuenta(context),
+                          hintStyle: TextStyle(color: hintColor),
+                          filled: true,
+                          fillColor: cardColor,
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () async {
+                              FocusScope.of(context).unfocus();
 
-                // 🔹 Sección Detalle del Trabajo 🔹
-                _buildModernSection(
-                  title: t.translate(
-                    BlockTranslate.vehiculos,
-                    'detalleTrabajo',
+                              try {
+                                vm.setLoading(true); //  activar loader
+
+                                await vm.performSearchClient(context);
+                              } catch (e) {
+                                print(e);
+                              } finally {
+                                vm.setLoading(false); //  quitar loader
+                              }
+                            },
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppLocalizations.of(context)!.translate(
+                              BlockTranslate.notificacion,
+                              'requerido',
+                            );
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: 10),
+                  SwitchListTile(
+                    activeColor: AppTheme.hexToColor(Preferences.valueColor),
+                    contentPadding: EdgeInsets.zero,
+                    value: vm.cf,
+                    onChanged: (value) => vm.changeCF(context, value),
+                    title: Text(
+                      t.translate(BlockTranslate.factura, 'factura_cf'),
+                      style: StyleApp.title.copyWith(color: textColor),
+                    ),
+                  ),
+                  if (vm.clienteSelect != null)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              vm.getTextCuenta(context),
+                              style: StyleApp.titlegrey.copyWith(
+                                color: textColor,
+                              ),
+                            ),
+                            if (!vm.cf)
+                              IconButton(
+                                onPressed: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.updateClient,
+                                  arguments: vm.clienteSelect,
+                                ),
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: AppTheme.grey,
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+                        Text(
+                          vm.clienteSelect!.facturaNit,
+                          style: StyleApp.normal.copyWith(color: textColor),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          vm.clienteSelect!.facturaNombre,
+                          style: StyleApp.normal.copyWith(color: textColor),
+                        ),
+                        if (vm.clienteSelect!.facturaDireccion.isNotEmpty &&
+                            vmFactura.editDoc)
+                          Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Text(
+                                vm.clienteSelect!.facturaDireccion,
+                                style: StyleApp.normal.copyWith(
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (vm.clienteSelect!.desCuentaCta.isNotEmpty &&
+                            vmFactura.editDoc)
+                          Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Text(
+                                "(${vm.clienteSelect!.desCuentaCta})",
+                                style: StyleApp.greyText.copyWith(
+                                  color: textColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  const SizedBox(height: 15),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      const Divider(),
+                      const SizedBox(height: 10),
+                      Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.factura, 'vendedor'),
+                        style: StyleApp.title,
+                      ),
+                      DropdownButton<SellerModel>(
+                        isExpanded: true,
+                        dropdownColor: AppTheme.isDark()
+                            ? AppTheme.darkBackroundColor
+                            : AppTheme.backroundColor,
+                        hint: Text(
+                          AppLocalizations.of(
+                            context,
+                          )!.translate(BlockTranslate.factura, 'opcion'),
+                        ),
+                        value: vm.vendedorSelect,
+                        onChanged: (value) => vm.changeSeller(value),
+                        items: vm.cuentasCorrentistasRef.map((seller) {
+                          return DropdownMenuItem<SellerModel>(
+                            value: seller,
+                            child: Text(seller.nomCuentaCorrentista),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
 
-                  icon: Icons.assignment_outlined,
-                  children: [_buildDetalleTrabajo(context, vm)],
-                ),
-
-                // 🔹 Sección Fechas 🔹
-                _buildModernSection(
-                  title: t.translate(BlockTranslate.vehiculos, 'fechas'),
-
-                  icon: Icons.calendar_today_outlined,
-                  children: [
-                    _buildDateSelector(
-                      context,
-                      label: t.translate(
-                        BlockTranslate.vehiculos,
-                        'fechaRecibido',
-                      ),
-                      fecha: vm.fechaRecibido,
-                      onFechaSeleccionada: vm.seleccionarFechaRecibido,
+                  // 🔹 Sección Identificación Vehículo 🔹
+                  _buildModernSection(
+                    title: AppLocalizations.of(context)!.translate(
+                      BlockTranslate.vehiculos,
+                      'identificacionVehiculo',
                     ),
-                    _buildDateSelector(
-                      context,
-                      label: t.translate(
-                        BlockTranslate.vehiculos,
-                        'fechaEstimadaEntrega',
+
+                    icon: Icons.confirmation_number_outlined,
+                    children: [
+                      // Búsqueda de vehículo
+                      TextFormField(
+                        controller: elVM.buscarElementoAsignado,
+                        style: TextStyle(color: textColor),
+                        decoration: InputDecoration(
+                          labelText: t.translate(
+                            BlockTranslate.vehiculos,
+                            'buscarVehiculoPlaca',
+                          ),
+
+                          labelStyle: TextStyle(color: textColor),
+                          filled: true,
+                          fillColor: cardColor,
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () async {
+                              FocusScope.of(context).unfocus();
+
+                              if (elVM.buscarElementoAsignado.text
+                                  .trim()
+                                  .isEmpty)
+                                return;
+
+                              final vm = context
+                                  .read<InicioVehiculosViewModel>();
+
+                              try {
+                                vm.setLoading(true); // ACTIVAR LOADING
+
+                                await elVM.getElementoAsignado(context);
+                                elVM.mostrarLista();
+                              } catch (e) {
+                                print(e);
+                              } finally {
+                                vm.setLoading(false); // DESACTIVAR LOADING
+                              }
+                            },
+                          ),
+                        ),
                       ),
-                      fecha: vm.fechaSalida,
-                      onFechaSeleccionada: vm.seleccionarFechaSalida,
+                      if (elVM.mostrarResultados) ...[
+                        // Mostrar la cantidad de registros encontrados
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 4),
+                          child: Text(
+                            elVM.elementos.isEmpty
+                                ? 'No se encontraron registros'
+                                : 'Se encontraron ${elVM.elementos.length} '
+                                      '${elVM.elementos.length == 1 ? 'registro' : 'registros'}',
+                            style: TextStyle(
+                              color: textColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+
+                        // Lista de resultados
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 250),
+                          margin: const EdgeInsets.only(top: 4),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white12
+                                  : Colors.grey.shade300,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: elVM.elementos.length,
+                            itemBuilder: (_, index) {
+                              final item = elVM.elementos[index];
+                              return ListTile(
+                                title: Text(
+                                  "${item.descripcion} (${item.elementoAsignado})",
+                                  style: TextStyle(color: textColor),
+                                ),
+                                onTap: () async {
+                                  elVM.buscarElementoAsignado.text = item.placa
+                                      .toString();
+                                  elVM.buscarElementoAsignado.selection =
+                                      TextSelection.fromPosition(
+                                        TextPosition(
+                                          offset: elVM
+                                              .buscarElementoAsignado
+                                              .text
+                                              .length,
+                                        ),
+                                      );
+                                  elVM.selectRef(context, item, false);
+                                  elVM.ocultarLista();
+                                  await inicioVM.cargarDesdeElementoAsignado(
+                                    context,
+                                    item,
+                                  );
+                                  vm.notifyListeners();
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      _buildTextField(
+                        t.translate(BlockTranslate.vehiculos, 'placa'),
+                        vm.placaController,
+                        fillColor: cardColor,
+                        textColor: textColor,
+                        inputFormatters: [
+                          UpperCaseTextFormatter(),
+                          FilteringTextInputFormatter.allow(
+                            RegExp(r'[A-Z0-9-]'),
+                          ), // Opcional
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        t.translate(BlockTranslate.vehiculos, 'chasis'),
+                        vm.chasisController,
+                        fillColor: cardColor,
+                        textColor: textColor,
+                      ),
+                      if (vm.marcaSeleccionada != null ||
+                          vm.modeloSeleccionado != null ||
+                          vm.anioSeleccionado != null ||
+                          vm.colorSeleccionado != null)
+                        _buildVehiculoSeleccionado(vm),
+                      _buildTipoVehiculoDropdown(context),
+                    ],
+                  ),
+
+                  // 🔹 Sección Datos del Vehículo 🔹
+                  _buildModernSection(
+                    title: t.translate(
+                      BlockTranslate.vehiculos,
+                      'datosVehiculo',
                     ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
+                    icon: Icons.directions_car_outlined,
+                    children: [_buildTabsVehiculo(context, vm)],
+                  ),
+
+                  // 🔹 Sección Detalle del Trabajo 🔹
+                  _buildModernSection(
+                    title: t.translate(
+                      BlockTranslate.vehiculos,
+                      'detalleTrabajo',
+                    ),
+
+                    icon: Icons.assignment_outlined,
+                    children: [_buildDetalleTrabajo(context, vm)],
+                  ),
+
+                  // 🔹 Sección Fechas 🔹
+                  _buildModernSection(
+                    title: t.translate(BlockTranslate.vehiculos, 'fechas'),
+
+                    icon: Icons.calendar_today_outlined,
+                    children: [
+                      _buildDateSelector(
+                        context,
+                        label: t.translate(
+                          BlockTranslate.vehiculos,
+                          'fechaRecibido',
+                        ),
+                        fecha: vm.fechaRecibido,
+                        onFechaSeleccionada: vm.seleccionarFechaRecibido,
+                      ),
+                      _buildDateSelector(
+                        context,
+                        label: t.translate(
+                          BlockTranslate.vehiculos,
+                          'fechaEstimadaEntrega',
+                        ),
+                        fecha: vm.fechaSalida,
+                        onFechaSeleccionada: vm.seleccionarFechaSalida,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),

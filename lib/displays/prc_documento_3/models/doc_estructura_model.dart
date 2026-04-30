@@ -75,6 +75,7 @@ class DocEstructuraModel {
   // --------------------
   // Observaciones técnicas
   // --------------------
+  String? docObservacion2;
   String? docDetalleTrabajo;
   String? docKilometraje;
   int? docKilometrajeMillaje;
@@ -143,6 +144,7 @@ class DocEstructuraModel {
     this.docIdColor,
     this.docFechaRecibido,
     this.docFechaSalida,
+    this.docObservacion2,
     this.docDetalleTrabajo,
     this.docKilometraje,
     this.docKilometrajeMillaje,
@@ -238,6 +240,8 @@ class DocEstructuraModel {
             : null,
 
         //  OBSERVACIONES
+        docObservacion2: json["Doc_Observacion_2"],
+
         docDetalleTrabajo: json["Doc_Detalle_Trabajo"],
         docKilometraje: json["Doc_Kilometraje"],
         docKilometrajeMillaje: json["Doc_KilometrajeMillaje"],
@@ -315,6 +319,8 @@ class DocEstructuraModel {
 
     "Doc_Fecha_Recibido": docFechaRecibido?.toIso8601String(),
     "Doc_Fecha_Salida": docFechaSalida?.toIso8601String(),
+    "Doc_Observacion_2": docDetalleTrabajo,
+
 
     "Doc_Detalle_Trabajo": docDetalleTrabajo,
     "Doc_Kilometraje": docKilometraje,

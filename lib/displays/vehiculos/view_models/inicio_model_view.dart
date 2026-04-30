@@ -1955,16 +1955,14 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docUserName: user,
       docObservacion1: "",
       docTipoPago: 1,
-      docElementoAsignado: docVM.valueParametro(259)
-          ? elVM.elemento!.elementoAsignado
-          : null,
+      docElementoAsignado: elVM.elemento!.elementoAsignado,
       docTransaccion: transactions,
       docCargoAbono: payments,
       docRefTipoReferencia: docVM.valueParametro(58)
           ? docVM.referenciaSelect?.tipoReferencia
           : null,
-      docFechaIni: docVM.valueParametro(44) ? docVM.fechaInicial : null,
-      docFechaFin: docVM.valueParametro(44) ? docVM.fechaFinal : null,
+      docFechaIni: _parseFecha(recepcionGuardada?.fechaRecibido),
+      docFechaFin: _parseFecha(recepcionGuardada?.fechaSalida),
       docRefFechaIni: docVM.valueParametro(381) ? docVM.fechaRefIni : null,
       docRefFechaFin: docVM.valueParametro(382) ? docVM.fechaRefFin : null,
       docRefObservacion: docVM.valueParametro(383)
@@ -2011,13 +2009,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       // Fechas
       // --------------------
-      docFechaRecibido: _parseFecha(recepcionGuardada?.fechaRecibido),
-      docFechaSalida: _parseFecha(recepcionGuardada?.fechaSalida),
 
       // --------------------
       // Observaciones técnicas
       // --------------------
-      docDetalleTrabajo: recepcionGuardada?.detalleTrabajo,
+      docObservacion2: recepcionGuardada?.detalleTrabajo,
       docKilometraje: _cleanNumber(recepcionGuardada?.kilometraje),
       docKilometrajeMillaje: tipoKilometraje,
 
