@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/cuenta_service.dart';
@@ -50,6 +51,7 @@ class AddClientViewModel extends ChangeNotifier {
     final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
 
     final documentVM = Provider.of<DocumentViewModel>(context, listen: false);
+    final incioVM = Provider.of<InicioVehiculosViewModel>(context, listen: false);
 
     final MenuViewModel menuVM = Provider.of<MenuViewModel>(
       context,
@@ -135,6 +137,8 @@ class AddClientViewModel extends ChangeNotifier {
 
     if (clients.length == 1) {
       documentVM.selectClient(true, clients.first, context);
+      incioVM.selectClient(false, clients.first, context);
+
       NotificationService.showSnackbar(
         idCuenta == 0
             ? AppLocalizations.of(
@@ -153,11 +157,13 @@ class AddClientViewModel extends ChangeNotifier {
       final ClientModel client = clients[i];
       if (client.facturaNit == cuenta.nit) {
         documentVM.selectClient(true, client, context);
+        incioVM.selectClient(false, client, context);
         break;
       }
     }
 
     documentVM.setText(documentVM.clienteSelect?.facturaNombre ?? "");
+    incioVM.setText(incioVM.clienteSelect?.facturaNombre ?? "");
 
     //mapear respuesta servicio
     NotificationService.showSnackbar(

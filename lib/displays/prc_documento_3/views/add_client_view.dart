@@ -68,6 +68,7 @@ class AddClientView extends StatelessWidget {
                       maxLines: 1,
                       formProperty: "telefono",
                       formValues: vm.formValues,
+                      keyboardType: TextInputType.phone,
                       hintText: AppLocalizations.of(
                         context,
                       )!.translate(BlockTranslate.cuenta, 'telefono'),

@@ -3,11 +3,13 @@ import 'package:fl_business/displays/prc_documento_3/models/seller_model.dart';
 import 'package:fl_business/displays/prc_documento_3/models/serie_model.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_view_model.dart';
+import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/vehiculos/FormatoMiles/ThousandsFormatter.dart';
 import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/views/Items_Vehiculo_view.dart';
+import 'package:fl_business/displays/vehiculos/views/Create_Client_Dialog.dart';
 import 'package:fl_business/routes/app_routes.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
@@ -51,9 +53,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       builder: (context) {
         return AlertDialog(
           title: const Text('¿Estás seguro de abandonar?'),
-          content: const Text(
-            'Se perderán los datos ingresados.',
-          ),
+          content: const Text('Se perderán los datos ingresados.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -61,7 +61,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Sí, salir', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Sí, salir',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -198,12 +201,13 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                   },
                 ),
                 IconButton(
-                tooltip: AppLocalizations.of(
-                  context,
-                )!.translate(BlockTranslate.factura, 'docRecientes'),
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.recent),
-                icon: const Icon(Icons.schedule),
-              ),
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.translate(BlockTranslate.factura, 'docRecientes'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.recent),
+                  icon: const Icon(Icons.schedule),
+                ),
               ],
             ),
             body: Container(
@@ -412,6 +416,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         style: StyleApp.title.copyWith(color: textColor),
                       ),
                       IconButton(
+              
                         onPressed: () =>
                             Navigator.pushNamed(context, AppRoutes.addClient),
                         icon: const Icon(Icons.person_add_outlined),

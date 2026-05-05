@@ -207,12 +207,104 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     return true;
   }
 
+final Map<String, dynamic> formValuesClient = {
+  "nombre": "",
+  "direccion": "",
+  "telefono": "",
+  "correo": "",
+  "nit": "",
+};
+
+final GlobalKey<FormState> formKeyClient = GlobalKey<FormState>();
+
+
+Future<void> createClientLocal(BuildContext context) async {
+  if (!formKeyClient.currentState!.validate()) return;
+
+  FocusScope.of(context).unfocus();
+
+  final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+  final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
+  final documentVM = Provider.of<DocumentViewModel>(context, listen: false);
+  final menuVM = Provider.of<MenuViewModel>(context, listen: false);
+
+  String user = loginVM.user;
+  String token = loginVM.token;
+  int empresa = localVM.selectedEmpresa!.empresa;
+  int estacion = localVM.selectedEstacion!.estacionTrabajo;
+  int app = menuVM.app;
+
+  CuentaService cuentaService = CuentaService();
+
+  CuentaCorrentistaModel cuenta = CuentaCorrentistaModel(
+    cuentaCuenta: "",
+    grupoCuenta: 0,
+    cuenta: 0,
+    nombre: formValuesClient["nombre"],
+    direccion: formValuesClient["direccion"],
+    telefono: formValuesClient["telefono"],
+    correo: formValuesClient["correo"],
+    nit: formValuesClient["nit"],
+  );
+
+  setLoading(true);
+
+  ApiResModel res = await cuentaService.postCuenta(
+    user,
+    empresa,
+    token,
+    cuenta,
+    estacion,
+  );
+
+  if (!res.succes) {
+    setLoading(false);
+    await NotificationService.showErrorView(context, res);
+    return;
+  }
+
+  ApiResponseModel resClient = await cuentaService.getCuentaCorrentista(
+    empresa,
+    cuenta.nit,
+    user,
+    token,
+    app,
+    estacion,
+  );
+
+  setLoading(false);
+
+  if (!resClient.status) {
+    await NotificationService.showInfoErrorView(context, resClient);
+    return;
+  }
+
+  final clients = resClient.data;
+
+  if (clients.isEmpty) {
+    NotificationService.showSnackbar("No se encontró cliente");
+    return;
+  }
+
+  // 🔥 AQUÍ ESTÁ LA CLAVE
+  final client = clients.firstWhere(
+    (c) => c.facturaNit == cuenta.nit,
+    orElse: () => clients.first,
+  );
+
+  documentVM.selectClient(true, client, context);
+
+  NotificationService.showSnackbar("Cliente creado y seleccionado");
+
+  notifyListeners();
+}
+
+
   /// Servicio que obtiene datos desde la API
   //Cliente selecciinado
   ClientModel? clienteSelect;
 
-  //Key for form
-  GlobalKey<FormState> formKeyClient = GlobalKey<FormState>();
+
 
   //Seleccionar consummidor final
   bool cf = false;
@@ -616,6 +708,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     celular = '';
     email = '';
     cf = false;
+    client.text = '';
     nivelGasolina = 50;
     // Limpiar detalle y datos de vehículo
     detalleTrabajo = '';

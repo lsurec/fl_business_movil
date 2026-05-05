@@ -68,6 +68,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
     final vm = context.watch<InicioVehiculosViewModel>();
     final items = vm.itemsAsignados;
+    final bool bloqueado = _documentoEnviado || vm.isLoading;
 
     return Stack(
       children: [
@@ -323,12 +324,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           style: const TextStyle(color: Colors.white),
                         ),
 
-                        onPressed: (_documentoEnviado || vm.isLoading)
+                        onPressed: bloqueado
                             ? null
                             : () async {
                                 setState(() {
                                   _documentoEnviado = true;
                                 });
+
                                 await _enviarDocumento(context);
                               },
                       ),
@@ -724,6 +726,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
     // Convertir a formato usable en PDF
     // final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
+    final t = AppLocalizations.of(context)!;
     final vm = context.read<InicioVehiculosViewModel>();
     final pdf = pw.Document();
     final imagenVehiculoPdf = await _cargarImagenPdf(context);
@@ -840,7 +843,24 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             'Chasis',
             vm.recepcionGuardada?.chasis ?? '—',
           ),
+          _filaDoble(
+            'Cilindraje',
+            vm.recepcionGuardada?.cil ?? '—',
+            'Centimetros Cubicos',
+            vm.recepcionGuardada?.cc ?? '—',
+          ),
+          _filaDoble(
+            vm.tipoKilometraje == 0
+                ? t.translate(BlockTranslate.vehiculos, 'kilometraje')
+                : t.translate(BlockTranslate.vehiculos, 'millaje'),
 
+            vm.recepcionGuardada?.kilometraje != null
+                ? '${vm.recepcionGuardada!.kilometraje} ${vm.tipoKilometraje == 0 ? 'Kilómetros' : 'Millas'}'
+                : '—',
+
+            'Tipo de Vehiculo',
+            vm.tipoVehiculoSeleccionado?.descripcion ?? '—',
+          ),
           pw.SizedBox(height: 20),
 
           // ===================== TÍTULO =====================
@@ -850,6 +870,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
             ),
           ),
+
           pw.SizedBox(height: 15),
 
           // ===================== TABLA DE ITEMS (SKU + OBSERVACIÓN) =====================

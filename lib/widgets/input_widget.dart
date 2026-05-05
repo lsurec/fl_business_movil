@@ -14,8 +14,9 @@ class InputWidget extends StatelessWidget {
     this.validator = true,
     required this.formProperty,
     required this.formValues,
+    this.keyboardType,
   }) : super(key: key);
-
+  final TextInputType? keyboardType;
   final IconData? suffixIcon;
   final String? labelText;
   final String? hintText;
@@ -31,6 +32,7 @@ class InputWidget extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 15),
       child: TextFormField(
+        keyboardType: keyboardType,
         maxLines: maxLines,
         initialValue: initialValue,
         onChanged: (value) {
