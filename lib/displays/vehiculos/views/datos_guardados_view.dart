@@ -1219,47 +1219,18 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       // print('=== PASO 2: Sincronizar ===');
       await vm.sincronizarTransacciones(context);
       // ================= PASO 2.5: SUBIR FOTOS =================
-      print('=== PASO 2.5: Subiendo fotos ===');
-
-      print('Total transacciones: ${itemsVM.transaciciones.length}');
-
-      for (var t in itemsVM.transaciciones) {
-        print('Producto: ${t.producto.productoId}');
-        print('Fotos locales: ${t.files?.length ?? 0}');
-      }
 
       await itemsVM.subirTodasLasFotos(context);
 
-      print('Subida de fotos completada');
-      print('=== PASO 2.6: Subiendo imagen vehículo ===');
-
       await _subirImagenVehiculo(context);
-      // Verificar que ahora existan los uploads
-      for (var t in itemsVM.transaciciones) {
-        print('Producto: ${t.producto.productoId}');
-        print('FilesUpload: ${t.filesUpload?.length ?? 0}');
-      }
-      // ================= DEBUG JSON FINAL =================
-      print('=== JSON FINAL A ENVIAR ===');
-
-      final documentoJson = vm.docGlobal?.toJson();
-      print(documentoJson);
 
       // ================= PASO 3: ENVIAR DOCUMENTO =================
-      print('=== PASO 3: Enviar documento ===');
       final res = await vm.sendDocument(context);
       consecutivoDoc = res.response["data"];
 
       if (res.succes) {
         // ✅ Guardar referencias ANTES de cualquier cambio
-        final navigator = Navigator.of(context);
         final scaffoldMessenger = ScaffoldMessenger.of(context);
-        for (var t in itemsVM.transaciciones) {
-          print({
-            "producto": t.producto.productoId,
-            "filesUpload": t.filesUpload?.map((e) => e.system).toList(),
-          });
-        }
 
         // ✅ Mostrar mensaje (usando la referencia guardada)
         scaffoldMessenger.showSnackBar(

@@ -905,6 +905,40 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         empresa,
         token,
       );
+
+      //Instancia del servicio
+      final ElementoAsignadoService elementoAsignadoService =
+          ElementoAsignadoService();
+
+      //Consumo del api
+      final ApiResponseModel res = await elementoAsignadoService
+          .getElementoAsignado(empresa, placa, user, token);
+
+      isLoading = false; //detener carga
+
+      //si el consumo salió mal
+      if (!res.status) {
+        NotificationService.showInfoErrorView(context, res);
+        return false;
+      }
+
+      //agregar respesta de api a la lista de id referencias encontradas
+
+      List<ElementoAsignadoModel> elementos = [];
+      elementos.addAll(res.data);
+
+      final elVM = Provider.of<ElementoAsigandoViewModel>(
+        context,
+        listen: false,
+      );
+
+      for (var i = 0; i < elementos.length; i++) {
+        if (elementos[i].placa == placa) {
+          elVM.elemento = elementos[i];
+          break;
+        }
+      }
+
       return true;
     } catch (e) {
       error = e.toString();
