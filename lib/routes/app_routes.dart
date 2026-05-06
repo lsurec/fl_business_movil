@@ -81,7 +81,6 @@ class AppRoutes {
   static const tablero = "PrcTareaTableroCanva";
   static const printerView = "printView";
   static const vehiculos = "prcRecepcionVehiculo";
-  static const selecClientRecepcion = "slClientRecepcion";
 
   //static const vehiculos = "prcRecepcionVehiculo";
 

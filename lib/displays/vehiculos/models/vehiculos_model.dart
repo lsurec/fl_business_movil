@@ -4,14 +4,11 @@ class VehiculoModel {
   final int id;
   final String descripcion;
 
-  VehiculoModel({
-    required this.id,
-    required this.descripcion,
-  });
+  VehiculoModel({required this.id, required this.descripcion});
 
   factory VehiculoModel.fromJson(Map<String, dynamic> json) {
     return VehiculoModel(
-      id: json['id'] ?? json['modelo'] ?? json['anio'] ?? json['color'] ?? 0,
+      id: json['id'] ?? json['model'] ?? json['anio'] ?? json['color'] ?? 0,
       descripcion: json['descripcion'] ?? '',
     );
   }
@@ -32,10 +29,7 @@ class VehiculoModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'descripcion': descripcion,
-    };
+    return {'id': id, 'descripcion': descripcion};
   }
 
   @override
