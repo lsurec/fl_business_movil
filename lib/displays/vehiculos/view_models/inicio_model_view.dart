@@ -584,7 +584,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     BuildContext context,
   ) async {
     marcaSeleccionada = marca;
-    // modeloSeleccionado = null;
+    modeloSeleccionado = null;
     modelos = [];
     notifyListeners();
 
