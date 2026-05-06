@@ -8,7 +8,7 @@ class VehiculoModel {
 
   factory VehiculoModel.fromJson(Map<String, dynamic> json) {
     return VehiculoModel(
-      id: json['id'] ?? json['model'] ?? json['anio'] ?? json['color'] ?? 0,
+      id: json['id'] ?? json['modelo'] ?? json['anio'] ?? json['color'] ?? 0,
       descripcion: json['descripcion'] ?? '',
     );
   }
