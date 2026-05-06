@@ -416,7 +416,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         style: StyleApp.title.copyWith(color: textColor),
                       ),
                       IconButton(
-              
                         onPressed: () =>
                             Navigator.pushNamed(context, AppRoutes.addClient),
                         icon: const Icon(Icons.person_add_outlined),
@@ -427,49 +426,49 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     ],
                   ),
                   if (vm.clienteSelect == null) const SizedBox(height: 20),
-                  if (vm.clienteSelect == null)
-                    Form(
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      key: vm.formKeyClient,
-                      child: TextFormField(
-                        controller: vm.client,
-                        onFieldSubmitted: (value) =>
-                            vm.performSearchClient(context),
-                        textInputAction: TextInputAction.search,
-                        style: TextStyle(color: textColor),
-                        decoration: InputDecoration(
-                          hintText: vm.getTextCuenta(context),
-                          hintStyle: TextStyle(color: hintColor),
-                          filled: true,
-                          fillColor: cardColor,
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.search),
-                            onPressed: () async {
-                              FocusScope.of(context).unfocus();
+                  // if (vm.clienteSelect == null)
+                  Form(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    key: vm.formKeyClient,
+                    child: TextFormField(
+                      controller: vm.client,
+                      onFieldSubmitted: (value) =>
+                          vm.performSearchClient(context),
+                      textInputAction: TextInputAction.search,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        hintText: vm.getTextCuenta(context),
+                        hintStyle: TextStyle(color: hintColor),
+                        filled: true,
+                        fillColor: cardColor,
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () async {
+                            FocusScope.of(context).unfocus();
 
-                              try {
-                                vm.setLoading(true); //  activar loader
+                            try {
+                              vm.setLoading(true); //  activar loader
 
-                                await vm.performSearchClient(context);
-                              } catch (e) {
-                                print(e);
-                              } finally {
-                                vm.setLoading(false); //  quitar loader
-                              }
-                            },
-                          ),
+                              await vm.performSearchClient(context);
+                            } catch (e) {
+                              print(e);
+                            } finally {
+                              vm.setLoading(false); //  quitar loader
+                            }
+                          },
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!.translate(
-                              BlockTranslate.notificacion,
-                              'requerido',
-                            );
-                          }
-                          return null;
-                        },
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context)!.translate(
+                            BlockTranslate.notificacion,
+                            'requerido',
+                          );
+                        }
+                        return null;
+                      },
                     ),
+                  ),
                   const SizedBox(height: 10),
                   SwitchListTile(
                     activeColor: AppTheme.hexToColor(Preferences.valueColor),

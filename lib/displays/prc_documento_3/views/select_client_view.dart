@@ -1,4 +1,5 @@
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
+import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +55,16 @@ class SelectClientView extends StatelessWidget {
                         Text("(${client.desCuentaCta})"),
                       ],
                     ),
-                    onTap: () => docVM.selectClient(true, client, context),
+                    onTap: () {
+                      final incioVM = Provider.of<InicioVehiculosViewModel>(
+                        context,
+                        listen: false,
+                      );
+
+                      docVM.selectClient(true, client, context);
+                      incioVM.selectClient(false, client, context);
+                      FocusScope.of(context).unfocus();
+                    },
                   );
                 },
               ),

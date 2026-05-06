@@ -1437,7 +1437,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     //si son varias coicidencias navegar a pantalla seleccionar cliente
     Navigator.pushNamed(
       context,
-      "slClientRecepcion",
+      "selectClient",
       arguments: cuentasCorrentistas,
     );
   }
@@ -1457,6 +1457,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     // Y actualizar también los controllers (muy importante)
     nitController.text = nit;
+    nombreController.text = nombre;
     nombreController.text = nombre;
     direccionController.text = direccion;
     celularController.text = celular;
