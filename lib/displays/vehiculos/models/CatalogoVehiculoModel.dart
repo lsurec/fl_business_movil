@@ -3,7 +3,7 @@ class CatalogoVehiculosModel {
   final String elementoId;
   final int empresa;
   final int marca;
-  final int modelo;
+  final int model;
   final String? modeloFecha;
   final String motor;
   final String chasis;
@@ -18,7 +18,7 @@ class CatalogoVehiculosModel {
     required this.elementoId,
     required this.empresa,
     required this.marca,
-    required this.modelo,
+    required this.model,
     required this.modeloFecha,
     required this.motor,
     required this.chasis,
@@ -34,10 +34,10 @@ class CatalogoVehiculosModel {
       'descripcion': descripcion,
       'placa': placa,
       'marca': marca,
-      'modelo': modelo,
+      'modelo': model, //  nombre correcto y como int (perfecto)
       'motor': motor,
       'chasis': chasis,
-      'color': color,
+      'color': color.toString(), //  obligatorio string
       'centimetrosCubicos': centimetrosCubicos,
       'cilindros': cilindros,
       'empresa': empresa,
