@@ -534,6 +534,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return;
       }
 
+      await loadParametros(context);
+
       vmDoc.tiposTransaccion.addAll(resTiposTra.response);
       marcas = await _vehiculoService.obtenerMarcas(token);
       anios = await _vehiculoService.obtenerAnios(token);
@@ -545,6 +547,51 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       isLoading = false;
       notifyListeners();
     }
+  }
+
+  String getTextCuenta(BuildContext context) {
+    String fileName = AppLocalizations.of(
+      context,
+    )!.translate(BlockTranslate.factura, 'cuenta');
+
+    for (var i = 0; i < parametros.length; i++) {
+      final ParametroModel param = parametros[i];
+
+      //buscar nombre del campo en el parametro 57
+      if (param.parametro == 57) {
+        fileName =
+            param.paCaracter ??
+            AppLocalizations.of(
+              context,
+            )!.translate(BlockTranslate.factura, 'cuenta');
+        break;
+      }
+    }
+
+    fileName = capitalizeFirstLetter(fileName);
+
+    return fileName;
+  }
+
+  String? getTextParam(int param) {
+    // Texto por defecto
+    String? name;
+
+    //sino existe serie, retornar false
+    if (serieSelect == null) return name;
+
+    // Recorrer lista de parámetros
+    for (var parametro in parametros) {
+      // Buscar el nombre en el parámetro 57
+      if (parametro.parametro == param) {
+        // Si nombre es nulo, agregar el texto por defecto
+        name = parametro.paCaracter;
+        break;
+      }
+    }
+
+    // Retornar texto
+    return name;
   }
 
   Future<bool> placaExiste(String placa, BuildContext context) async {
@@ -1198,29 +1245,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       }
     }
     notifyListeners();
-  }
-
-  //Cliente
-  String getTextCuenta(BuildContext context) {
-    String fileName = AppLocalizations.of(
-      context,
-    )!.translate(BlockTranslate.factura, 'cuenta');
-
-    for (var i = 0; i < parametros.length; i++) {
-      final ParametroModel param = parametros[i];
-
-      //buscar nombre del campo en el parametro 57
-      if (param.parametro == 57) {
-        fileName =
-            param.paCaracter ??
-            AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.factura, 'cuenta');
-        break;
-      }
-    }
-    fileName = capitalizeFirstLetter(fileName);
-    return fileName;
   }
 
   String capitalizeFirstLetter(String text) {

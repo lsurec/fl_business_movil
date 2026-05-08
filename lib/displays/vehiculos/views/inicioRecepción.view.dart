@@ -554,9 +554,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       const Divider(),
                       const SizedBox(height: 10),
                       Text(
-                        AppLocalizations.of(
-                          context,
-                        )!.translate(BlockTranslate.factura, 'vendedor'),
+                        vm.getTextParam(43) ??
+                            AppLocalizations.of(
+                              context,
+                            )!.translate(BlockTranslate.factura, 'vendedor'),
                         style: StyleApp.title,
                       ),
                       DropdownButton<SellerModel>(

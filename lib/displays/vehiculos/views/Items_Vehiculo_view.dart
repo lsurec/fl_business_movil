@@ -294,7 +294,7 @@ class _ItemsVehiculoView extends StatelessWidget {
                   context: context,
                   builder: (context) {
                     return AlertDialog(
-                      title: const Text('Ítems pendientes De Revisar'),
+                      title: const Text('Ítems pendientes de revisar'),
                       content: SingleChildScrollView(
                         child: ListBody(
                           children: [

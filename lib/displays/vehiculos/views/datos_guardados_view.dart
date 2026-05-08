@@ -96,13 +96,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ================= DATOS CLIENTE =================
-                _titulo(
-                  t.translate(
-                    BlockTranslate.vehiculos,
-                    'vehiculos_datosCliente',
-                  ),
+                Row(
+                  children: [
+                    _titulo(
+                      "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosCliente')} ${vm.getTextCuenta(context)}",
+                    ),
+                  ],
                 ),
-
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'vehiculos_nit'),
                   vm.recepcionGuardada?.nit ?? "",
@@ -248,7 +248,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   vm.recepcionGuardada?.cil ?? '—',
                 ),
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'asesor'),
+                  vm.getTextParam(43) ??
+                      AppLocalizations.of(
+                        context,
+                      )!.translate(BlockTranslate.factura, 'VENDEDOR'),
+
                   vm.vendedorSelect?.nomCuentaCorrentista ?? '—',
                 ),
 
@@ -284,20 +288,18 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
 
                 Text(
-                  t.translate(
-                    BlockTranslate.vehiculos,
-                    'vehiculos_firmaMecanico',
-                  ),
+                  'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'VENDEDOR')}',
                 ),
                 _firmaBox(_firmaMecanico, enabled: !_documentoEnviado),
 
                 const SizedBox(height: 20),
 
-                Text(
-                  t.translate(
-                    BlockTranslate.vehiculos,
-                    'vehiculos_firmaCliente',
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                    ),
+                  ],
                 ),
                 _firmaBox(_firmaCliente, enabled: !_documentoEnviado),
 
@@ -795,7 +797,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           // ===================== ENCABEZADO =====================
           // ===================== INFORMACIÓN DEL CLIENTE =====================
           pw.Text(
-            'INFORMACIÓN DEL CLIENTE',
+            'INFORMACION DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
             style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 5),
@@ -957,7 +959,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                'Vendedor: ${vm.vendedorSelect?.nomCuentaCorrentista}',
+                '${vm.getTextParam(43) ?? 'Vendedor'}: ${vm.vendedorSelect?.nomCuentaCorrentista}',
                 style: pw.TextStyle(fontSize: 12),
               ),
 
@@ -1109,7 +1111,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         : pw.Center(child: pw.Text('Firma Mecánico')),
                   ),
                   pw.SizedBox(height: 5),
-                  pw.Text('Mecánico'),
+                  pw.Text(
+                    'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')}',
+                  ),
                 ],
               ),
               pw.Column(
@@ -1123,7 +1127,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         : pw.Center(child: pw.Text('Firma Cliente')),
                   ),
                   pw.SizedBox(height: 5),
-                  pw.Text('Propietario'),
+                  pw.Text(
+                    'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                  ),
                 ],
               ),
             ],
