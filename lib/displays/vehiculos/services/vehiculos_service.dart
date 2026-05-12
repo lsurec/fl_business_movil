@@ -73,22 +73,22 @@ class VehiculoService {
   // ====================== OBTENER COLORES ======================
 
   Future<List<VehiculoColorModel>> obtenerColores(String token) async {
-  final url = Uri.parse("$baseUrl/colores");
+    final url = Uri.parse("$baseUrl/colores");
 
-  final res = await http.get(
-    url,
-    headers: {
-      "Authorization": "bearer $token",
-      "Content-Type": "application/json",
-    },
-  );
+    final res = await http.get(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+    );
 
-  if (res.statusCode == 200) {
-    return VehiculoColorModel.fromJsonList(res.body);
-  } else {
-    throw Exception("Error al cargar colores (${res.statusCode})");
+    if (res.statusCode == 200) {
+      return VehiculoColorModel.fromJsonList(res.body);
+    } else {
+      throw Exception("Error al cargar colores (${res.statusCode})");
+    }
   }
-}
   // Future<List<VehiculoModel>> obtenerColores(String token) async {
   //   final url = Uri.parse("$baseUrl/colores");
 
@@ -129,6 +129,56 @@ class VehiculoService {
       return jsonDecode(res.body);
     } else {
       throw Exception("Error al guardar documento (${res.statusCode})");
+    }
+  }
+
+  //////////////// Crear Marca si no existe (SOLO POST) ////////////////
+  Future<Map<String, dynamic>> crearMarca(
+    String descripcion,
+    String token,
+  ) async {
+    final url = Uri.parse("$baseUrl/marca");
+
+    final res = await http.post(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({"descripcion": descripcion}),
+    );
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
+    } else {
+      throw Exception("Error al crear marca");
+    }
+  }
+
+  /// Crear Modelo sino existe (SOLO POST)
+  Future<Map<String, dynamic>> crearModelo(
+    String descripcion,
+    int modeloPadre,
+    String token,
+  ) async {
+    final url = Uri.parse("$baseUrl/modelo");
+
+    final res = await http.post(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "descripcion": descripcion,
+        "modeloPadre": modeloPadre,
+      }),
+    );
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
+    } else {
+      throw Exception("Error al crear modelo");
     }
   }
 }

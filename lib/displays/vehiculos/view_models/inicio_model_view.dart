@@ -996,6 +996,47 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
   }
 
+  ////// Crear Marca si no existe
+  Future<void> crearMarca(String descripcion, BuildContext context) async {
+    try {
+      final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+      await _vehiculoService.crearMarca(descripcion, token);
+
+      marcas = await _vehiculoService.obtenerMarcas(token);
+
+      notifyListeners();
+    } catch (e) {
+      error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  /// Crear Modelo si no existe
+  Future<void> crearModelo(String descripcion, BuildContext context) async {
+    try {
+      if (marcaSeleccionada == null) return;
+
+      final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+      await _vehiculoService.crearModelo(
+        descripcion,
+        marcaSeleccionada!.id,
+        token,
+      );
+
+      modelos = await _vehiculoService.obtenerModelos(
+        marcaSeleccionada!.id,
+        token,
+      );
+
+      notifyListeners();
+    } catch (e) {
+      error = e.toString();
+      notifyListeners();
+    }
+  }
+
   //llamar a los datos del vehiculo seleccionado en el catalogo
   Future<void> cargarDesdeElementoAsignado(
     BuildContext context,

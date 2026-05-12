@@ -1262,6 +1262,39 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         vm.seleccionarMarca(v, context);
                         DefaultTabController.of(tabContext).animateTo(1);
                       },
+
+                      onAddPressed: () async {
+                        final controller = TextEditingController();
+
+                        final result = await showDialog<String>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Nueva marca"),
+                            content: TextField(
+                              controller: controller,
+                              decoration: const InputDecoration(
+                                hintText: "Ingrese marca",
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Cancelar"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context, controller.text);
+                                },
+                                child: const Text("Guardar"),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (result != null && result.trim().isNotEmpty) {
+                          await vm.crearMarca(result.trim(), context);
+                        }
+                      },
                     ),
                     _buildScrollableSelector(
                       tabContext,
@@ -1272,6 +1305,57 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       (v) {
                         vm.seleccionarModelo(v);
                         DefaultTabController.of(tabContext).animateTo(2);
+                      },
+
+                      onAddPressed: () async {
+                        // Validar que exista marca seleccionada
+                        if (vm.marcaSeleccionada == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Debe seleccionar una marca primero',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final controller = TextEditingController();
+
+                        final result = await showDialog<String>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Nuevo modelo"),
+                            content: TextField(
+                              controller: controller,
+                              decoration: const InputDecoration(
+                                hintText: "Ingrese modelo",
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Cancelar"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context, controller.text);
+                                },
+                                child: const Text("Guardar"),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (result != null && result.trim().isNotEmpty) {
+                          await vm.crearModelo(result.trim(), context);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Modelo creado correctamente'),
+                            ),
+                          );
+                        }
                       },
                     ),
                     _buildScrollableSelector(
@@ -1323,8 +1407,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     List<T> items,
     T? selected,
     String Function(T) displayText,
-    Function(T) onSelected,
-  ) {
+    Function(T) onSelected, {
+    VoidCallback? onAddPressed,
+  }) {
     final searchController = TextEditingController();
     final filtro = ValueNotifier('');
 
@@ -1348,6 +1433,14 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           decoration: InputDecoration(
             labelText: label,
             prefixIcon: Icon(Icons.search, color: searchIconColor),
+
+            suffixIcon: onAddPressed != null
+                ? IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: onAddPressed,
+                  )
+                : null,
+
             filled: true,
             fillColor: fillColor,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
