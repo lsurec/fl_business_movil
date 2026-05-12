@@ -1037,6 +1037,23 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> crearColor(String descripcion, BuildContext context) async {
+    try {
+      final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+      await _vehiculoService.crearColor(descripcion, token);
+
+      // Recargar colores
+      colores = await _vehiculoService.obtenerColores(token);
+
+      notifyListeners();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error al crear color: $e')));
+    }
+  }
+
   //llamar a los datos del vehiculo seleccionado en el catalogo
   Future<void> cargarDesdeElementoAsignado(
     BuildContext context,

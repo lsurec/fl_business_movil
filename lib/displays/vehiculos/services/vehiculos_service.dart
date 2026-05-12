@@ -181,4 +181,29 @@ class VehiculoService {
       throw Exception("Error al crear modelo");
     }
   }
+
+  ////////////// Crear Color (SOLO POST) ////////////////
+  Future<Map<String, dynamic>> crearColor(
+    String descripcion,
+    String token,
+  ) async {
+    final url = Uri.parse("$baseUrl/color");
+
+    final res = await http.post(
+      url,
+      headers: {
+        "Authorization": "bearer $token",
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({"descripcion": descripcion}),
+    );
+
+    print("Respuesta crear color: ${res.body}");
+
+    if (res.statusCode == 200) {
+      return jsonDecode(res.body);
+    } else {
+      throw Exception("Error al crear color (${res.statusCode})");
+    }
+  }
 }
