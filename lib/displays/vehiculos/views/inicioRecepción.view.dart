@@ -1272,6 +1272,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             title: const Text("Nueva marca"),
                             content: TextField(
                               controller: controller,
+                              textCapitalization: TextCapitalization.characters,
                               decoration: const InputDecoration(
                                 hintText: "Ingrese marca",
                               ),
@@ -1285,7 +1286,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                 onPressed: () {
                                   Navigator.pop(context, controller.text);
                                 },
-                                child: const Text("Guardar"),
+                                child: const Text(
+                                  "Guardar",
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
@@ -1328,6 +1332,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             title: const Text("Nuevo modelo"),
                             content: TextField(
                               controller: controller,
+                              textCapitalization: TextCapitalization.characters,
                               decoration: const InputDecoration(
                                 hintText: "Ingrese modelo",
                               ),
@@ -1341,7 +1346,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                 onPressed: () {
                                   Navigator.pop(context, controller.text);
                                 },
-                                child: const Text("Guardar"),
+                                child: const Text(
+                                  "Guardar",
+                                  style: TextStyle(color: Colors.white),
+                                ),
                               ),
                             ],
                           ),
@@ -1377,7 +1385,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       (v) => v.descripcion,
                       (v) async {
                         vm.seleccionarColor(v);
+
                         await vm.cargarTiposVehiculo(context);
+
                         ScaffoldMessenger.of(tabContext).showSnackBar(
                           SnackBar(
                             content: Text(
@@ -1389,6 +1399,52 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
+                      },
+
+                      onAddPressed: () async {
+                        final controller = TextEditingController();
+
+                        final result = await showDialog<String>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Nuevo color"),
+
+                            content: TextField(
+                              controller: controller,
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: const InputDecoration(
+                                hintText: "Ingrese color",
+                              ),
+                            ),
+
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Cancelar"),
+                              ),
+
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context, controller.text);
+                                },
+                                child: const Text(
+                                  "Guardar",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (result != null && result.trim().isNotEmpty) {
+                          await vm.crearColor(result.trim(), context);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Color creado correctamente'),
+                            ),
+                          );
+                        }
                       },
                     ),
                   ],
