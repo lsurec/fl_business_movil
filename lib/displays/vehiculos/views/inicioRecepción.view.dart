@@ -195,7 +195,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     context,
                   )!.translate(BlockTranslate.botones, 'cancelar'),
 
-                  onPressed: () {
+                  onPressed: () async {
+                    final itemsVM = context.read<ItemsVehiculoViewModel>();
+                    await itemsVM.limpiarDatosItems();
+
                     vm.cancelar();
                     elVM.cancelar();
                   },

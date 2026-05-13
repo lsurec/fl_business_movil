@@ -34,6 +34,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   final Map<String, TextEditingController> controllers = {};
   final Map<String, bool> isChecked = {};
   final Map<String, List<String>> fotosPorItem = {};
+  final Map<String, String> estadoFotos = {};
 
   final List<TraInternaModel> transaciciones = [];
   final UploadService _uploadService = UploadService();
@@ -209,13 +210,26 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   // ================================
   //   TOMAR FOTO
   // ================================
-  Future<void> tomarFoto(String idProducto) async {
+  Future<void> tomarFoto(BuildContext context, String idProducto) async {
     final picker = ImagePicker();
 
     /// Aqui Se toma la foto
     final XFile? foto = await picker.pickImage(source: ImageSource.camera);
 
     if (foto == null) return;
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.uploadLocal;
+
+    if (destinoImagenes == null || destinoImagenes.isEmpty) {
+      NotificationService.showSnackbar("No se configuró uploadLocal");
+      return;
+    }
 
     //  Directorio persistente de la app
     final appDir = await getApplicationDocumentsDirectory();
@@ -231,6 +245,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     //  Guardar el path REAL en fotosPorItem
     fotosPorItem[idProducto] ??= [];
     fotosPorItem[idProducto]!.add(newImage.path);
+    estadoFotos[newImage.path] = "uploading";
 
     //  Guardarlo también en la transacción (si lo necesitas después)
     final index = transaciciones.indexWhere(
@@ -240,6 +255,92 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     if (index != -1) {
       transaciciones[index].files ??= [];
       transaciciones[index].files!.add(newImage.path);
+    }
+
+    _uploadService
+        .uploadImages(
+          imagePaths: [newImage.path],
+          token: token,
+          user: user,
+          urlCarpeta: destinoImagenes,
+        )
+        .then((uploadedFiles) {
+          final index = transaciciones.indexWhere(
+            (t) => t.producto.productoId == idProducto,
+          );
+
+          if (index != -1) {
+            transaciciones[index].filesUpload ??= [];
+
+            transaciciones[index].filesUpload!.addAll(
+              uploadedFiles.map(
+                (e) =>
+                    TraFileUploadModel(system: e.system, original: e.original),
+              ),
+            );
+          }
+
+          print(" FOTO SUBIDA EN BACKGROUND");
+          estadoFotos[newImage.path] = "success";
+
+          notifyListeners();
+        })
+        .catchError((e) {
+          print(" ERROR SUBIENDO FOTO: $e");
+          estadoFotos[newImage.path] = "error";
+
+          NotificationService.showSnackbar("Error al subir imagen");
+        });
+
+    notifyListeners();
+  }
+
+  // ================================
+  //   REINTENTAR SUBIDA
+  // ================================
+
+  Future<void> reintentarSubida(
+    BuildContext context,
+    String idProducto,
+    String imagePath,
+  ) async {
+    try {
+      estadoFotos[imagePath] = "uploading";
+      notifyListeners();
+
+      final user = Provider.of<LoginViewModel>(context, listen: false).user;
+
+      final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+      final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+        context,
+        listen: false,
+      ).selectedEmpresa!.uploadLocal;
+
+      final uploadedFiles = await _uploadService.uploadImages(
+        imagePaths: [imagePath],
+        token: token,
+        user: user,
+        urlCarpeta: destinoImagenes!,
+      );
+
+      final index = transaciciones.indexWhere(
+        (t) => t.producto.productoId == idProducto,
+      );
+
+      if (index != -1) {
+        transaciciones[index].filesUpload ??= [];
+
+        transaciciones[index].filesUpload!.addAll(
+          uploadedFiles.map(
+            (e) => TraFileUploadModel(system: e.system, original: e.original),
+          ),
+        );
+      }
+
+      estadoFotos[imagePath] = "success";
+    } catch (e) {
+      estadoFotos[imagePath] = "error";
     }
 
     notifyListeners();
@@ -286,6 +387,10 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       isLoading = true;
 
       for (var tra in transaciciones.where((t) => t.isChecked == true)) {
+        if (tra.filesUpload != null && tra.filesUpload!.isNotEmpty) {
+          print("YA EXISTEN FOTOS SUBIDAS PARA ${tra.producto.productoId}");
+          continue;
+        }
         if (tra.files == null || tra.files!.isEmpty) continue;
 
         final fotosLocales = tra.files!.where((f) => f.contains("/")).toList();

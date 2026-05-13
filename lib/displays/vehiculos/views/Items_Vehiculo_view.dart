@@ -185,7 +185,9 @@ class _ItemsVehiculoView extends StatelessWidget {
                               Icons.camera_alt,
                               color: Color(0xff134895),
                             ),
-                            onPressed: () => vm.tomarFoto(item.idProducto),
+                            onPressed: () =>
+                                vm.tomarFoto(context, item.idProducto),
+                            // onPressed: () => vm.tomarFoto(item.idProducto),
                           ),
                         ],
                       ),
@@ -207,59 +209,111 @@ class _ItemsVehiculoView extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(
                                             8,
                                           ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(
-                                              8,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      VistaImagenScreen(
+                                                        imagePath: foto,
+                                                      ),
+                                                ),
+                                              );
+                                            },
+                                            child: Hero(
+                                              tag: foto,
+                                              child: Image.file(
+                                                File(foto),
+                                                width: 80,
+                                                height: 80,
+                                                fit: BoxFit.cover,
+                                              ),
                                             ),
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        VistaImagenScreen(
-                                                          imagePath: foto,
-                                                        ),
-                                                  ),
-                                                );
-                                              },
-                                              child: Hero(
-                                                tag: foto,
-                                                child: Image.file(
-                                                  File(foto),
-                                                  width: 80,
-                                                  height: 80,
-                                                  fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                        if (vm.estadoFotos[foto] == "uploading")
+                                          Positioned.fill(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black45,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: const Center(
+                                                child: SizedBox(
+                                                  width: 22,
+                                                  height: 22,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: Colors.white,
+                                                      ),
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ),
 
-                                        Positioned(
-                                          top: 2,
-                                          right: 2,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              vm.eliminarFoto(
-                                                item.idProducto,
-                                                foto,
-                                              );
-                                            },
+                                        if (vm.estadoFotos[foto] == "error")
+                                          Positioned.fill(
                                             child: Container(
                                               decoration: BoxDecoration(
                                                 color: Colors.black54,
-                                                shape: BoxShape.circle,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
                                               ),
-                                              padding: const EdgeInsets.all(2),
-                                              child: const Icon(
-                                                Icons.close,
-                                                size: 14,
-                                                color: Colors.white,
+                                              child: Center(
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.black45,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                  child: IconButton(
+                                                    icon: const Icon(
+                                                      Icons.refresh,
+                                                      color: Colors.white,
+                                                    ),
+                                                    onPressed: () {
+                                                      vm.reintentarSubida(
+                                                        context,
+                                                        item.idProducto,
+                                                        foto,
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                                /////////
                                               ),
                                             ),
                                           ),
-                                        ),
+
+                                        if (vm.estadoFotos[foto] != "uploading")
+                                          Positioned(
+                                            top: 2,
+                                            right: 2,
+                                            child: GestureDetector(
+                                              onTap: () {
+                                                vm.eliminarFoto(
+                                                  item.idProducto,
+                                                  foto,
+                                                );
+                                              },
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  color: Colors.black54,
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                padding: const EdgeInsets.all(
+                                                  2,
+                                                ),
+                                                child: const Icon(
+                                                  Icons.close,
+                                                  size: 14,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                       ],
                                     ),
                                   ),
