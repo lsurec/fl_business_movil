@@ -1272,7 +1272,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             title: const Text("Nueva marca"),
                             content: TextField(
                               controller: controller,
-                              textCapitalization: TextCapitalization.characters,
+                              inputFormatters: [UpperCaseTextFormatter()],
+
                               decoration: const InputDecoration(
                                 hintText: "Ingrese marca",
                               ),
@@ -1332,7 +1333,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                             title: const Text("Nuevo modelo"),
                             content: TextField(
                               controller: controller,
-                              textCapitalization: TextCapitalization.characters,
+                              inputFormatters: [UpperCaseTextFormatter()],
+
                               decoration: const InputDecoration(
                                 hintText: "Ingrese modelo",
                               ),
@@ -1411,7 +1413,9 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
                             content: TextField(
                               controller: controller,
-                              textCapitalization: TextCapitalization.characters,
+
+                              inputFormatters: [UpperCaseTextFormatter()],
+
                               decoration: const InputDecoration(
                                 hintText: "Ingrese color",
                               ),
