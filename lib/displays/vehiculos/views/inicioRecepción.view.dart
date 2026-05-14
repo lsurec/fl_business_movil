@@ -17,6 +17,7 @@ import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/themes/styles.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
+import 'package:fl_business/view_models/menu_view_model.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
 import 'package:fl_business/view_models/theme_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
@@ -106,7 +107,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     final ElementoAsigandoViewModel elVM =
         Provider.of<ElementoAsigandoViewModel>(context);
     final inicioVM = context.read<InicioVehiculosViewModel>();
-
+    final vmMenu = Provider.of<MenuViewModel>(context);
+    final fechas = (vm.getTextParam(44) ?? '').split(',');
     final isDark = AppTheme.isDark();
     final backgroundColor = isDark
         ? AppTheme.darkBackroundColor
@@ -143,9 +145,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
               elevation: 0,
               centerTitle: true,
               title: Text(
-                AppLocalizations.of(
-                  context,
-                )!.translate(BlockTranslate.vehiculos, 'recepcionVehiculos'),
+                vmMenu.name,
+                // AppLocalizations.of(
+                //   context,
+                // )!.translate(BlockTranslate.vehiculos, 'recepcionVehiculos'),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -473,16 +476,20 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  SwitchListTile(
-                    activeColor: AppTheme.hexToColor(Preferences.valueColor),
-                    contentPadding: EdgeInsets.zero,
-                    value: vm.cf,
-                    onChanged: (value) => vm.changeCF(context, value),
-                    title: Text(
-                      t.translate(BlockTranslate.factura, 'factura_cf'),
-                      style: StyleApp.title.copyWith(color: textColor),
+                  if (vm.valueParametro(259))
+                    SwitchListTile(
+                      activeColor: AppTheme.hexToColor(Preferences.valueColor),
+                      contentPadding: EdgeInsets.zero,
+                      value: vm.cf,
+                      onChanged: (value) => vm.changeCF(context, value),
+                      title: Text(
+                        vm.getTextParam(209) ??
+                            AppLocalizations.of(
+                              context,
+                            )!.translate(BlockTranslate.factura, 'factura_cf'),
+                        style: StyleApp.title.copyWith(color: textColor),
+                      ),
                     ),
-                  ),
                   if (vm.clienteSelect != null)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,10 +594,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
                   // 🔹 Sección Identificación Vehículo 🔹
                   _buildModernSection(
-                    title: AppLocalizations.of(context)!.translate(
-                      BlockTranslate.vehiculos,
-                      'identificacionVehiculo',
-                    ),
+                    title:
+                        "${t.translate(BlockTranslate.vehiculos, 'identificacionVehiculo')} ${vm.getTextParam(136) ?? 'VEHÍCULO'}",
 
                     icon: Icons.confirmation_number_outlined,
                     children: [
@@ -599,10 +604,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         controller: elVM.buscarElementoAsignado,
                         style: TextStyle(color: textColor),
                         decoration: InputDecoration(
-                          labelText: t.translate(
-                            BlockTranslate.vehiculos,
-                            'buscarVehiculoPlaca',
-                          ),
+                          labelText:
+                              "Buscar ${(vm.getTextParam(136) ?? 'VEHÍCULO').toLowerCase()} por placa",
 
                           labelStyle: TextStyle(color: textColor),
                           filled: true,
@@ -730,10 +733,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
                   // 🔹 Sección Datos del Vehículo 🔹
                   _buildModernSection(
-                    title: t.translate(
-                      BlockTranslate.vehiculos,
-                      'datosVehiculo',
-                    ),
+                    title:
+                        "${t.translate(BlockTranslate.vehiculos, 'datosVehiculo')} ${vm.getTextParam(136) ?? 'VEHÍCULO'}",
                     icon: Icons.directions_car_outlined,
                     children: [_buildTabsVehiculo(context, vm)],
                   ),
@@ -757,20 +758,26 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     children: [
                       _buildDateSelector(
                         context,
-                        label: t.translate(
-                          BlockTranslate.vehiculos,
-                          'fechaRecibido',
-                        ),
+                        label: fechas.isNotEmpty && fechas[0].trim().isNotEmpty
+                            ? fechas[0].trim()
+                            : t.translate(
+                                BlockTranslate.vehiculos,
+                                'fechaRecibido',
+                              ),
                         fecha: vm.fechaRecibido,
+                        maxDate: DateTime.tryParse(vm.fechaSalida),
                         onFechaSeleccionada: vm.seleccionarFechaRecibido,
                       ),
                       _buildDateSelector(
                         context,
-                        label: t.translate(
-                          BlockTranslate.vehiculos,
-                          'fechaEstimadaEntrega',
-                        ),
+                        label: fechas.length > 1 && fechas[1].trim().isNotEmpty
+                            ? fechas[1].trim()
+                            : t.translate(
+                                BlockTranslate.vehiculos,
+                                'fechaEstimadaEntrega',
+                              ),
                         fecha: vm.fechaSalida,
+                        minDate: DateTime.tryParse(vm.fechaRecibido),
                         onFechaSeleccionada: vm.seleccionarFechaSalida,
                       ),
                     ],
@@ -829,8 +836,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         isExpanded: true,
         value: vm.tipoVehiculoSeleccionado,
         decoration: InputDecoration(
-          labelText: t.translate(BlockTranslate.vehiculos, 'tipoVehiculo'),
-
+          labelText:
+              '${t.translate(BlockTranslate.vehiculos, 'tipoVehiculo')} ${(vm.getTextParam(136) ?? 'Vehículo').toLowerCase()}',
           labelStyle: TextStyle(color: txtColor),
           filled: true,
           fillColor: bgColor,
@@ -908,7 +915,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            t.translate(BlockTranslate.vehiculos, 'vehiculoSeleccionado'),
+            "${vm.getTextParam(136) ?? 'VEHÍCULO'} ${t.translate(BlockTranslate.vehiculos, 'vehiculoSeleccionado')} ",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -1547,12 +1554,13 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   // 📅 Selector de fecha y hora moderno
   Widget _buildDateSelector(
     BuildContext context, {
-
     required String label,
     required String fecha,
     required Function(String) onFechaSeleccionada,
-    Color? backgroundColor, // Nullable
-    Color? textColor, // Nullable
+    DateTime? minDate,
+    DateTime? maxDate,
+    Color? backgroundColor,
+    Color? textColor,
   }) {
     final t = AppLocalizations.of(context)!;
 
@@ -1647,7 +1655,30 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                 selectedTime.hour,
                 selectedTime.minute,
               );
+              // Validar que no sea menor a la fecha mínima
+              // Validar mínima
+              if (minDate != null && dateTime.isBefore(minDate)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'La fecha salida no puede ser menor a la fecha inicio',
+                    ),
+                  ),
+                );
+                return;
+              }
 
+              // Validar máxima
+              if (maxDate != null && dateTime.isAfter(maxDate)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'La fecha inicio no puede ser mayor a la fecha salida',
+                    ),
+                  ),
+                );
+                return;
+              }
               // Callback con fecha y hora
               onFechaSeleccionada(dateTime.toString());
             },
