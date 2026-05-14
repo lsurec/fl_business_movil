@@ -1,6 +1,5 @@
 // ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages, library_prefixes, avoid_print
 import 'dart:convert';
-import 'package:fl_business/demos/printer/service/impresion_ticket.dart';
 import 'package:fl_business/displays/prc_documento_3/models/mensaje_model.dart';
 import 'package:fl_business/displays/report/reports/factura/provider.dart';
 import 'package:fl_business/displays/report/reports/factura/tmu.dart';

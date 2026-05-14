@@ -105,10 +105,6 @@ class ProductViewModel extends ChangeNotifier {
       listen: false,
     );
 
-    final menuVM = Provider.of<MenuViewModel>(context, listen: false);
-
-    final confirmVM = Provider.of<ConfirmDocViewModel>(context, listen: false);
-
     String token = loginVM.token;
     String user = loginVM.user;
 

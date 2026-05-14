@@ -6,10 +6,8 @@ import 'package:fl_business/models/doc_print_model.dart';
 import 'package:fl_business/services/language_service.dart';
 import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
-import 'package:fl_business/view_models/home_view_model.dart';
 import 'package:fl_business/view_models/login_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class DocumentoConversionProvider {
@@ -57,15 +55,6 @@ class DocumentoConversionProvider {
 
       return false;
     }
-
-    final vmHome = Provider.of<HomeViewModel>(context, listen: false);
-
-    // Crear una instancia de NumberFormat para el formato de moneda
-    final currencyFormat = NumberFormat.currency(
-      symbol: vmHome
-          .moneda, // Símbolo de la moneda (puedes cambiarlo según tu necesidad)
-      decimalDigits: 2, // Número de decimales a mostrar
-    );
 
     final PrintConvertModel encabezado = dataReport.first;
 

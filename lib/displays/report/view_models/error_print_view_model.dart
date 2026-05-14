@@ -281,9 +281,9 @@ class ErrorPrintViewModel extends ChangeNotifier {
     isLoading = false;
 
     //TODO:verificar si las comandas fueron enviadas
-    final List<ResComandaModel> errores = comandas
-        .where((p) => p.error != null)
-        .toList();
+    // final List<ResComandaModel> errores = comandas
+    //     .where((p) => p.error != null)
+    //     .toList();
 
     returnView(context, comandas);
   }

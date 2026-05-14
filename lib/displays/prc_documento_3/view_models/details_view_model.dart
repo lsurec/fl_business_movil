@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously, avoid_print
 
 import 'dart:async';
-import 'package:fl_business/displays/prc_documento_3/models/mensaje_model.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/services.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
@@ -158,10 +157,6 @@ class DetailsViewModel extends ChangeNotifier {
     final vmPayment = Provider.of<PaymentViewModel>(context, listen: false);
 
     final localVM = Provider.of<LocalSettingsViewModel>(context, listen: false);
-
-    final menuVM = Provider.of<MenuViewModel>(context, listen: false);
-
-    final confirmVM = Provider.of<ConfirmDocViewModel>(context, listen: false);
 
     final detailsVM = Provider.of<DetailsViewModel>(context, listen: false);
 

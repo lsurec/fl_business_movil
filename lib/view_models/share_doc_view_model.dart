@@ -1280,8 +1280,6 @@ class ShareDocViewModel extends ChangeNotifier {
     );
 
     //obtener la empresa de seleccionada
-    final EmpresaModel imgEmpresa = vmLocal.selectedEmpresa!;
-
     // Logotipo por defecto
     final ByteData defaultLogoData = await rootBundle.load(
       'assets/empresa.png',
