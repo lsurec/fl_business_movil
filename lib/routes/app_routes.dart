@@ -152,6 +152,8 @@ class AppRoutes {
 
     printerView: (BuildContext context) => const PrinterView(),
     vehiculos: (BuildContext context) => const InicioVehiculosView(),
+    PaymentConvertView.routeName: (BuildContext context) =>
+        const PaymentConvertView(),
   };
 
   //en caso de ruta incorrecta

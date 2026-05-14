@@ -110,6 +110,7 @@ class AppState extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PrinterViewModel()),
         ChangeNotifierProvider(create: (_) => ErrorPrintViewModel()),
         ChangeNotifierProvider(create: (_) => LogoProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentConvertViewModel()),
       ],
       child: const MyApp(),
     );

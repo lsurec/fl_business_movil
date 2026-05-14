@@ -3,6 +3,7 @@
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/models.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/services/services.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/view_models.dart';
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/views/views.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/services.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
@@ -217,6 +218,15 @@ class ConvertDocViewModel extends ChangeNotifier {
     Navigator.of(context).pop(); // Cierra el diálogo
 
     notifyListeners();
+  }
+
+  // ir a formas de pago
+  navigateToPayment() {
+    //navegar a pantalla de formas de pago
+    Navigator.pushNamed(
+      scaffoldKey.currentContext!,
+      PaymentConvertView.routeName,
+    );
   }
 
   //Conversion de transacciones
