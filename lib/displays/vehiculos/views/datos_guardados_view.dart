@@ -1491,7 +1491,37 @@ Widget _itemCard(item) {
           ],
           if (item.fotos.isNotEmpty) ...[
             const SizedBox(height: 8),
-            const Text('Fotos:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Row(
+              children: [
+                // const Icon(Icons.image, size: 18, color: Color(0xff134895)),
+                // const SizedBox(width: 4),
+                const Text(
+                  'Fotos:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(width: 6),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xff134895),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${item.fotos.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 6),
             SizedBox(
               height: 100,

@@ -178,16 +178,41 @@ class _ItemsVehiculoView extends StatelessWidget {
 
                       // ------------ Fotos ----------------
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          // Contador de imágenes
+                          Row(
+                            children: [
+                              Text(
+                                "Imágenes: ",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              // Icon(
+                              //   Icons.image,
+                              //   size: 18,
+                              //   color: Color(0xff134895),
+                              // ),
+                              const SizedBox(width: 4),
+
+                              Text(
+                                "${(vm.fotosPorItem[item.idProducto] ?? []).length}",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xff134895),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          // Botón cámara
                           IconButton(
-                            icon: Icon(
+                            icon: const Icon(
                               Icons.camera_alt,
                               color: Color(0xff134895),
                             ),
                             onPressed: () =>
                                 vm.tomarFoto(context, item.idProducto),
-                            // onPressed: () => vm.tomarFoto(item.idProducto),
                           ),
                         ],
                       ),
