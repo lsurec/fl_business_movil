@@ -69,6 +69,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final vm = context.watch<InicioVehiculosViewModel>();
     final items = vm.itemsAsignados;
     final bool bloqueado = _documentoEnviado || vm.isLoading;
+    final fechas = (vm.getTextParam(44) ?? '').split(',');
 
     return Stack(
       children: [
@@ -99,7 +100,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 Row(
                   children: [
                     _titulo(
-                      "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosCliente')} ${vm.getTextCuenta(context)}",
+                      "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosCliente')} ${vm.getTextCuenta(context).toUpperCase()}",
                     ),
                   ],
                 ),
@@ -127,7 +128,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 const SizedBox(height: 20),
 
                 // ================= DATOS VEHÍCULO =================
-                _titulo(t.translate(BlockTranslate.vehiculos, 'datosVehiculo')),
+                _titulo(
+                  "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosVehiculo')} ${vm.getTextParam(136) ?? 'VEHICULO'}",
+                ),
 
                 _dato(
                   t.translate(BlockTranslate.vehiculos, 'chasis'),
@@ -206,14 +209,18 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 _titulo(t.translate(BlockTranslate.vehiculos, 'fechas')),
 
                 _dato(
-                  t.translate(BlockTranslate.vehiculos, 'fechaRecibido'),
+                  fechas.isNotEmpty && fechas[0].trim().isNotEmpty
+                      ? fechas[0].trim()
+                      : t.translate(BlockTranslate.vehiculos, 'fechaRecibido'),
                   vm.fechaRecibido,
                 ),
                 _dato(
-                  t.translate(
-                    BlockTranslate.vehiculos,
-                    'vehiculos_fechaEntregaEstimada',
-                  ),
+                  fechas.length > 1 && fechas[1].trim().isNotEmpty
+                      ? fechas[1].trim()
+                      : t.translate(
+                          BlockTranslate.vehiculos,
+                          'fechaEstimadaEntrega',
+                        ),
                   vm.fechaSalida,
                 ),
 
@@ -730,6 +737,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     // final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
     final t = AppLocalizations.of(context)!;
     final vm = context.read<InicioVehiculosViewModel>();
+    final fechas = (vm.getTextParam(44) ?? '').split(',');
+    final placa = vm.recepcionGuardada?.placa ?? 'SIN_PLACA';
+
     final pdf = pw.Document();
     final imagenVehiculoPdf = await _cargarImagenPdf(context);
     final pw.ImageProvider? firmaMecanicoPdf = firmaMecanico != null
@@ -820,7 +830,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
           // ===================== INFORMACIÓN DEL VEHÍCULO =====================
           pw.Text(
-            'INFORMACIÓN DEL VEHÍCULO',
+            'INFORMACIÓN DEL ${vm.getTextParam(136) ?? 'VEHICULO'}',
             style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 5),
@@ -969,7 +979,10 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
               pw.SizedBox(height: 8),
 
-              pw.Text('Obs. Vehículo:', style: pw.TextStyle(fontSize: 12)),
+              pw.Text(
+                'Obs. ${vm.getTextParam(136) ?? 'VEHICULO'}:',
+                style: pw.TextStyle(fontSize: 12),
+              ),
             ],
           ),
           pw.SizedBox(height: 30),
@@ -980,7 +993,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  'Fotografías Del Vehículo',
+                  'Fotografías ${vm.getTextParam(136) ?? 'VEHICULO'}',
                   style: pw.TextStyle(
                     fontSize: 16,
                     fontWeight: pw.FontWeight.bold,
@@ -1078,7 +1091,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           if (imagenVehiculoPdf != null) ...[
             pw.SizedBox(height: 15),
             pw.Text(
-              'ESTADO DEL VEHÍCULO',
+              'ESTADO DEL ${vm.getTextParam(136) ?? 'VEHICULO'}',
               style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
             ),
             pw.SizedBox(height: 8),
@@ -1087,8 +1100,18 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           pw.SizedBox(height: 20),
 
           // ===================== FECHAS =====================
-          _pdfDato('Fecha recibido', vm.fechaRecibido),
-          _pdfDato('Fecha Estimada de Salida', vm.fechaSalida),
+          _pdfDato(
+            fechas.isNotEmpty && fechas[0].trim().isNotEmpty
+                ? fechas[0].trim()
+                : t.translate(BlockTranslate.vehiculos, 'fechaRecibido'),
+            vm.fechaRecibido,
+          ),
+          _pdfDato(
+            fechas.isNotEmpty && fechas[1].trim().isNotEmpty
+                ? fechas[1].trim()
+                : t.translate(BlockTranslate.vehiculos, 'fechaEstimadaEntrega'),
+            vm.fechaSalida,
+          ),
           pw.SizedBox(height: 30),
 
           // ===================== FIRMAS =====================
@@ -1139,7 +1162,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     );
 
     final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/ReporteVehiculo.pdf');
+    final file = File('${dir.path}/${placa}-ReporteRevisionItems.pdf');
     await file.writeAsBytes(await pdf.save());
     await OpenFilex.open(file.path);
     ScaffoldMessenger.of(
