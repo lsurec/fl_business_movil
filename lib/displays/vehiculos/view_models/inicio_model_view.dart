@@ -1607,7 +1607,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   //numero de serie
   bool valueParametro(int param) {
-    bool value = true;
+    bool value = false;
 
     //sino existe serie, retornar false
     if (serieSelect == null) return false;
