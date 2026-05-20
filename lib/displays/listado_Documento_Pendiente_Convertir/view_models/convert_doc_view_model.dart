@@ -221,7 +221,32 @@ class ConvertDocViewModel extends ChangeNotifier {
   }
 
   // ir a formas de pago
-  navigateToPayment() {
+  navigateToPayment(
+    DestinationDocModel docDestino,
+    BuildContext context,
+  ) async {
+    final PaymentConvertViewModel vmConvert =
+        Provider.of<PaymentConvertViewModel>(
+          scaffoldKey.currentContext!,
+          listen: false,
+        );
+    vmConvert.destino = docDestino;
+
+    isLoading = true;
+
+    await vmConvert.loadPayments(context);
+
+    isLoading = false;
+    if (vmConvert.paymentList.isEmpty) {
+      NotificationService.showSnackbar(
+        "No hay formas de pago disponibles para el documento destino",
+      );
+
+      return;
+    }
+
+    isLoading = false;
+
     //navegar a pantalla de formas de pago
     Navigator.pushNamed(
       scaffoldKey.currentContext!,

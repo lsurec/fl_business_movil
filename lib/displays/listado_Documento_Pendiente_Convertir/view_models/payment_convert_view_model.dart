@@ -1,5 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/destination_doc_model.dart';
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/amount_convert_view_model.dart';
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/views/views.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/services.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
@@ -13,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PaymentConvertViewModel extends ChangeNotifier {
+  DestinationDocModel? destino;
   //controlar el proceso
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -23,9 +27,10 @@ class PaymentConvertViewModel extends ChangeNotifier {
   }
 
   //Totales globales
-  double saldo = 0;
+  double saldo = 1000;
   double cambio = 0;
   double pagado = 0;
+  double total = 1000;
 
   //Seleccionar todas las formas de pago
   bool selectAllAmounts = false;
@@ -50,40 +55,26 @@ class PaymentConvertViewModel extends ChangeNotifier {
 
     //view models exxternos
     final loginVM = Provider.of<LoginViewModel>(context, listen: false);
-    final vmFactura = Provider.of<DocumentoViewModel>(context, listen: false);
-    final vmMenu = Provider.of<MenuViewModel>(context, listen: false);
-    final vmDoc = Provider.of<DocumentViewModel>(context, listen: false);
-    final vmLocal = Provider.of<LocalSettingsViewModel>(context, listen: false);
-
-    //Si no hay tipo docummento cancelar
-    if (vmMenu.documento == null) return;
-
-    //si no hay serie seleccionada mostrar error
-    if (vmDoc.serieSelect == null) {
-      NotificationService.showSnackbar(
-        AppLocalizations.of(
-          context,
-        )!.translate(BlockTranslate.notificacion, 'seleccionaSerie'),
-      );
-      return;
-    }
 
     //instancia del servicio
     PagoService pagoService = PagoService();
 
     //load prosses
-    vmFactura.isLoading = true;
+    isLoading = true;
 
     //Consumo del servicio
     ApiResModel res = await pagoService.getFormas(
-      vmMenu.documento!, // doc,
-      vmDoc.serieSelect!.serieDocumento!, // serie,
-      vmLocal.selectedEmpresa!.empresa, // empresa,
+      // destino!.fTipoDocumento, // doc,
+      46,
+      // destino!.fSerieDocumento, // serie,
+      "2",
+      // destino!.fEmpresa, // empresa,
+      3,
       loginVM.token, // token,
     );
 
     //stop process
-    vmFactura.isLoading = false;
+    isLoading = false;
 
     //valid succes response
     if (!res.succes) {
@@ -350,62 +341,66 @@ class PaymentConvertViewModel extends ChangeNotifier {
 
     notifyListeners();
 
-    //View model externo
-    final vmDetails = Provider.of<DetailsViewModel>(context, listen: false);
-    final vmDoc = Provider.of<DocumentViewModel>(context, listen: false);
+    // if (vmDoc.clienteSelect == null) {
+    //   NotificationService.showSnackbar(
+    //     AppLocalizations.of(
+    //       context,
+    //     )!.translate(BlockTranslate.notificacion, 'cuentaAntesPago'),
+    //   );
+    //   return;
+    // }
 
-    if (vmDoc.clienteSelect == null) {
-      NotificationService.showSnackbar(
-        AppLocalizations.of(
-          context,
-        )!.translate(BlockTranslate.notificacion, 'cuentaAntesPago'),
-      );
-      return;
-    }
+    // //Vaidar si la forma de pago seleccionada es CxC y si la cuenta correntista lo permite
+    // if (payment.cuentaCorriente && !vmDoc.clienteSelect!.permitirCxC) {
+    //   NotificationService.showSnackbar(
+    //     AppLocalizations.of(
+    //       context,
+    //     )!.translate(BlockTranslate.notificacion, 'sinPermisoCuentaPCobrar'),
+    //   );
+    //   return;
+    // }
 
-    //Vaidar si la forma de pago seleccionada es CxC y si la cuenta correntista lo permite
-    if (payment.cuentaCorriente && !vmDoc.clienteSelect!.permitirCxC) {
-      NotificationService.showSnackbar(
-        AppLocalizations.of(
-          context,
-        )!.translate(BlockTranslate.notificacion, 'sinPermisoCuentaPCobrar'),
-      );
-      return;
-    }
-
-    //si el cliente (cuenta correntista) tiene permitido CxC y la forma de pago es cuenta corriente
-    if (vmDoc.clienteSelect!.permitirCxC && payment.cuentaCorriente) {
-      //validar limite de credito de cuenta correntista
-      if (vmDetails.total > (vmDoc.clienteSelect?.limiteCredito ?? 0)) {
-        //Mostrar alerta si el total a pagar supera el limite de credito
-        NotificationService.showSnackbar(
-          AppLocalizations.of(
-            context,
-          )!.translate(BlockTranslate.notificacion, 'superaLimiteCredito'),
-        );
-        return;
-      }
-    }
+    // //si el cliente (cuenta correntista) tiene permitido CxC y la forma de pago es cuenta corriente
+    // if (vmDoc.clienteSelect!.permitirCxC && payment.cuentaCorriente) {
+    //   //validar limite de credito de cuenta correntista
+    //   if (vmDetails.total > (vmDoc.clienteSelect?.limiteCredito ?? 0)) {
+    //     //Mostrar alerta si el total a pagar supera el limite de credito
+    //     NotificationService.showSnackbar(
+    //       AppLocalizations.of(
+    //         context,
+    //       )!.translate(BlockTranslate.notificacion, 'superaLimiteCredito'),
+    //     );
+    //     return;
+    //   }
+    // }
 
     //validaciones para poder navegar a la pantalla
-    if (vmDetails.total == 0) {
-      NotificationService.showSnackbar(
-        AppLocalizations.of(
-          context,
-        )!.translate(BlockTranslate.notificacion, 'pagarCero'),
-      );
-    } else if (saldo == 0) {
-      NotificationService.showSnackbar(
-        AppLocalizations.of(
-          context,
-        )!.translate(BlockTranslate.notificacion, 'pagarCero'),
-      );
-    } else {
-      if (payment.banco) await loadBancos(context);
+    // if (total == 0) {
+    //   NotificationService.showSnackbar(
+    //     AppLocalizations.of(
+    //       context,
+    //     )!.translate(BlockTranslate.notificacion, 'pagarCero'),
+    //   );
+    // } else if (saldo == 0) {
+    //   NotificationService.showSnackbar(
+    //     AppLocalizations.of(
+    //       context,
+    //     )!.translate(BlockTranslate.notificacion, 'pagarCero'),
+    //   );
+    // } else {
+    //   if (payment.banco) await loadBancos(context);
 
-      //Navegar a la pantalla siguiente
-      Navigator.pushNamed(context, "amount", arguments: payment);
-    }
+    //   //Navegar a la pantalla siguiente
+    // }
+    Navigator.pushNamed(
+      context,
+      AmountConvertView.routeName,
+      arguments: payment,
+    );
+  }
+
+  confirmPayments() {
+    //Proceso doc estructura y FEL
   }
 
   //agregar forma de pago
@@ -419,8 +414,10 @@ class PaymentConvertViewModel extends ChangeNotifier {
     //Borré la funcion que guarda el documento
 
     //View models externos
-    final vmDetails = Provider.of<DetailsViewModel>(context, listen: false);
-    final vmAmount = Provider.of<AmountViewModel>(context, listen: false);
+    final vmAmount = Provider.of<AmountConvertViewModel>(
+      context,
+      listen: false,
+    );
 
     //Reicniciar valores
     saldo = 0;
@@ -440,10 +437,10 @@ class PaymentConvertViewModel extends ChangeNotifier {
     }
 
     //Calcular cambio y saldo pendiente de pagar
-    if (pagado > vmDetails.total) {
-      cambio = pagado - vmDetails.total;
+    if (pagado > total) {
+      cambio = pagado - total;
     } else {
-      saldo = vmDetails.total - pagado;
+      saldo = total - pagado;
     }
 
     //Agregar valores a los inputs

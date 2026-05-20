@@ -1,4 +1,5 @@
 import 'package:fl_business/displays/calendario/view_models/view_models.dart';
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/amount_convert_view_model.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/view_models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
@@ -111,6 +112,7 @@ class AppState extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ErrorPrintViewModel()),
         ChangeNotifierProvider(create: (_) => LogoProvider()),
         ChangeNotifierProvider(create: (_) => PaymentConvertViewModel()),
+        ChangeNotifierProvider(create: (_) => AmountConvertViewModel()),
       ],
       child: const MyApp(),
     );

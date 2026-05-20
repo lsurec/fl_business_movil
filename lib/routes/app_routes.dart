@@ -154,6 +154,8 @@ class AppRoutes {
     vehiculos: (BuildContext context) => const InicioVehiculosView(),
     PaymentConvertView.routeName: (BuildContext context) =>
         const PaymentConvertView(),
+    AmountConvertView.routeName: (BuildContext context) =>
+        const AmountConvertView(),
   };
 
   //en caso de ruta incorrecta

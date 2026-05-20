@@ -47,7 +47,8 @@ class ConvertDocView extends StatelessWidget {
                 child: FloatingActionButton(
                   heroTag: 'button1', // Tag único para el primer botón
                   onPressed: () =>
-                      vm.convertirDocumento(context, docOrigen, docDestino),
+                      // vm.convertirDocumento(context, docOrigen, docDestino),
+                      vm.navigateToPayment(docDestino, context),
                   child: const Icon(Icons.check),
                 ),
               ),

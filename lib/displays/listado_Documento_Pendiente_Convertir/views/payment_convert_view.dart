@@ -2,7 +2,6 @@ import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
-import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
 import 'package:fl_business/themes/themes.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
@@ -32,168 +31,176 @@ class PaymentConvertView extends StatelessWidget {
       context,
     );
 
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => vm.loadPayments(context),
-              child: ListView(
-                children: [
-                  if (vm.paymentList.isEmpty)
-                    NotFoundWidget(
-                      text: AppLocalizations.of(
-                        context,
-                      )!.translate(BlockTranslate.notificacion, 'sinElementos'),
-                      icon: const Icon(
-                        Icons.browser_not_supported_outlined,
-                        size: 250,
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => vm.confirmPayments(),
+        child: const Icon(Icons.check),
+      ),
+      appBar: AppBar(),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => vm.loadPayments(context),
+                child: ListView(
+                  children: [
+                    if (vm.paymentList.isEmpty)
+                      NotFoundWidget(
+                        text: AppLocalizations.of(context)!.translate(
+                          BlockTranslate.notificacion,
+                          'sinElementos',
+                        ),
+                        icon: const Icon(
+                          Icons.browser_not_supported_outlined,
+                          size: 250,
+                        ),
                       ),
-                    ),
-                  if (vm.paymentList.isNotEmpty)
-                    Text(
-                      AppLocalizations.of(
-                        context,
-                      )!.translate(BlockTranslate.factura, 'agregarPago'),
-                      style: StyleApp.title,
-                    ),
-                  const SizedBox(height: 10),
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: vm.paymentList.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final PaymentModel payment = vm.paymentList[index];
+                    if (vm.paymentList.isNotEmpty)
+                      Text(
+                        AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.factura, 'agregarPago'),
+                        style: StyleApp.title,
+                      ),
+                    const SizedBox(height: 10),
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: vm.paymentList.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final PaymentModel payment = vm.paymentList[index];
 
-                      return GestureDetector(
-                        onTap: () => vm.navigateAmount(context, payment),
-                        child: PaymentCard(payment: payment),
-                      );
-                    },
-                  ),
-                  if (vm.amounts.isNotEmpty) const SizedBox(height: 20),
-                  if (vm.amounts.isNotEmpty) const Divider(),
-                  if (vm.amounts.isNotEmpty) const SizedBox(height: 10),
-                  if (vm.amounts.isNotEmpty)
-                    Row(
-                      children: [
-                        const SizedBox(width: 20),
-                        Checkbox(
-                          activeColor: AppTheme.hexToColor(
-                            Preferences.valueColor,
-                          ),
-                          value: vm.selectAllAmounts,
-                          onChanged: (value) => vm.selectAllMounts(value),
-                        ),
-                        Text(
-                          "${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'pagosAgregados')} (${vm.amounts.length})",
-                          style: StyleApp.normalBold,
-                        ),
-                        const Spacer(),
-                        IconButton(
-                          onPressed: () => vm.deleteAmounts(context),
-                          icon: const Icon(Icons.delete_outline),
-                        ),
-                      ],
+                        return GestureDetector(
+                          onTap: () => vm.navigateAmount(context, payment),
+                          child: PaymentCard(payment: payment),
+                        );
+                      },
                     ),
-                  ListView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemCount: vm.amounts.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final AmountModel amount = vm.amounts[index];
-
-                      return Card(
-                        color: AppTheme.isDark()
-                            ? AppTheme.backroundDarkSecondary
-                            : AppTheme.backroundSecondary,
-                        elevation: 2.0,
-                        child: ListTile(
-                          leading: Checkbox(
+                    if (vm.amounts.isNotEmpty) const SizedBox(height: 20),
+                    if (vm.amounts.isNotEmpty) const Divider(),
+                    if (vm.amounts.isNotEmpty) const SizedBox(height: 10),
+                    if (vm.amounts.isNotEmpty)
+                      Row(
+                        children: [
+                          const SizedBox(width: 20),
+                          Checkbox(
                             activeColor: AppTheme.hexToColor(
                               Preferences.valueColor,
                             ),
-                            value: amount.checked,
-                            onChanged: (value) =>
-                                vm.changeCheckedamount(value, index),
+                            value: vm.selectAllAmounts,
+                            onChanged: (value) => vm.selectAllMounts(value),
                           ),
-                          title: Text(
-                            amount.payment.descripcion,
+                          Text(
+                            "${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'pagosAgregados')} (${vm.amounts.length})",
                             style: StyleApp.normalBold,
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (amount.payment.autorizacion)
-                                Text(
-                                  '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'autorizar')}: ${amount.authorization}',
-                                  style: StyleApp.normal,
-                                ),
-                              if (amount.payment.referencia)
-                                Text(
-                                  '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'referencia')}: ${amount.reference}',
-                                  style: StyleApp.normal,
-                                ),
-                              if (amount.payment.banco)
-                                Text(
-                                  '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'banco')}: ${amount.bank?.nombre}',
-                                  style: StyleApp.normal,
-                                ),
-                              if (amount.account != null)
-                                Text(
-                                  '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'cuenta')}: ${amount.account!.descripcion}',
-                                  style: StyleApp.normal,
-                                ),
-                              Text(
-                                '${AppLocalizations.of(context)!.translate(BlockTranslate.calcular, 'monto')}: ${currencyFormat.format(amount.amount)}',
-                                style: StyleApp.normal,
-                              ),
-                              if (amount.diference > 0)
-                                Text(
-                                  '${AppLocalizations.of(context)!.translate(BlockTranslate.calcular, 'diferencia')}: ${currencyFormat.format(amount.diference)}',
-                                  style: StyleApp.normal,
-                                ),
-                              if (amount.diference > 0)
-                                Text(
-                                  '${AppLocalizations.of(context)!.translate(BlockTranslate.calcular, 'precioT')}: ${currencyFormat.format(amount.diference + amount.amount)}',
-                                  style: StyleApp.normal,
-                                ),
-                            ],
+                          const Spacer(),
+                          IconButton(
+                            onPressed: () => vm.deleteAmounts(context),
+                            icon: const Icon(Icons.delete_outline),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                        ],
+                      ),
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemCount: vm.amounts.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final AmountModel amount = vm.amounts[index];
+
+                        return Card(
+                          color: AppTheme.isDark()
+                              ? AppTheme.backroundDarkSecondary
+                              : AppTheme.backroundSecondary,
+                          elevation: 2.0,
+                          child: ListTile(
+                            leading: Checkbox(
+                              activeColor: AppTheme.hexToColor(
+                                Preferences.valueColor,
+                              ),
+                              value: amount.checked,
+                              onChanged: (value) =>
+                                  vm.changeCheckedamount(value, index),
+                            ),
+                            title: Text(
+                              amount.payment.descripcion,
+                              style: StyleApp.normalBold,
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (amount.payment.autorizacion)
+                                  Text(
+                                    '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'autorizar')}: ${amount.authorization}',
+                                    style: StyleApp.normal,
+                                  ),
+                                if (amount.payment.referencia)
+                                  Text(
+                                    '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'referencia')}: ${amount.reference}',
+                                    style: StyleApp.normal,
+                                  ),
+                                if (amount.payment.banco)
+                                  Text(
+                                    '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'banco')}: ${amount.bank?.nombre}',
+                                    style: StyleApp.normal,
+                                  ),
+                                if (amount.account != null)
+                                  Text(
+                                    '${AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'cuenta')}: ${amount.account!.descripcion}',
+                                    style: StyleApp.normal,
+                                  ),
+                                Text(
+                                  '${AppLocalizations.of(context)!.translate(BlockTranslate.calcular, 'monto')}: ${currencyFormat.format(amount.amount)}',
+                                  style: StyleApp.normal,
+                                ),
+                                if (amount.diference > 0)
+                                  Text(
+                                    '${AppLocalizations.of(context)!.translate(BlockTranslate.calcular, 'diferencia')}: ${currencyFormat.format(amount.diference)}',
+                                    style: StyleApp.normal,
+                                  ),
+                                if (amount.diference > 0)
+                                  Text(
+                                    '${AppLocalizations.of(context)!.translate(BlockTranslate.calcular, 'precioT')}: ${currencyFormat.format(amount.diference + amount.amount)}',
+                                    style: StyleApp.normal,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 15),
-          RowTotalWidget(
-            title: AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.calcular, 'total'),
-            value: 00.00,
-            color: AppTheme.hexToColor(Preferences.valueColor),
-          ),
-          RowTotalWidget(
-            title: AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.calcular, 'saldo'),
-            value: vm.saldo,
-            color: AppTheme.hexToColor(Preferences.valueColor),
-          ),
-          RowTotalWidget(
-            title: AppLocalizations.of(
-              context,
-            )!.translate(BlockTranslate.calcular, 'cambio'),
-            value: vm.cambio,
-            color: AppTheme.hexToColor(Preferences.valueColor),
-          ),
-        ],
+            const SizedBox(height: 15),
+            RowTotalWidget(
+              title: AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.calcular, 'total'),
+              value: vm.total,
+              color: AppTheme.hexToColor(Preferences.valueColor),
+            ),
+            RowTotalWidget(
+              title: AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.calcular, 'saldo'),
+              value: vm.saldo,
+              color: AppTheme.hexToColor(Preferences.valueColor),
+            ),
+            RowTotalWidget(
+              title: AppLocalizations.of(
+                context,
+              )!.translate(BlockTranslate.calcular, 'cambio'),
+              value: vm.cambio,
+              color: AppTheme.hexToColor(Preferences.valueColor),
+            ),
+          ],
+        ),
       ),
     );
   }
