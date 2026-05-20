@@ -227,10 +227,10 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   // ================================
   Future<void> tomarFoto(BuildContext context, String idProducto) async {
     try {
-      final picker = ImagePicker();
+      // final picker = ImagePicker();
 
       // final XFile? foto = await picker.pickImage(source: ImageSource.camera);
-      final XFile? foto = await picker.pickImage(
+      final XFile? foto = await _picker.pickImage(
         source: ImageSource.camera,
         imageQuality: 50,
         maxWidth: 1280,
