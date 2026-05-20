@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
+import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/report/reports/pdf/utilities_pdf.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
@@ -733,6 +734,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       empresa.absolutePathPicture,
     );
 
+    final LocationService locationService = Provider.of<LocationService>(
+      context,
+      listen: false,
+    );
+
+    final ByteData ubicacionIcon = await rootBundle.load(
+      'assets/Ubicacion.png',
+    );
+
+    final Uint8List ubicacionBytes = ubicacionIcon.buffer.asUint8List();
+
+    final pw.MemoryImage ubicacionImage = pw.MemoryImage(ubicacionBytes);
+
     // Convertir a formato usable en PDF
     // final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
     final t = AppLocalizations.of(context)!;
@@ -1157,10 +1171,53 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               ),
             ],
           ),
+          //  AGREGA ESTO DEBAJO
+          pw.SizedBox(height: 25),
+
+          pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(
+                'Ubicación de recepción',
+                style: pw.TextStyle(
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+
+              pw.SizedBox(height: 5),
+
+              pw.Text('Latitud: ${locationService.latitutd}'),
+
+              pw.Text('Longitud: ${locationService.longitud}'),
+
+              pw.SizedBox(height: 5),
+
+              pw.UrlLink(
+                destination:
+                    'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                child: pw.Row(
+                  mainAxisSize: pw.MainAxisSize.min,
+                  children: [
+                    pw.Image(ubicacionImage, width: 16, height: 16),
+
+                    pw.SizedBox(width: 5),
+
+                    pw.Text(
+                      'Abrir ubicación en Google Maps',
+                      style: pw.TextStyle(
+                        color: PdfColors.blue,
+                        decoration: pw.TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
-
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/${placa}-ReporteRevisionItems.pdf');
     await file.writeAsBytes(await pdf.save());
