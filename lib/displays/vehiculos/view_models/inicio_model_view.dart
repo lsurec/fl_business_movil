@@ -121,6 +121,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   @override
   void dispose() {
     detalleTrabajoController.dispose();
+    observacion1Controller.dispose();
+    observacion3Controller.dispose();
     celularController.dispose();
     emailController.dispose();
     kilometrajeController.dispose();
@@ -330,6 +332,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // OBSERVACIONES DEL VEHÍCULO
   // ============================================================================
   String detalleTrabajo = '';
+  String docObservacion1 = '';
+  String docObservacion3 = '';
   String kilometraje = '';
   int tipoKilometraje = 0; // 0 = KM, 1 = Millas
   String cc = '';
@@ -345,6 +349,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
   final TextEditingController detalleTrabajoController =
       TextEditingController();
+  final TextEditingController observacion1Controller = TextEditingController();
+
+  final TextEditingController observacion3Controller = TextEditingController();
   final TextEditingController celularController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController kilometrajeController = TextEditingController();
@@ -536,6 +543,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
       await loadParametros(context);
 
+      if (valueParametro(318)) {
+        Provider.of<LocationService>(
+          context,
+          listen: false,
+        ).getLocation(context);
+      }
       vmDoc.tiposTransaccion.addAll(resTiposTra.response);
       marcas = await _vehiculoService.obtenerMarcas(token);
       anios = await _vehiculoService.obtenerAnios(token);
@@ -729,6 +742,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // Observaciones
       // --------------------
       detalleTrabajo: detalleTrabajoController.text.trim(),
+      docObservacion1: observacion1Controller.text.trim(),
+      docObservacion3: observacion3Controller.text.trim(),
       kilometraje: kilometrajeController.text.trim(),
       cc: ccController.text.trim(),
       cil: cilController.text.trim(),
@@ -781,6 +796,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     celularController.clear();
     emailController.clear();
     detalleTrabajoController.clear();
+    observacion1Controller.clear();
+    observacion3Controller.clear();
     kilometrajeController.clear();
     ccController.clear();
     cilController.clear();
@@ -1590,7 +1607,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   //numero de serie
   bool valueParametro(int param) {
-    bool value = false;
+    bool value = true;
 
     //sino existe serie, retornar false
     if (serieSelect == null) return false;
@@ -1934,6 +1951,10 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       context,
       listen: false,
     );
+    final LocationService locationService = Provider.of<LocationService>(
+      context,
+      listen: false,
+    );
 
     //usuario token y cadena de conexion
     String user = loginVM.user;
@@ -2137,8 +2158,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docComanda: null,
       docMesa: null,
       docUbicacion: null,
-      docLatitud: null,
-      docLongitud: null,
+      docLatitud: locationService.latitutd,
+      docLongitud: locationService.longitud,
       consecutivoInterno: firstPart,
       docTraMonto: 0,
       docCaMonto: 0,
