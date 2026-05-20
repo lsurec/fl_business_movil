@@ -16,10 +16,25 @@ import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart'
     as api;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:gal/gal.dart';
 
 class ItemsVehiculoViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> recuperarImagenPerdida() async {
+    final LostDataResponse response = await _picker.retrieveLostData();
+
+    if (response.isEmpty) return;
+
+    if (response.files != null) {
+      for (final file in response.files!) {
+        print("Imagen recuperada: ${file.path}");
+      }
+    }
+  }
 
   set isLoading(bool value) {
     _isLoading = value;
@@ -211,88 +226,116 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   //   TOMAR FOTO
   // ================================
   Future<void> tomarFoto(BuildContext context, String idProducto) async {
-    final picker = ImagePicker();
+    try {
+      final picker = ImagePicker();
 
-    /// Aqui Se toma la foto
-    final XFile? foto = await picker.pickImage(source: ImageSource.camera);
+      // final XFile? foto = await picker.pickImage(source: ImageSource.camera);
+      final XFile? foto = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 50,
+        maxWidth: 1280,
+        maxHeight: 1280,
+      );
 
-    if (foto == null) return;
-    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+      if (foto == null) return;
 
-    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+      final user = Provider.of<LoginViewModel>(context, listen: false).user;
 
-    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEmpresa!.uploadLocal;
+      final token = Provider.of<LoginViewModel>(context, listen: false).token;
 
-    if (destinoImagenes == null || destinoImagenes.isEmpty) {
-      NotificationService.showSnackbar("No se configuró uploadLocal");
-      return;
-    }
+      final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+        context,
+        listen: false,
+      ).selectedEmpresa!.uploadLocal;
 
-    //  Directorio persistente de la app
-    final appDir = await getApplicationDocumentsDirectory();
+      if (destinoImagenes == null || destinoImagenes.isEmpty) {
+        NotificationService.showSnackbar("No se configuró uploadLocal");
+        return;
+      }
 
-    //  Crear nombre único
-    final String fileName = "${DateTime.now().millisecondsSinceEpoch}.jpg";
-    final String savedPath = "${appDir.path}/$fileName";
+      // Directorio persistente
+      final appDir = await getApplicationDocumentsDirectory();
 
-    //  Copiar la foto al directorio persistente
-    // Se guarda Localmente
-    final File newImage = await File(foto.path).copy(savedPath);
+      // Nombre único
+      final String fileName = "${DateTime.now().millisecondsSinceEpoch}.jpg";
 
-    //  Guardar el path REAL en fotosPorItem
-    fotosPorItem[idProducto] ??= [];
-    fotosPorItem[idProducto]!.add(newImage.path);
-    estadoFotos[newImage.path] = "uploading";
+      final String savedPath = "${appDir.path}/$fileName";
 
-    //  Guardarlo también en la transacción (si lo necesitas después)
-    final index = transaciciones.indexWhere(
-      (t) => t.producto.productoId == idProducto,
-    );
+      // Guardar localmente
+      final File newImage = await File(foto.path).copy(savedPath);
 
-    if (index != -1) {
-      transaciciones[index].files ??= [];
-      transaciciones[index].files!.add(newImage.path);
-    }
+      // ===============================
+      // GUARDAR EN GALERÍA
+      // ===============================
+      try {
+        await Gal.putImage(newImage.path);
 
-    _uploadService
-        .uploadImages(
-          imagePaths: [newImage.path],
-          token: token,
-          user: user,
-          urlCarpeta: destinoImagenes,
-        )
-        .then((uploadedFiles) {
-          final index = transaciciones.indexWhere(
-            (t) => t.producto.productoId == idProducto,
-          );
+        print("✅ Imagen guardada en galería");
+      } catch (e) {
+        print("❌ Error guardando en galería: $e");
+      }
 
-          if (index != -1) {
-            transaciciones[index].filesUpload ??= [];
+      // Guardar path local
+      fotosPorItem[idProducto] ??= [];
 
-            transaciciones[index].filesUpload!.addAll(
-              uploadedFiles.map(
-                (e) =>
-                    TraFileUploadModel(system: e.system, original: e.original),
-              ),
+      fotosPorItem[idProducto]!.add(newImage.path);
+
+      estadoFotos[newImage.path] = "uploading";
+
+      // Guardar en transacción
+      final index = transaciciones.indexWhere(
+        (t) => t.producto.productoId == idProducto,
+      );
+
+      if (index != -1) {
+        transaciciones[index].files ??= [];
+
+        transaciciones[index].files!.add(newImage.path);
+      }
+
+      // Subida en background
+      _uploadService
+          .uploadImages(
+            imagePaths: [newImage.path],
+            token: token,
+            user: user,
+            urlCarpeta: destinoImagenes,
+          )
+          .then((uploadedFiles) {
+            final index = transaciciones.indexWhere(
+              (t) => t.producto.productoId == idProducto,
             );
-          }
 
-          print(" FOTO SUBIDA EN BACKGROUND");
-          estadoFotos[newImage.path] = "success";
+            if (index != -1) {
+              transaciciones[index].filesUpload ??= [];
 
-          notifyListeners();
-        })
-        .catchError((e) {
-          print(" ERROR SUBIENDO FOTO: $e");
-          estadoFotos[newImage.path] = "error";
+              transaciciones[index].filesUpload!.addAll(
+                uploadedFiles.map(
+                  (e) => TraFileUploadModel(
+                    system: e.system,
+                    original: e.original,
+                  ),
+                ),
+              );
+            }
 
-          NotificationService.showSnackbar("Error al subir imagen");
-        });
+            estadoFotos[newImage.path] = "success";
 
-    notifyListeners();
+            notifyListeners();
+          })
+          .catchError((e) {
+            estadoFotos[newImage.path] = "error";
+
+            NotificationService.showSnackbar("Error al subir imagen");
+          });
+
+      notifyListeners();
+    } catch (e, stack) {
+      print("ERROR TOMAR FOTO: $e");
+      print(stack);
+
+      NotificationService.showSnackbar("Error al tomar foto");
+    }
   }
 
   // ================================

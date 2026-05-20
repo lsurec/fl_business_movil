@@ -1204,7 +1204,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     pw.SizedBox(width: 5),
 
                     pw.Text(
-                      'Abrir ubicación en Google Maps',
+                      'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
                       style: pw.TextStyle(
                         color: PdfColors.blue,
                         decoration: pw.TextDecoration.underline,
