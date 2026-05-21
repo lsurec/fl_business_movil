@@ -1184,8 +1184,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-
-              pw.SizedBox(height: 5),
+              if (vm.valueParametro(318)) pw.SizedBox(height: 5),
 
               pw.Text('Latitud: ${locationService.latitutd}'),
 
