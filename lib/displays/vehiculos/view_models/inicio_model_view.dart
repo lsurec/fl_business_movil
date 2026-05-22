@@ -120,7 +120,7 @@ final CatalogoVehiculosService _catalogoVehiculosService =
 class InicioVehiculosViewModel extends ChangeNotifier {
   @override
   void dispose() {
-    detalleTrabajoController.dispose();
+    observacion1Controller.dispose();
     observacion1Controller.dispose();
     observacion3Controller.dispose();
     celularController.dispose();
@@ -333,6 +333,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
   String detalleTrabajo = '';
   String docObservacion1 = '';
+  String docObservacion2 = '';
   String docObservacion3 = '';
   String kilometraje = '';
   int tipoKilometraje = 0; // 0 = KM, 1 = Millas
@@ -347,8 +348,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   // ============================================================================
   // CONTROLADORES DE INPUT
   // ============================================================================
-  final TextEditingController detalleTrabajoController =
-      TextEditingController();
+  final TextEditingController observacion2Controller = TextEditingController();
   final TextEditingController observacion1Controller = TextEditingController();
 
   final TextEditingController observacion3Controller = TextEditingController();
@@ -741,7 +741,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       // Observaciones
       // --------------------
-      detalleTrabajo: detalleTrabajoController.text.trim(),
+      docObservacion2: observacion2Controller.text.trim(),
       docObservacion1: observacion1Controller.text.trim(),
       docObservacion3: observacion3Controller.text.trim(),
       kilometraje: kilometrajeController.text.trim(),
@@ -795,7 +795,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     direccionController.clear();
     celularController.clear();
     emailController.clear();
-    detalleTrabajoController.clear();
+    observacion2Controller.clear();
     observacion1Controller.clear();
     observacion3Controller.clear();
     kilometrajeController.clear();
@@ -2180,7 +2180,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docEmpresa: empresa,
       docEstacionTrabajo: estacion,
       docUserName: user,
-      docObservacion1: "",
+      docObservacion1: recepcionGuardada?.placa ?? '—',
+      docObservacion2: recepcionGuardada?.docObservacion2,
       docTipoPago: 1,
       docElementoAsignado: elVM.elemento!.elementoAsignado,
       docTransaccion: transactions,
@@ -2240,7 +2241,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       // Observaciones técnicas
       // --------------------
-      docObservacion2: recepcionGuardada?.detalleTrabajo,
       docKilometraje: _cleanNumber(recepcionGuardada?.kilometraje),
       docKilometrajeMillaje: tipoKilometraje,
 
