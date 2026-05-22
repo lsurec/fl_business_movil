@@ -1252,10 +1252,11 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         ],
 
         //  Observación 2 (DEFAULT)
-        if (!vm.valueParametro(59) && !vm.valueParametro(322)) ...[
+        // 🔹 Observación 1
+        if (vm.valueParametro(59)) ...[
           Text(
-            vm.getTextParam(322) ?? 'Observación 2',
-            style: TextStyle(
+            vm.getTextParam(59) ?? 'Observación 1',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Color(0xff134895),
@@ -1263,8 +1264,26 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           ),
           const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
           _buildTextField(
-            t.translate(BlockTranslate.vehiculos, 'detallesTrabajo'),
-            vm.detalleTrabajoController,
+            vm.getTextParam(59) ?? 'Observación 1',
+            vm.observacion1Controller,
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // 🔹 Observación 2
+        if (vm.valueParametro(60)) ...[
+          Text(
+            vm.getTextParam(60) ?? 'Observación 2',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xff134895),
+            ),
+          ),
+          const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
+          _buildTextField(
+            vm.getTextParam(60) ?? 'Observación 2',
+            vm.observacion2Controller,
           ),
           const SizedBox(height: 20),
         ],
@@ -1273,7 +1292,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         if (vm.valueParametro(322)) ...[
           Text(
             vm.getTextParam(322) ?? 'Observación 3',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: Color(0xff134895),

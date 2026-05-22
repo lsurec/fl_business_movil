@@ -235,10 +235,32 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   ),
                 ),
 
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'observaciones'),
-                  vm.recepcionGuardada?.detalleTrabajo ?? '—',
-                ),
+                // 🔹 Observación 1
+                if (vm.valueParametro(59))
+                  _dato(
+                    vm.getTextParam(59) ?? 'Observación 1',
+                    vm.observacion1Controller.text.isNotEmpty
+                        ? vm.observacion1Controller.text
+                        : '—',
+                  ),
+
+                // 🔹 Observación 2
+                if (vm.valueParametro(60))
+                  _dato(
+                    vm.getTextParam(60) ?? 'Observación 2',
+                    vm.observacion2Controller.text.isNotEmpty
+                        ? vm.observacion2Controller.text
+                        : '—',
+                  ),
+
+                // 🔹 Observación 3
+                if (vm.valueParametro(322))
+                  _dato(
+                    vm.getTextParam(322) ?? 'Observación 3',
+                    vm.observacion3Controller.text.isNotEmpty
+                        ? vm.observacion3Controller.text
+                        : '—',
+                  ),
                 _dato(
                   vm.tipoKilometraje == 0
                       ? t.translate(BlockTranslate.vehiculos, 'kilometraje')
@@ -1096,10 +1118,32 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
           // _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
           // _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
           // _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
-          _pdfDato(
-            'Observaciones Generales',
-            vm.recepcionGuardada?.detalleTrabajo ?? '—',
-          ),
+          // 🔹 Observación 1
+          if (vm.valueParametro(59))
+            _pdfDato(
+              vm.getTextParam(59) ?? 'Observación 1',
+              vm.observacion1Controller.text.isNotEmpty
+                  ? vm.observacion1Controller.text
+                  : '—',
+            ),
+
+          // 🔹 Observación 2
+          if (vm.valueParametro(60))
+            _pdfDato(
+              vm.getTextParam(60) ?? 'Observación 2',
+              vm.observacion2Controller.text.isNotEmpty
+                  ? vm.observacion2Controller.text
+                  : '—',
+            ),
+
+          // 🔹 Observación 3
+          if (vm.valueParametro(322))
+            _pdfDato(
+              vm.getTextParam(322) ?? 'Observación 3',
+              vm.observacion3Controller.text.isNotEmpty
+                  ? vm.observacion3Controller.text
+                  : '—',
+            ),
 
           // ===================== IMAGEN VEHÍCULO + MARCAS =====================
           if (imagenVehiculoPdf != null) ...[
