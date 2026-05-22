@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:clipboard/clipboard.dart';
+import 'package:fl_business/displays/prc_documento_3/models/tipo_transaccion_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/calendario/models/models.dart';
 import 'package:fl_business/displays/report/models/models.dart';
@@ -320,5 +321,23 @@ class Utilities {
 
     //return formated date
     return formattedDate;
+  }
+
+  //devuelve el tipo de transaccion que se va a usar
+  //devuelve el tipo de transaccion que se va a usar
+  static TipoTransaccionModel? getTipoTransaccion(
+    int tipoProducto,
+    List<TipoTransaccionModel> tiposTransaccion,
+  ) {
+    for (var i = 0; i < tiposTransaccion.length; i++) {
+      final TipoTransaccionModel tipoTra = tiposTransaccion[i];
+
+      if (tipoProducto == tipoTra.tipo) {
+        return tipoTra;
+      }
+    }
+
+    //si no encunetra el tipo
+    return null;
   }
 }
