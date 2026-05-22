@@ -287,11 +287,15 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         (t) => t.producto.productoId == idProducto,
       );
 
+      // Guardar en transacción
       if (index != -1) {
         transaciciones[index].files ??= [];
-
         transaciciones[index].files!.add(newImage.path);
       }
+
+      // 🔥 LIBERAR CACHE DE IMÁGENES (CLAVE)
+      PaintingBinding.instance.imageCache.clear();
+      PaintingBinding.instance.imageCache.clearLiveImages();
 
       // Subida en background
       _uploadService
@@ -325,6 +329,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
           })
           .catchError((e) {
             estadoFotos[newImage.path] = "error";
+            print("Error subiendo imagen: $e");
 
             NotificationService.showSnackbar("Error al subir imagen");
           });

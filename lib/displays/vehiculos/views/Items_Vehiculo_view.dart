@@ -37,6 +37,7 @@ class _ItemsVehiculoView extends StatelessWidget {
     final t = AppLocalizations.of(context)!;
 
     final vm = Provider.of<ItemsVehiculoViewModel>(context);
+    // final vm = context.read<ItemsVehiculoViewModel>();
     final vmInicio = Provider.of<model.InicioVehiculosViewModel>(
       context,
       listen: false,
@@ -253,6 +254,10 @@ class _ItemsVehiculoView extends StatelessWidget {
                                                 width: 80,
                                                 height: 80,
                                                 fit: BoxFit.cover,
+                                                cacheWidth: 200,
+                                                cacheHeight: 200,
+                                                filterQuality:
+                                                    FilterQuality.low,
                                               ),
                                             ),
                                           ),

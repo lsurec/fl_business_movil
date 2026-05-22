@@ -1051,9 +1051,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     pw.SizedBox(height: 5),
 
                     // Fotos del item
-                    pw.Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: item.fotos.map((fotoPath) {
                         try {
                           final file = File(fotoPath);
