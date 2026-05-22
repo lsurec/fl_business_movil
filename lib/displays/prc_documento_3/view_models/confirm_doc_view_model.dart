@@ -107,22 +107,6 @@ class ConfirmDocViewModel extends ChangeNotifier {
     isLoading = false;
   }
 
-  //devuelve el tipo de transaccion que se va a usar
-  int resolveTipoTransaccion(int tipo, BuildContext context) {
-    final docVM = Provider.of<DocumentViewModel>(context, listen: false);
-
-    for (var i = 0; i < docVM.tiposTransaccion.length; i++) {
-      final TipoTransaccionModel tipoTra = docVM.tiposTransaccion[i];
-
-      if (tipo == tipoTra.tipo) {
-        return tipoTra.tipoTransaccion;
-      }
-    }
-
-    //si no encunetra el tipo
-    return 0;
-  }
-
   printNetwork(BuildContext context) async {
     // final TestTMU testTMU = TestTMU();
 
@@ -1074,11 +1058,6 @@ class ConfirmDocViewModel extends ChangeNotifier {
     List<AmountModel> amounts = paymentVM.amounts;
     List<TraInternaModel> products = detailsVM.traInternas;
 
-    final confirmVM = Provider.of<ConfirmDocViewModel>(
-      scaffoldKey.currentContext!,
-      listen: false,
-    );
-
     final ProductService productService = ProductService();
 
     //validar transaccionnes
@@ -1093,10 +1072,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
             localVM.selectedEmpresa!.empresa,
             item.bodega!.bodega,
 
-            confirmVM.resolveTipoTransaccion(
-              item.producto.tipoProducto,
-              scaffoldKey.currentContext!,
-            ),
+            item.tipoTransaccion!,
             item.producto.unidadMedida,
             item.producto.producto,
             item.cantidad,
@@ -1220,10 +1196,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
               traFactorConversion: !transaction.precio!.precio
                   ? transaction.precio!.id
                   : null,
-              traTipoTransaccion: resolveTipoTransaccion(
-                4,
-                scaffoldKey.currentContext!,
-              ),
+              traTipoTransaccion: transaction.tipoTransaccion!,
               traMonto: operacion.cargo,
             ),
           );
@@ -1252,10 +1225,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
               traFactorConversion: !transaction.precio!.precio
                   ? transaction.precio!.id
                   : null,
-              traTipoTransaccion: resolveTipoTransaccion(
-                3,
-                scaffoldKey.currentContext!,
-              ),
+              traTipoTransaccion: transaction.tipoTransaccion!,
               traMonto: operacion.descuento,
             ),
           );
@@ -1280,10 +1250,7 @@ class ConfirmDocViewModel extends ChangeNotifier {
           traFactorConversion: !transaction.precio!.precio
               ? transaction.precio!.id
               : null,
-          traTipoTransaccion: resolveTipoTransaccion(
-            transaction.producto.tipoProducto,
-            scaffoldKey.currentContext!,
-          ),
+          traTipoTransaccion: transaction.tipoTransaccion!,
           traMonto: transaction.total,
           traMontoDias: transaction.precioDia,
         ),

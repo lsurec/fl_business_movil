@@ -606,6 +606,22 @@ class DocumentoViewModel extends ChangeNotifier {
     isLoading = false;
   }
 
+  //devuelve el tipo de transaccion que se va a usar
+  int resolveTipoTransaccion(int tipo, BuildContext context) {
+    final docVM = Provider.of<DocumentViewModel>(context, listen: false);
+
+    for (var i = 0; i < docVM.tiposTransaccion.length; i++) {
+      final TipoTransaccionModel tipoTra = docVM.tiposTransaccion[i];
+
+      if (tipo == tipoTra.tipo) {
+        return tipoTra.tipoTransaccion;
+      }
+    }
+
+    //si no encunetra el tipo
+    return 0;
+  }
+
   modifyDoc(BuildContext context) async {
     //View models
     final vmConvert = Provider.of<ConvertDocViewModel>(context, listen: false);
@@ -770,7 +786,7 @@ class DocumentoViewModel extends ChangeNotifier {
         producto: eliminar.producto.producto,
         tipoCambio: vmMenu.tipoCambio,
         tipoPrecio: eliminar.precio!.id,
-        tipoTransaccion: vmConfirm.resolveTipoTransaccion(
+        tipoTransaccion: resolveTipoTransaccion(
           eliminar.producto.tipoProducto,
           context,
         ),
@@ -816,7 +832,7 @@ class DocumentoViewModel extends ChangeNotifier {
           producto: actualizar.producto.producto,
           tipoCambio: vmMenu.tipoCambio,
           tipoPrecio: actualizar.precio!.id,
-          tipoTransaccion: vmConfirm.resolveTipoTransaccion(
+          tipoTransaccion: resolveTipoTransaccion(
             actualizar.producto.tipoProducto,
             context,
           ),
@@ -870,7 +886,7 @@ class DocumentoViewModel extends ChangeNotifier {
           producto: nueva.producto.producto,
           tipoCambio: vmMenu.tipoCambio,
           tipoPrecio: nueva.precio!.id,
-          tipoTransaccion: vmConfirm.resolveTipoTransaccion(
+          tipoTransaccion: resolveTipoTransaccion(
             nueva.producto.tipoProducto,
             context,
           ),

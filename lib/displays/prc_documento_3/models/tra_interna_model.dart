@@ -20,12 +20,12 @@ class TraInternaModel {
     required this.consecutivo,
     required this.estadoTra,
     required this.observacion,
-    
+    this.tipoTransaccion,
     this.files,
- this.filesUpload,
-
+    this.filesUpload,
   });
 
+  int? tipoTransaccion;
   bool isChecked;
   ProductModel producto;
   BodegaProductoModel? bodega;
@@ -41,11 +41,8 @@ class TraInternaModel {
   int consecutivo;
   int estadoTra;
   String? observacion;
- List<String>? files;
-List<TraFileUploadModel>? filesUpload;
-
-
-
+  List<String>? files;
+  List<TraFileUploadModel>? filesUpload;
 
   factory TraInternaModel.fromJson(String str) =>
       TraInternaModel.fromMap(json.decode(str));
@@ -53,6 +50,7 @@ List<TraFileUploadModel>? filesUpload;
   String toJson() => json.encode(toMap());
 
   factory TraInternaModel.fromMap(Map<String, dynamic> json) => TraInternaModel(
+    tipoTransaccion: json["tipoTransaccion"],
     observacion: json["observacion"],
     isChecked: json["isChecked"],
     producto: ProductModel.fromMap(json["producto"]),
@@ -74,21 +72,17 @@ List<TraFileUploadModel>? filesUpload;
     precioCantidad: json["precioCantidad"]?.toDouble(),
     consecutivo: json["consecutivo"],
     estadoTra: json["estadoTra"],
-   files: json["files"] == null
-    ? null
-    : List<String>.from(json["files"]),
+    files: json["files"] == null ? null : List<String>.from(json["files"]),
 
-filesUpload: json["Tra_Files"] == null
-    ? null
-    : List<TraFileUploadModel>.from(
-        json["Tra_Files"].map((x) => TraFileUploadModel.fromMap(x)),
-      ),
-
-
-
+    filesUpload: json["Tra_Files"] == null
+        ? null
+        : List<TraFileUploadModel>.from(
+            json["Tra_Files"].map((x) => TraFileUploadModel.fromMap(x)),
+          ),
   );
 
   Map<String, dynamic> toMap() => {
+    "tipoTransaccion": tipoTransaccion,
     "observacion": observacion,
     "isChecked": isChecked,
     "producto": producto.toMap(),
@@ -106,8 +100,7 @@ filesUpload: json["Tra_Files"] == null
     "consecutivo": consecutivo,
     "estadoTra": estadoTra,
     "Tra_Files": filesUpload == null
-      ? null
-      : List<dynamic>.from(filesUpload!.map((x) => x.toMap())),
-
+        ? null
+        : List<dynamic>.from(filesUpload!.map((x) => x.toMap())),
   };
 }
