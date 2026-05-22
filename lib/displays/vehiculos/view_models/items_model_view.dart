@@ -18,11 +18,21 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:gal/gal.dart';
 
+class _UploadTask {
+  final String idProducto;
+  final String path;
+
+  _UploadTask({required this.idProducto, required this.path});
+}
+
 class ItemsVehiculoViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+  final List<_UploadTask> _uploadQueue = [];
+  bool _isUploadingQueue = false;
 
   final ImagePicker _picker = ImagePicker();
+  // Agregar a cola metodo
 
   Future<void> recuperarImagenPerdida() async {
     final LostDataResponse response = await _picker.retrieveLostData();
