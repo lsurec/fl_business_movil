@@ -16,29 +16,28 @@ import 'package:fl_business/displays/vehiculos/models/ItemsVehiculo_model.dart'
     as api;
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:gal/gal.dart';
-
-class _UploadTask {
-  final String idProducto;
-  final String path;
-
-  _UploadTask({required this.idProducto, required this.path});
-}
 
 class ItemsVehiculoViewModel extends ChangeNotifier {
   bool _isLoading = false;
   bool get isLoading => _isLoading;
-  final List<_UploadTask> _uploadQueue = [];
-  bool _isUploadingQueue = false;
 
   final ImagePicker _picker = ImagePicker();
-  // Agregar a cola metodo
+
+  final ItemVehiculoService _service = ItemVehiculoService();
+  final UploadService _uploadService = UploadService();
+
+  List<api.ItemVehiculoApi> items = [];
+  String? error;
+
+  final Map<String, TextEditingController> controllers = {};
+  final Map<String, bool> isChecked = {};
+  final Map<String, List<String>> fotosPorItem = {};
+  final Map<String, String> estadoFotos = {};
+  final List<TraInternaModel> transaciciones = [];
 
   Future<void> recuperarImagenPerdida() async {
     final LostDataResponse response = await _picker.retrieveLostData();
-
     if (response.isEmpty) return;
-
     if (response.files != null) {
       for (final file in response.files!) {
         print("Imagen recuperada: ${file.path}");
@@ -51,72 +50,50 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  final ItemVehiculoService _service = ItemVehiculoService();
-
-  List<api.ItemVehiculoApi> items = [];
-  String? error;
-
-  final Map<String, TextEditingController> controllers = {};
-  final Map<String, bool> isChecked = {};
-  final Map<String, List<String>> fotosPorItem = {};
-  final Map<String, String> estadoFotos = {};
-
-  final List<TraInternaModel> transaciciones = [];
-  final UploadService _uploadService = UploadService();
-
   // ================================
   //   CARGAR ÍTEMS
   // ================================
   Future<void> loadItems(BuildContext context) async {
-    final user = Provider.of<LoginViewModel>(context, listen: false).user;
-    final token = Provider.of<LoginViewModel>(context, listen: false).token;
-
-    final empresa = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEmpresa!.empresa;
-
-    final estacionTrabajo = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEstacion!.estacionTrabajo;
-    final serie = Provider.of<InicioVehiculosViewModel>(
-      context,
-      listen: false,
-    ).serieSelect!.serieDocumento;
-
-    final MenuViewModel vmMenu = Provider.of<MenuViewModel>(
+    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+    final settingsVM = Provider.of<LocalSettingsViewModel>(
       context,
       listen: false,
     );
+    final inicioVM = Provider.of<InicioVehiculosViewModel>(
+      context,
+      listen: false,
+    );
+    final vmMenu = Provider.of<MenuViewModel>(context, listen: false);
+
+    final user = loginVM.user;
+    final token = loginVM.token;
+    final empresa = settingsVM.selectedEmpresa!.empresa;
+    final estacionTrabajo = settingsVM.selectedEstacion!.estacionTrabajo;
+    final serie = inicioVM.serieSelect!.serieDocumento;
 
     if (transaciciones.isNotEmpty) {
-      print(" loadItems cancelado - ya existen transacciones");
+      print("loadItems cancelado - ya existen transacciones");
       return;
     }
 
-    // print("LOAD ITEMS EJECUTADO");
-
     try {
       isLoading = true;
-      notifyListeners();
 
       items = await _service.getItemsVehiculo(
         tipoDocumento: vmMenu.documento.toString(),
-        serieDocumento: serie!, // Viene de la pantalla de Inicio
+        serieDocumento: serie!,
         empresa: empresa.toString(),
         estacionTrabajo: estacionTrabajo.toString(),
         token: token,
         user: user,
       );
-      final Map<String, List<String>> fotosGuardadas = {};
 
+      final Map<String, List<String>> fotosGuardadas = {};
       for (var t in transaciciones) {
         fotosGuardadas[t.producto.productoId] = t.files ?? [];
       }
 
       transaciciones.clear();
-
       transaciciones.addAll(
         items
             .map(
@@ -180,79 +157,23 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> subirFotosItem({
-    required String idProducto,
-    required String token,
-    required String user,
-    context,
-  }) async {
-    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEmpresa!.uploadLocal;
-
-    try {
-      isLoading = true;
-
-      final fotosLocales = fotosPorItem[idProducto] ?? [];
-
-      if (fotosLocales.isEmpty) return;
-
-      if (destinoImagenes == null || destinoImagenes.isEmpty) {
-        isLoading = false;
-
-        NotificationService.showSnackbar(
-          "Error: No se ha configurado la ruta de destino para las imágenes. Por favor, configure 'uploadLocal' en la sección empresa.",
-        );
-        return;
-      }
-
-      final uploadedFiles = await _uploadService.uploadImages(
-        imagePaths: fotosLocales,
-        token: token,
-        user: user,
-        urlCarpeta: destinoImagenes, // tu ruta real del server
-      );
-
-      //  Guardar nombres SYSTEM en la transacción
-      final index = transaciciones.indexWhere(
-        (t) => t.producto.productoId == idProducto,
-      );
-
-      if (index != -1) {
-        transaciciones[index].filesUpload = uploadedFiles.map((e) {
-          return TraFileUploadModel(system: e.system, original: e.original);
-        }).toList();
-      }
-    } catch (e) {
-      error = e.toString();
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
   // ================================
-  //   TOMAR FOTO
+  //   TOMAR FOTO (OPTIMIZADO PARA EVITAR PANTALLA NEGRA)
   // ================================
   Future<void> tomarFoto(BuildContext context, String idProducto) async {
     try {
-      // final picker = ImagePicker();
-
-      // final XFile? foto = await picker.pickImage(source: ImageSource.camera);
+      // 1. Bajamos sutilmente las dimensiones para un alivio drástico de RAM gráfica
       final XFile? foto = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 50,
-        maxWidth: 1280,
-        maxHeight: 1280,
+        imageQuality: 55,
+        maxWidth: 900,
+        maxHeight: 900,
       );
 
       if (foto == null) return;
 
       final user = Provider.of<LoginViewModel>(context, listen: false).user;
-
       final token = Provider.of<LoginViewModel>(context, listen: false).token;
-
       final destinoImagenes = Provider.of<LocalSettingsViewModel>(
         context,
         listen: false,
@@ -263,105 +184,136 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         return;
       }
 
-      // Directorio persistente
+      // 2. Ruta persistente local
       final appDir = await getApplicationDocumentsDirectory();
-
-      // Nombre único
       final String fileName = "${DateTime.now().millisecondsSinceEpoch}.jpg";
-
       final String savedPath = "${appDir.path}/$fileName";
 
-      // Guardar localmente
-      final File newImage = await File(foto.path).copy(savedPath);
+      //  OPTIMIZACIÓN CLAVE: Mover el archivo en vez de copiarlo evita duplicar la RAM de la foto actual
+      final File savedImage = await File(foto.path).copy(savedPath);
 
-      // ===============================
-      // GUARDAR EN GALERÍA
-      // ===============================
-      try {
-        await Gal.putImage(newImage.path);
+      // 3. Guardar en galería de forma pasiva (Desconectado del flujo prioritario de la UI)
+      // Future.microtask(() {
+      //   Gal.putImage(savedImage.path).catchError((e) {
+      //     print("Error secundario al guardar en galería: $e");
+      //     return null;
+      //   });
+      // });
 
-        print("✅ Imagen guardada en galería");
-      } catch (e) {
-        print("❌ Error guardando en galería: $e");
-      }
-
-      // Guardar path local
+      // 4. Actualizar colecciones de inmediato
       fotosPorItem[idProducto] ??= [];
+      fotosPorItem[idProducto]!.add(savedImage.path);
+      estadoFotos[savedImage.path] = "waiting";
 
-      fotosPorItem[idProducto]!.add(newImage.path);
-
-      estadoFotos[newImage.path] = "uploading";
-
-      // Guardar en transacción
       final index = transaciciones.indexWhere(
         (t) => t.producto.productoId == idProducto,
       );
-
-      // Guardar en transacción
       if (index != -1) {
         transaciciones[index].files ??= [];
-        transaciciones[index].files!.add(newImage.path);
+        transaciciones[index].files!.add(savedImage.path);
+
+        // Auto-marcar el ítem al tomarle una foto si no está checkeado
+        if (!(isChecked[idProducto] ?? false)) {
+          isChecked[idProducto] = true;
+          transaciciones[index].isChecked = true;
+        }
       }
 
-      // 🔥 LIBERAR CACHE DE IMÁGENES (CLAVE)
-      PaintingBinding.instance.imageCache.clear();
-      PaintingBinding.instance.imageCache.clearLiveImages();
+      // 5.  LIMPIEZA INMEDIATA DE CACHÉ GRÁFICA NATIVA
 
-      // Subida en background
-      _uploadService
-          .uploadImages(
-            imagePaths: [newImage.path],
-            token: token,
-            user: user,
-            urlCarpeta: destinoImagenes,
-          )
-          .then((uploadedFiles) {
-            final index = transaciciones.indexWhere(
-              (t) => t.producto.productoId == idProducto,
-            );
-
-            if (index != -1) {
-              transaciciones[index].filesUpload ??= [];
-
-              transaciciones[index].filesUpload!.addAll(
-                uploadedFiles.map(
-                  (e) => TraFileUploadModel(
-                    system: e.system,
-                    original: e.original,
-                  ),
-                ),
-              );
-            }
-
-            estadoFotos[newImage.path] = "success";
-
-            notifyListeners();
-          })
-          .catchError((e) {
-            estadoFotos[newImage.path] = "error";
-            print("Error subiendo imagen: $e");
-
-            NotificationService.showSnackbar("Error al subir imagen");
-          });
-
-      notifyListeners();
+      Future.microtask(() {
+        notifyListeners();
+      });
+      _subirFotoIndividual(
+        context: context,
+        idProducto: idProducto,
+        imagePath: savedImage.path,
+      );
+      // Encolar de manera segura
+      // _enconlarSubida(
+      //   idProducto: idProducto,
+      //   imagePath: savedImage.path,
+      //   token: token,
+      //   user: user,
+      //   destinoImagenes: destinoImagenes,
+      // );
     } catch (e, stack) {
-      print("ERROR TOMAR FOTO: $e");
+      print("ERROR CRÍTICO AL TOMAR FOTO: $e");
       print(stack);
-
-      NotificationService.showSnackbar("Error al tomar foto");
+      NotificationService.showSnackbar("Error crítico en la cámara");
     }
   }
 
-  // ================================
-  //   REINTENTAR SUBIDA
-  // ================================
+  // ==========================================
+  //   LÓGICA INTERNA DE LA COLA DE SUBIDA
+  // ==========================================
+  // void _enconlarSubida({
+  //   required String idProducto,
+  //   required String imagePath,
+  //   required String token,
+  //   required String user,
+  //   required String destinoImagenes,
+  // }) {
+  //   _uploadQueue.add({
+  //     'idProducto': idProducto,
+  //     'imagePath': imagePath,
+  //     'token': token,
+  //     'user': user,
+  //     'destinoImagenes': destinoImagenes,
+  //   });
 
-  Future<void> reintentarSubida(
-    BuildContext context,
-    String idProducto,
-    String imagePath,
-  ) async {
+  //   _procesarCola();
+  // }
+
+  // Future<void> _procesarCola() async {
+  //   if (_isProcessingQueue) return;
+  //   _isProcessingQueue = true;
+
+  //   while (_uploadQueue.isNotEmpty) {
+  //     final tarea = _uploadQueue.removeAt(0);
+  //     final String currentPath = tarea['imagePath'];
+  //     final String currentId = tarea['idProducto'];
+
+  //     try {
+  //       estadoFotos[currentPath] = "uploading";
+  //       notifyListeners();
+
+  //       final uploadedFiles = await _uploadService.uploadImages(
+  //         imagePaths: [currentPath],
+  //         token: tarea['token'],
+  //         user: tarea['user'],
+  //         urlCarpeta: tarea['destinoImagenes'],
+  //       );
+
+  //       final index = transaciciones.indexWhere(
+  //         (t) => t.producto.productoId == currentId,
+  //       );
+  //       if (index != -1 && uploadedFiles.isNotEmpty) {
+  //         transaciciones[index].filesUpload ??= [];
+  //         transaciciones[index].filesUpload!.addAll(
+  //           uploadedFiles.map(
+  //             (e) => TraFileUploadModel(system: e.system, original: e.original),
+  //           ),
+  //         );
+  //       }
+
+  //       estadoFotos[currentPath] = "success";
+  //     } catch (e) {
+  //       print("Error en cola al subir imagen: $e");
+  //       estadoFotos[currentPath] = "error";
+  //     } finally {
+  //       notifyListeners();
+  //     }
+  //   }
+
+  //   _isProcessingQueue = false;
+  // }
+
+  Future<void> _subirFotoIndividual({
+    required BuildContext context,
+    required String idProducto,
+    required String imagePath,
+  }) async {
     try {
       estadoFotos[imagePath] = "uploading";
       notifyListeners();
@@ -382,6 +334,12 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         urlCarpeta: destinoImagenes!,
       );
 
+      if (uploadedFiles.isEmpty) {
+        estadoFotos[imagePath] = "error";
+        notifyListeners();
+        return;
+      }
+
       final index = transaciciones.indexWhere(
         (t) => t.producto.productoId == idProducto,
       );
@@ -397,7 +355,17 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       }
 
       estadoFotos[imagePath] = "success";
+
+      // OPCIONAL:
+      // borrar foto local luego de subir
+      // final file = File(imagePath);
+
+      // if (await file.exists()) {
+      //   await file.delete();
+      // }
     } catch (e) {
+      print("ERROR SUBIENDO FOTO: $e");
+
       estadoFotos[imagePath] = "error";
     }
 
@@ -405,22 +373,64 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
   }
 
   // ================================
+  //   REINTENTAR SUBIDA
+  // ================================
+  Future<void> reintentarSubida(
+    BuildContext context,
+    String idProducto,
+    String imagePath,
+  ) async {
+    try {
+      estadoFotos[imagePath] = "uploading";
+      notifyListeners();
+
+      final user = Provider.of<LoginViewModel>(context, listen: false).user;
+      final token = Provider.of<LoginViewModel>(context, listen: false).token;
+      final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+        context,
+        listen: false,
+      ).selectedEmpresa!.uploadLocal;
+
+      final uploadedFiles = await _uploadService.uploadImages(
+        imagePaths: [imagePath],
+        token: token,
+        user: user,
+        urlCarpeta: destinoImagenes!,
+      );
+
+      final index = transaciciones.indexWhere(
+        (t) => t.producto.productoId == idProducto,
+      );
+      if (index != -1) {
+        transaciciones[index].filesUpload ??= [];
+        transaciciones[index].filesUpload!.addAll(
+          uploadedFiles.map(
+            (e) => TraFileUploadModel(system: e.system, original: e.original),
+          ),
+        );
+      }
+
+      estadoFotos[imagePath] = "success";
+    } catch (e) {
+      estadoFotos[imagePath] = "error";
+    }
+    notifyListeners();
+  }
+
+  // ================================
   //   ELIMINAR FOTO
   // ================================
   Future<void> eliminarFoto(String idProducto, String pathFoto) async {
-    // Quitar del mapa principal
     fotosPorItem[idProducto]?.remove(pathFoto);
+    estadoFotos.remove(pathFoto); // Limpiar rastro de estados
 
-    // Quitar de la transacción
     final index = transaciciones.indexWhere(
       (t) => t.producto.productoId == idProducto,
     );
-
     if (index != -1) {
       transaciciones[index].files?.remove(pathFoto);
     }
 
-    // Borrar archivo físico (si existe)
     final file = File(pathFoto);
     if (await file.exists()) {
       await file.delete();
@@ -429,82 +439,19 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Se sube la foto con el api
-  Future<void> subirTodasLasFotos(BuildContext context) async {
-    final user = Provider.of<LoginViewModel>(context, listen: false).user;
-    final token = Provider.of<LoginViewModel>(context, listen: false).token;
-    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEmpresa!.uploadLocal;
-    for (var t in transaciciones) {
-      print("Producto: ${t.producto.productoId} | files: ${t.files}");
-    }
-
-    try {
-      isLoading = true;
-
-      for (var tra in transaciciones.where((t) => t.isChecked == true)) {
-        if (tra.filesUpload != null && tra.filesUpload!.isNotEmpty) {
-          print("YA EXISTEN FOTOS SUBIDAS PARA ${tra.producto.productoId}");
-          continue;
-        }
-        if (tra.files == null || tra.files!.isEmpty) continue;
-
-        final fotosLocales = tra.files!.where((f) => f.contains("/")).toList();
-
-        if (fotosLocales.isEmpty) continue;
-        if (destinoImagenes == null || destinoImagenes.isEmpty) {
-          isLoading = false;
-
-          NotificationService.showSnackbar(
-            "Error: No se ha configurado la ruta de destino para las imágenes. Por favor, configure 'uploadLocal' en la sección empresa.",
-          );
-          return;
-        }
-
-        final uploadedFiles = await _uploadService.uploadImages(
-          imagePaths: fotosLocales,
-          token: token,
-          user: user,
-          urlCarpeta: destinoImagenes,
-        );
-        for (var file in uploadedFiles) {
-          print("📸 ORIGINAL: ${file.original}");
-          print("🗂 SYSTEM: ${file.system}");
-        }
-        //Aqui se guarda
-        tra.filesUpload = uploadedFiles
-            .map(
-              (e) => TraFileUploadModel(original: e.original, system: e.system),
-            )
-            .toList();
-      }
-    } catch (e) {
-      error = e.toString();
-      rethrow;
-    } finally {
-      isLoading = false;
-      notifyListeners();
-    }
-  }
-
   // ================================
-  //   ACTUALIZAR CHECKBOX
+  //   ACTUALIZAR OBSERVACIONES Y CHECKS
   // ================================
   void toggleCheck(String idProducto, bool value) {
     isChecked[idProducto] = value;
-
     final index = transaciciones.indexWhere(
       (t) => t.producto.productoId == idProducto,
     );
-
     if (index != -1) {
       transaciciones[index].isChecked = value;
       transaciciones[index].observacion =
           controllers[idProducto]?.text.trim() ?? '';
     }
-
     notifyListeners();
   }
 
@@ -512,22 +459,16 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     final index = transaciciones.indexWhere(
       (t) => t.producto.productoId == idProducto,
     );
-
     if (index != -1) {
       transaciciones[index].observacion = texto;
-      // Si tiene texto, sugerir marcar automáticamente (opcional)
       if (texto.isNotEmpty && !isChecked[idProducto]!) {
         isChecked[idProducto] = true;
         transaciciones[index].isChecked = true;
       }
     }
-
     notifyListeners();
   }
 
-  // ================================
-  //   LIMPIAR TEXTO
-  // ================================
   void limpiarDetalle(String idProducto) {
     controllers[idProducto]?.clear();
     isChecked[idProducto] = false;
@@ -536,48 +477,34 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     final index = transaciciones.indexWhere(
       (t) => t.producto.productoId == idProducto,
     );
-
     if (index != -1) {
       transaciciones[index].isChecked = false;
       transaciciones[index].observacion = '';
       transaciciones[index].files?.clear();
     }
-
     notifyListeners();
   }
 
   List<Map<String, dynamic>> getItemsSeleccionados() {
     List<Map<String, dynamic>> seleccionados = [];
-
     for (var item in items) {
       final detalle = controllers[item.idProducto]?.text.trim() ?? '';
       final checkeado = isChecked[item.idProducto] ?? false;
       final fotos = fotosPorItem[item.idProducto] ?? [];
 
-      // Solo incluir si está checkeado O tiene detalle O tiene fotos
       if (checkeado || detalle.isNotEmpty || fotos.isNotEmpty) {
         seleccionados.add({
           'idProducto': item.idProducto,
           'desProducto': item.desProducto,
           'detalle': detalle,
-          'completado': checkeado, // ← ¡CRÍTICO!
+          'completado': checkeado,
           'fotos': fotos,
         });
       }
     }
-
     return seleccionados;
   }
 
-  @override
-  void dispose() {
-    for (var c in controllers.values) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  ////// Asegurarse que todos los items esten seleccionados
   List<String> obtenerItemsSinCheck() {
     return items
         .where((item) => !(isChecked[item.idProducto] ?? false))
@@ -589,29 +516,23 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     return items.every((item) => isChecked[item.idProducto] ?? false);
   }
 
-  ////////////////// eliminar datos seleccionados
-  // ================================
-  //   LIMPIAR TODOS LOS DATOS
-  // ================================
   Future<void> limpiarDatosItems() async {
-    // 1. Limpiar textos y checks
     for (var idProducto in controllers.keys) {
       controllers[idProducto]?.clear();
       isChecked[idProducto] = false;
     }
 
-    // 2. Eliminar fotos físicas y limpiar mapas
     for (var fotos in fotosPorItem.values) {
       for (var path in fotos) {
         final file = File(path);
         if (await file.exists()) {
-          await file.delete(); // Elimina la imagen del almacenamiento
+          await file.delete();
         }
       }
     }
     fotosPorItem.clear();
+    estadoFotos.clear();
 
-    // 3. Limpiar transacciones internas
     for (var tra in transaciciones) {
       tra.isChecked = false;
       tra.observacion = '';
@@ -619,13 +540,100 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       tra.filesUpload?.clear();
     }
     transaciciones.clear();
-
-    // 4. Limpiar lista de ítems cargados (opcional según tu flujo)
     items.clear();
-
-    // 5. Limpiar errores
     error = null;
-
     notifyListeners();
   }
+
+  // @override
+  // void dispose() {
+  //   for (var c in controllers.values) {
+  //     c.dispose();
+  //   }
+  //   super.dispose();
+  // }
+
+  // Future<bool> subirTodasLasFotos(BuildContext context) async {
+  //   try {
+  //     isLoading = true;
+
+  //     final user = Provider.of<LoginViewModel>(context, listen: false).user;
+
+  //     final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+  //     final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+  //       context,
+  //       listen: false,
+  //     ).selectedEmpresa!.uploadLocal;
+
+  //     if (destinoImagenes == null || destinoImagenes.isEmpty) {
+  //       NotificationService.showSnackbar("No se configuró uploadLocal");
+  //       return false;
+  //     }
+
+  //     // RECORRER TRANSACCIONES
+  //     for (var tra in transaciciones) {
+  //       final fotos = tra.files ?? [];
+
+  //       if (fotos.isEmpty) continue;
+
+  //       // ESTADOS VISUALES
+  //       for (var path in fotos) {
+  //         estadoFotos[path] = "uploading";
+  //       }
+
+  //       notifyListeners();
+
+  //       try {
+  //         final uploadedFiles = await _uploadService.uploadImages(
+  //           imagePaths: fotos,
+  //           token: token,
+  //           user: user,
+  //           urlCarpeta: destinoImagenes,
+  //         );
+
+  //         if (uploadedFiles.isEmpty) {
+  //           for (var path in fotos) {
+  //             estadoFotos[path] = "error";
+  //           }
+
+  //           notifyListeners();
+  //           return false;
+  //         }
+
+  //         tra.filesUpload ??= [];
+
+  //         tra.filesUpload!.addAll(
+  //           uploadedFiles.map(
+  //             (e) => TraFileUploadModel(system: e.system, original: e.original),
+  //           ),
+  //         );
+
+  //         // SUCCESS
+  //         for (var path in fotos) {
+  //           estadoFotos[path] = "success";
+  //         }
+
+  //         notifyListeners();
+  //       } catch (e) {
+  //         print("ERROR SUBIENDO FOTOS: $e");
+
+  //         for (var path in fotos) {
+  //           estadoFotos[path] = "error";
+  //         }
+
+  //         notifyListeners();
+
+  //         return false;
+  //       }
+  //     }
+
+  //     return true;
+  //   } catch (e) {
+  //     print("ERROR GENERAL: $e");
+  //     return false;
+  //   } finally {
+  //     isLoading = false;
+  //   }
+  // }
 }

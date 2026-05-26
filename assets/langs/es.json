@@ -1,8 +1,8 @@
 {
     "vehiculos": {
         "recepcionVehiculos": "Recepción de Vehículos",
-        "identificacionVehiculo": "IDENTIFICACION DEL",
-        "datosVehiculo": "DATOS DEL",
+        "identificacionVehiculo": "IDENTIFICACION DE",
+        "datosVehiculo": "DATOS DE",
         "detalleTrabajo": "OTRAS OBSERVACIONES",
         "fechas": "Fechas",
         "placa": "Placa",
@@ -43,7 +43,7 @@
         "itemsVehiculo_itemsGuardados": "{cantidad} ítem(s) guardados",
         "vehiculos_datosGuardados": "Datos guardados",
         "vehiculos_datosCliente": "DATOS DEL",
-        "vehiculos_datosVehiculo": "DATOS DEL",
+        "vehiculos_datosVehiculo": "DATOS DE",
         "vehiculos_fechas": "FECHAS",
         "vehiculos_observaciones": "OBSERVACIONES",
         "vehiculos_itemsVehiculo": "Ítems del Vehículo",

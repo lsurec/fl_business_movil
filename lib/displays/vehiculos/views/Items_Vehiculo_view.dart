@@ -7,26 +7,38 @@ import 'package:fl_business/displays/vehiculos/views/datos_guardados_view.dart';
 import 'package:fl_business/displays/vehiculos/views/vista_Imagenes_view.dart';
 import 'package:fl_business/displays/vehiculos/views/widgets/CustomCheckSwitch.dart';
 import 'package:fl_business/services/language_service.dart';
+import 'package:fl_business/services/notification_service.dart';
 import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class ItemsVehiculoScreen extends StatelessWidget {
+class ItemsVehiculoScreen extends StatefulWidget {
   const ItemsVehiculoScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final vm = context.read<ItemsVehiculoViewModel>();
+  State<ItemsVehiculoScreen> createState() => _ItemsVehiculoScreenState();
+}
 
-    // Solo cargar si está vacío
+class _ItemsVehiculoScreenState extends State<ItemsVehiculoScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<ItemsVehiculoViewModel>().recuperarImagenPerdida();
+    });
+    // ✅ Cargamos los datos de manera segura al iniciar la pantalla
+    final vm = context.read<ItemsVehiculoViewModel>();
     if (vm.items.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         vm.loadItems(context);
       });
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return _ItemsVehiculoView();
   }
 }
@@ -36,21 +48,19 @@ class _ItemsVehiculoView extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context)!;
 
+    // Escuchamos los cambios de este VM para redibujar la lista, fotos, etc.
     final vm = Provider.of<ItemsVehiculoViewModel>(context);
-    // final vm = context.read<ItemsVehiculoViewModel>();
+
+    // ✅ Usamos listen: false porque solo necesitamos invocar sus métodos al guardar
     final vmInicio = Provider.of<model.InicioVehiculosViewModel>(
       context,
       listen: false,
     );
 
-    // if (vm.isLoading) {
-    //   return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    // }
-
     if (vm.error != null) {
       return Scaffold(
         body: Center(
-          child: Text(vm.error!, style: TextStyle(color: Colors.red)),
+          child: Text(vm.error!, style: const TextStyle(color: Colors.red)),
         ),
       );
     }
@@ -63,13 +73,21 @@ class _ItemsVehiculoView extends StatelessWidget {
               '${t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo')}  (${vm.items.length})',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            backgroundColor: Color(0xff134895),
+            backgroundColor: const Color(0xff134895),
           ),
           body: ListView.builder(
+            cacheExtent: 300,
+            addAutomaticKeepAlives: false,
+            addRepaintBoundaries: true,
             padding: const EdgeInsets.fromLTRB(8, 8, 8, 100),
             itemCount: vm.items.length,
             itemBuilder: (context, index) {
               final item = vm.items[index];
+              final idProducto = item.idProducto;
+              final fotos = vm.fotosPorItem[idProducto] ?? [];
+              final fotosVisibles = fotos.length > 3
+                  ? fotos.sublist(0, 3)
+                  : fotos;
 
               return Card(
                 elevation: 4,
@@ -81,20 +99,21 @@ class _ItemsVehiculoView extends StatelessWidget {
                       // ------------ Título + Check ----------------
                       Row(
                         children: [
-                          Icon(Icons.add_task, color: Color(0xff134895)),
-                          SizedBox(width: 8),
-
+                          const Icon(Icons.add_task, color: Color(0xff134895)),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   item.desProducto,
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 Text(
-                                  "Producto: ${item.producto}   |   ID: ${item.idProducto}",
-                                  style: TextStyle(
+                                  "Producto: ${item.producto}   |   ID: $idProducto",
+                                  style: const TextStyle(
                                     color: Colors.grey,
                                     fontSize: 12,
                                   ),
@@ -102,101 +121,48 @@ class _ItemsVehiculoView extends StatelessWidget {
                               ],
                             ),
                           ),
-
                           CustomCheckSwitch(
-                            value: vm.isChecked[item.idProducto] ?? false,
+                            value: vm.isChecked[idProducto] ?? false,
                             onChanged: (nuevoValor) {
-                              // 1. Actualizar estado local
-                              vm.toggleCheck(item.idProducto, nuevoValor);
-
-                              // 2. Obtener el texto actual (puede estar vacío)
-                              final text =
-                                  vm.controllers[item.idProducto]?.text
-                                      .trim() ??
-                                  '';
-
-                              if (nuevoValor) {
-                                // ✅ MARCAR COMO COMPLETADO
-                                final index = vmInicio.itemsAsignados
-                                    .indexWhere(
-                                      (i) => i.idProducto == item.idProducto,
-                                    );
-
-                                if (index != -1) {
-                                  vmInicio.itemsAsignados[index].completado =
-                                      true;
-                                  vmInicio.itemsAsignados[index].detalle = text;
-                                } else {
-                                  vmInicio.itemsAsignados.add(
-                                    model.ItemVehiculo(
-                                      idProducto: item.idProducto,
-                                      desProducto: item.desProducto,
-                                      detalle: text,
-                                      completado: true,
-                                      fotos:
-                                          vm.fotosPorItem[item.idProducto] ??
-                                          [],
-                                    ),
-                                  );
-                                }
-                              } else {
-                                //  MARCAR COMO NO COMPLETADO
-                                final index = vmInicio.itemsAsignados
-                                    .indexWhere(
-                                      (i) => i.idProducto == item.idProducto,
-                                    );
-
-                                if (index != -1) {
-                                  vmInicio.itemsAsignados[index].completado =
-                                      false;
-                                }
-                              }
-
-                              vmInicio.notifyListeners();
+                              // Lógica simplificada: La vista solo avisa al VM del cambio.
+                              vm.toggleCheck(idProducto, nuevoValor);
                             },
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 10),
 
+                      // ------------ Campo de Texto ----------------
                       TextField(
-                        controller: vm.controllers[item.idProducto],
+                        controller: vm.controllers[idProducto],
                         decoration: InputDecoration(
                           labelText: t.translate(
                             BlockTranslate.vehiculos,
                             'itemsVehiculo_escribeDetalle',
                           ),
-
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                           suffixIcon: IconButton(
-                            icon: Icon(Icons.clear),
-                            onPressed: () => vm.limpiarDetalle(item.idProducto),
+                            icon: const Icon(Icons.clear),
+                            onPressed: () => vm.limpiarDetalle(idProducto),
                           ),
                         ),
                         maxLines: 2,
                       ),
+                      const SizedBox(height: 10),
 
-                      // ------------ Fotos ----------------
+                      // ------------ Sección de Fotos ----------------
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Contador de imágenes
                           Row(
                             children: [
-                              Text(
+                              const Text(
                                 "Imágenes: ",
                                 style: TextStyle(fontSize: 16),
                               ),
-                              // Icon(
-                              //   Icons.image,
-                              //   size: 18,
-                              //   color: Color(0xff134895),
-                              // ),
                               const SizedBox(width: 4),
-
                               Text(
-                                "${(vm.fotosPorItem[item.idProducto] ?? []).length}",
+                                "${fotos.length}",
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -205,152 +171,75 @@ class _ItemsVehiculoView extends StatelessWidget {
                               ),
                             ],
                           ),
-
-                          // Botón cámara
                           IconButton(
                             icon: const Icon(
                               Icons.camera_alt,
                               color: Color(0xff134895),
                             ),
-                            onPressed: () =>
-                                vm.tomarFoto(context, item.idProducto),
+                            onPressed: () => vm.tomarFoto(context, idProducto),
                           ),
                         ],
                       ),
 
-                      if ((vm.fotosPorItem[item.idProducto] ?? []).isNotEmpty)
-                        SizedBox(
-                          height: 80,
-                          child: ListView(
-                            scrollDirection: Axis.horizontal,
-                            children: vm.fotosPorItem[item.idProducto]!
-                                .map(
-                                  (foto) => Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      VistaImagenScreen(
-                                                        imagePath: foto,
-                                                      ),
-                                                ),
-                                              );
-                                            },
-                                            child: Hero(
-                                              tag: foto,
-                                              child: Image.file(
-                                                File(foto),
-                                                width: 80,
-                                                height: 80,
-                                                fit: BoxFit.cover,
-                                                cacheWidth: 200,
-                                                cacheHeight: 200,
-                                                filterQuality:
-                                                    FilterQuality.low,
-                                              ),
-                                            ),
+                      if (fotos.isNotEmpty)
+                        Column(
+                          children: fotos.map((foto) {
+                            return ListTile(
+                              dense: true,
+
+                              leading: const Icon(Icons.image),
+
+                              title: Text(
+                                foto.split('/').last,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // VER IMAGEN
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_red_eye),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => VistaImagenScreen(
+                                            imagePath: foto,
                                           ),
                                         ),
-                                        if (vm.estadoFotos[foto] == "uploading")
-                                          Positioned.fill(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.black45,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: const Center(
-                                                child: SizedBox(
-                                                  width: 22,
-                                                  height: 22,
-                                                  child:
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: Colors.white,
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-
-                                        if (vm.estadoFotos[foto] == "error")
-                                          Positioned.fill(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.black54,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Center(
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.black45,
-                                                    shape: BoxShape.circle,
-                                                  ),
-                                                  child: IconButton(
-                                                    icon: const Icon(
-                                                      Icons.refresh,
-                                                      color: Colors.white,
-                                                    ),
-                                                    onPressed: () {
-                                                      vm.reintentarSubida(
-                                                        context,
-                                                        item.idProducto,
-                                                        foto,
-                                                      );
-                                                    },
-                                                  ),
-                                                ),
-                                                /////////
-                                              ),
-                                            ),
-                                          ),
-
-                                        if (vm.estadoFotos[foto] != "uploading")
-                                          Positioned(
-                                            top: 2,
-                                            right: 2,
-                                            child: GestureDetector(
-                                              onTap: () {
-                                                vm.eliminarFoto(
-                                                  item.idProducto,
-                                                  foto,
-                                                );
-                                              },
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black54,
-                                                  shape: BoxShape.circle,
-                                                ),
-                                                padding: const EdgeInsets.all(
-                                                  2,
-                                                ),
-                                                child: const Icon(
-                                                  Icons.close,
-                                                  size: 14,
-                                                  color: Colors.white,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                      ],
-                                    ),
+                                      );
+                                    },
                                   ),
-                                )
-                                .toList(),
-                          ),
+
+                                  // ELIMINAR DE LA LISTA
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      vm.fotosPorItem[idProducto]?.remove(foto);
+
+                                      vm.notifyListeners();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                         ),
+                      // if (fotos.length > 3)
+                      //   Padding(
+                      //     padding: const EdgeInsets.only(top: 4),
+                      //     child: Text(
+                      //       "+${fotos.length - 3} fotos más",
+                      //       style: const TextStyle(
+                      //         color: Colors.grey,
+                      //         fontSize: 12,
+                      //       ),
+                      //     ),
+                      //   ),
                     ],
                   ),
                 ),
@@ -358,6 +247,7 @@ class _ItemsVehiculoView extends StatelessWidget {
             },
           ),
 
+          // ------------ Botón Guardar ----------------
           floatingActionButton: FloatingActionButton.extended(
             backgroundColor: const Color(0xff134895),
             icon: const Icon(Icons.save),
@@ -367,67 +257,40 @@ class _ItemsVehiculoView extends StatelessWidget {
                 'itemsVehiculo_guardarItems',
               ),
             ),
-
-            onPressed: () {
-              // 1. Validar si todos los ítems están marcados
+            onPressed: () async {
+              // 1. Validar ítems pendientes
               if (!vm.todosLosItemsMarcados()) {
                 final itemsFaltantes = vm.obtenerItemsSinCheck();
-
-                // Mostrar mensaje con los ítems faltantes
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('Ítems pendientes de revisar'),
-                      content: SingleChildScrollView(
-                        child: ListBody(
-                          children: [
-                            const Text(
-                              'Debes Revisar todos los ítems antes de continuar:',
-                            ),
-                            const SizedBox(height: 10),
-                            ...itemsFaltantes.map((item) => Text('• $item')),
-                          ],
-                        ),
-                      ),
-                      actions: [
-                        TextButton(
-                          child: const Text('Aceptar'),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                      ],
-                    );
-                  },
-                );
-                return; //  No continuar con el guardado ni la navegación
+                _mostrarDialogoPendientes(context, itemsFaltantes);
+                return;
               }
 
-              // 2. Si todos están marcados, proceder con el guardado
+              // final fotosOk = await vm.subirTodasLasFotos(context);
+
+              // if (!fotosOk) {
+              //   NotificationService.showSnackbar("Error al subir imágenes");
+              //   return;
+              // }
+
+              // 2. Si todo está correcto, procesar en el ViewModel de Inicio
               final itemsSeleccionados = vm.getItemsSeleccionados();
-
-              // print('=== GUARDANDO ÍTEMS ===');
-              // print('Total items en VM: ${vm.items.length}');
-              // print('Items seleccionados: ${itemsSeleccionados.length}');
-
-              // 3. Limpiar items anteriores
               vmInicio.limpiarItems();
 
-              // 4. Agregar los ítems seleccionados
               for (var itemData in itemsSeleccionados) {
                 vmInicio.itemsAsignados.add(
                   model.ItemVehiculo(
                     idProducto: itemData['idProducto'],
                     desProducto: itemData['desProducto'],
-                    detalle: itemData['detalle'],
-                    completado: itemData['completado'],
-                    fotos: List<String>.from(itemData['fotos']),
+                    detalle: itemData['detalle'] ?? '',
+                    completado: itemData['completado'] ?? false,
+                    fotos: List<String>.from(itemData['fotos'] ?? []),
                   ),
                 );
               }
 
               vmInicio.notifyListeners();
 
-              // 5. Mostrar confirmación
+              // 3. Feedback y Navegación
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -437,7 +300,6 @@ class _ItemsVehiculoView extends StatelessWidget {
                 ),
               );
 
-              // 6. Navegar a la siguiente pantalla
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const DatosGuardadosScreen()),
@@ -445,16 +307,71 @@ class _ItemsVehiculoView extends StatelessWidget {
             },
           ),
         ),
+
+        // ------------ Capa de Carga (Loading) ----------------
         if (vm.isLoading)
           ModalBarrier(
             dismissible: false,
-            // color: Colors.black.withOpacity(0.3),
             color: AppTheme.isDark()
                 ? AppTheme.darkBackroundColor
                 : AppTheme.backroundColor,
           ),
         if (vm.isLoading) const LoadWidget(),
       ],
+    );
+  }
+
+  Widget _construirIndicadorEstado(String? estado) {
+    switch (estado) {
+      case 'uploading':
+        return const SizedBox(
+          width: 12,
+          height: 12,
+          child: CircularProgressIndicator(
+            strokeWidth: 1.5,
+            color: Colors.orange,
+          ),
+        );
+      case 'success':
+        return const Icon(Icons.check_circle, size: 14, color: Colors.green);
+      case 'error':
+        return const Icon(Icons.error, size: 14, color: Colors.red);
+      default:
+        return const Icon(
+          Icons.access_time_filled,
+          size: 14,
+          color: Colors.grey,
+        ); // waiting
+    }
+  }
+
+  // ✅ Extracción del Diálogo para mejorar legibilidad de la vista
+  void _mostrarDialogoPendientes(
+    BuildContext context,
+    List<String> itemsFaltantes,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Ítems pendientes de revisar'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                const Text('Debes Revisar todos los ítems antes de continuar:'),
+                const SizedBox(height: 10),
+                ...itemsFaltantes.map((item) => Text('• $item')),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Aceptar'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
     );
   }
 }

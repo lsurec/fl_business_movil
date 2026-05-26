@@ -565,7 +565,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       const Divider(),
                       const SizedBox(height: 10),
                       Text(
-                        vm.getTextParam(60) ??
+                        vm.getTextParam(43) ??
                             AppLocalizations.of(
                               context,
                             )!.translate(BlockTranslate.factura, 'vendedor'),

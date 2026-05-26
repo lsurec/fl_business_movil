@@ -749,524 +749,571 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     Uint8List? firmaMecanico,
     Uint8List? firmaCliente,
   }) async {
-    final empresa = context.read<LocalSettingsViewModel>().selectedEmpresa!;
-    final pictureService = PictureService();
+    try {
+      final empresa = context.read<LocalSettingsViewModel>().selectedEmpresa!;
+      final pictureService = PictureService();
 
-    final ByteData logo = await pictureService.getLogo(
-      empresa.absolutePathPicture,
-    );
+      final ByteData logo = await pictureService.getLogo(
+        empresa.absolutePathPicture,
+      );
 
-    final LocationService locationService = Provider.of<LocationService>(
-      context,
-      listen: false,
-    );
+      final LocationService locationService = Provider.of<LocationService>(
+        context,
+        listen: false,
+      );
 
-    final ByteData ubicacionIcon = await rootBundle.load(
-      'assets/Ubicacion.png',
-    );
+      final ByteData ubicacionIcon = await rootBundle.load(
+        'assets/Ubicacion.png',
+      );
 
-    final Uint8List ubicacionBytes = ubicacionIcon.buffer.asUint8List();
+      final Uint8List ubicacionBytes = ubicacionIcon.buffer.asUint8List();
 
-    final pw.MemoryImage ubicacionImage = pw.MemoryImage(ubicacionBytes);
+      final pw.MemoryImage ubicacionImage = pw.MemoryImage(ubicacionBytes);
 
-    // Convertir a formato usable en PDF
-    // final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
-    final t = AppLocalizations.of(context)!;
-    final vm = context.read<InicioVehiculosViewModel>();
-    final fechas = (vm.getTextParam(44) ?? '').split(',');
-    final placa = vm.recepcionGuardada?.placa ?? 'SIN_PLACA';
+      // Convertir a formato usable en PDF
+      // final logoPdf = pw.MemoryImage(logo.buffer.asUint8List());
+      final t = AppLocalizations.of(context)!;
+      final vm = context.read<InicioVehiculosViewModel>();
+      final fechas = (vm.getTextParam(44) ?? '').split(',');
+      final placa = vm.recepcionGuardada?.placa ?? 'SIN_PLACA';
 
-    final pdf = pw.Document();
-    final imagenVehiculoPdf = await _cargarImagenPdf(context);
-    final pw.ImageProvider? firmaMecanicoPdf = firmaMecanico != null
-        ? pw.MemoryImage(firmaMecanico)
-        : null;
-    final pw.ImageProvider? firmaClientePdf = firmaCliente != null
-        ? pw.MemoryImage(firmaCliente)
-        : null;
-    final ByteData logoDemo = await rootBundle.load('assets/logo_demosoft.png');
-    // final logoBytes = await cargarImagenDesdeAssets(
-    //   'assets/ImagenesTaller/LubritecLogo.jpg',
-    // );
-    final Uint8List rawBytes = logo.buffer.asUint8List(
-      logo.offsetInBytes,
-      logo.lengthInBytes,
-    );
+      final pdf = pw.Document();
+      final imagenVehiculoPdf = await _cargarImagenPdf(context);
+      final pw.ImageProvider? firmaMecanicoPdf = firmaMecanico != null
+          ? pw.MemoryImage(firmaMecanico)
+          : null;
+      final pw.ImageProvider? firmaClientePdf = firmaCliente != null
+          ? pw.MemoryImage(firmaCliente)
+          : null;
+      final ByteData logoDemo = await rootBundle.load(
+        'assets/logo_demosoft.png',
+      );
+      // final logoBytes = await cargarImagenDesdeAssets(
+      //   'assets/ImagenesTaller/LubritecLogo.jpg',
+      // );
+      final Uint8List rawBytes = logo.buffer.asUint8List(
+        logo.offsetInBytes,
+        logo.lengthInBytes,
+      );
 
-    // DECODIFICAR
-    final decodedImage = img.decodeImage(rawBytes);
+      // DECODIFICAR
+      final decodedImage = img.decodeImage(rawBytes);
 
-    if (decodedImage == null) {
-      throw Exception("No se pudo decodificar la imagen del logo");
-    }
+      if (decodedImage == null) {
+        throw Exception("No se pudo decodificar la imagen del logo");
+      }
 
-    //  OPCIONAL: redimensionar (recomendado)
-    final resized = img.copyResize(decodedImage, width: 300);
+      //  OPCIONAL: redimensionar (recomendado)
+      final resized = img.copyResize(decodedImage, width: 300);
 
-    // RE-ENCODIFICAR (CLAVE)
-    final Uint8List logoBytes = Uint8List.fromList(
-      img.encodeJpg(resized, quality: 90),
-    );
-    // Uint8List logoTaller = (logo).buffer.asUint8List();
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.letter.copyWith(
-          marginBottom: 30,
-          marginLeft: 20,
-          marginTop: 20,
-          marginRight: 20,
-        ),
-        header: (_) => buildHeader(
-          logoBytes, //  ahora sí el logo dinámico
-          [
-            empresa.empresaNombre,
-            empresa.empresaDireccion,
-            empresa.empresaNit,
-            'Tel: ---',
-          ],
-          [
-            'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
-            'Serie: ${vm.serieSelect?.descripcion ?? '-'} (${vm.serieSelect?.serieDocumento ?? '—'})',
-            'ID Doc: $consecutivoDoc',
-          ],
-        ),
-        footer: (context) => UtilitiesPdf.buildFooter(
-          logoDemo, //  ByteData original (NO logoBytes)
-          context,
-          ' ', //  aquí tu storeProcedure
-        ),
+      // RE-ENCODIFICAR (CLAVE)
+      final Uint8List logoBytes = Uint8List.fromList(
+        img.encodeJpg(resized, quality: 90),
+      );
 
-        build: (_) => [
-          pw.SizedBox(height: 10),
-          pw.SizedBox(height: 10),
-
-          // ===================== ENCABEZADO =====================
-          // ===================== INFORMACIÓN DEL CLIENTE =====================
-          pw.Text(
-            'INFORMACION DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+      // Uint8List logoTaller = (logo).buffer.asUint8List();
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.letter.copyWith(
+            marginBottom: 30,
+            marginLeft: 20,
+            marginTop: 20,
+            marginRight: 20,
           ),
-          pw.SizedBox(height: 5),
-
-          _filaDoble(
-            'Nombre',
-            vm.clienteSelect?.facturaNombre ?? '',
-            'NIT',
-            vm.clienteSelect?.facturaNit ?? '',
+          header: (_) => buildHeader(
+            logoBytes, //  ahora sí el logo dinámico
+            [
+              empresa.empresaNombre,
+              empresa.empresaDireccion,
+              empresa.empresaNit,
+              'Tel: ---',
+            ],
+            [
+              'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
+              'Serie: ${vm.serieSelect?.descripcion ?? '-'} (${vm.serieSelect?.serieDocumento ?? '—'})',
+              'ID Doc: $consecutivoDoc',
+            ],
+          ),
+          footer: (context) => UtilitiesPdf.buildFooter(
+            logoDemo, //  ByteData original (NO logoBytes)
+            context,
+            ' ', //  aquí tu storeProcedure
           ),
 
-          _filaDoble(
-            'Teléfono',
-            vm.recepcionGuardada?.celular ?? '',
-            'Email',
-            vm.recepcionGuardada?.email ?? '',
-          ),
+          build: (_) => [
+            pw.SizedBox(height: 10),
+            pw.SizedBox(height: 10),
 
-          pw.SizedBox(height: 10),
-
-          // ===================== INFORMACIÓN DEL VEHÍCULO =====================
-          pw.Text(
-            'INFORMACIÓN DEL ${vm.getTextParam(136) ?? 'VEHICULO'}',
-            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.SizedBox(height: 5),
-
-          _filaDoble(
-            'Marca',
-            vm.marcaSeleccionada?.descripcion ?? '—',
-            'Línea',
-            vm.modeloSeleccionado?.descripcion ?? '—',
-          ),
-
-          _filaDoble(
-            'Placa',
-            vm.recepcionGuardada?.placa ?? '—',
-            'Color',
-            vm.colorSeleccionado?.descripcion ?? '—',
-          ),
-
-          _filaDoble(
-            'Año',
-            vm.anioSeleccionado?.anio.toString() ?? '—',
-            'Chasis',
-            vm.recepcionGuardada?.chasis ?? '—',
-          ),
-          _filaDoble(
-            'Cilindraje',
-            vm.recepcionGuardada?.cil ?? '—',
-            'Centimetros Cubicos',
-            vm.recepcionGuardada?.cc ?? '—',
-          ),
-          _filaDoble(
-            vm.tipoKilometraje == 0
-                ? t.translate(BlockTranslate.vehiculos, 'kilometraje')
-                : t.translate(BlockTranslate.vehiculos, 'millaje'),
-
-            vm.recepcionGuardada?.kilometraje != null
-                ? '${vm.recepcionGuardada!.kilometraje} ${vm.tipoKilometraje == 0 ? 'Kilómetros' : 'Millas'}'
-                : '—',
-
-            'Tipo de Vehiculo',
-            vm.tipoVehiculoSeleccionado?.descripcion ?? '—',
-          ),
-          pw.SizedBox(height: 20),
-
-          // ===================== TÍTULO =====================
-          pw.Center(
-            child: pw.Text(
-              'ITEMS VERIFICADOS',
-              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            // ===================== ENCABEZADO =====================
+            // ===================== INFORMACIÓN DEL CLIENTE =====================
+            pw.Text(
+              'INFORMACION DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
             ),
-          ),
+            pw.SizedBox(height: 5),
 
-          pw.SizedBox(height: 15),
+            _filaDoble(
+              'Nombre',
+              vm.clienteSelect?.facturaNombre ?? '',
+              'NIT',
+              vm.clienteSelect?.facturaNit ?? '',
+            ),
 
-          // ===================== TABLA DE ITEMS (SKU + OBSERVACIÓN) =====================
-          if (vm.itemsAsignados.isNotEmpty)
-            pw.Table(
-              border: pw.TableBorder.all(),
-              columnWidths: {
-                0: const pw.FixedColumnWidth(30), // check
-                1: const pw.FlexColumnWidth(2), // SKU
-                2: const pw.FlexColumnWidth(3), // NOTA
-              },
-              children: [
-                // ===================== HEADER =====================
-                pw.TableRow(
-                  decoration: pw.BoxDecoration(color: PdfColors.grey300),
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(5),
-                      child: pw.Text(
-                        '✓',
-                        textAlign: pw.TextAlign.center,
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(5),
-                      child: pw.Text(
-                        'SKU',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(5),
-                      child: pw.Text(
-                        'NOTA',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                  ],
+            _filaDoble(
+              'Teléfono',
+              vm.recepcionGuardada?.celular ?? '',
+              'Email',
+              vm.recepcionGuardada?.email ?? '',
+            ),
+
+            pw.SizedBox(height: 10),
+
+            // ===================== INFORMACIÓN DEL VEHÍCULO =====================
+            pw.Text(
+              'INFORMACIÓN DEL ${vm.getTextParam(136) ?? 'VEHICULO'}',
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 5),
+
+            _filaDoble(
+              'Marca',
+              vm.marcaSeleccionada?.descripcion ?? '—',
+              'Línea',
+              vm.modeloSeleccionado?.descripcion ?? '—',
+            ),
+
+            _filaDoble(
+              'Placa',
+              vm.recepcionGuardada?.placa ?? '—',
+              'Color',
+              vm.colorSeleccionado?.descripcion ?? '—',
+            ),
+
+            _filaDoble(
+              'Año',
+              vm.anioSeleccionado?.anio.toString() ?? '—',
+              'Chasis',
+              vm.recepcionGuardada?.chasis ?? '—',
+            ),
+            _filaDoble(
+              'Cilindraje',
+              vm.recepcionGuardada?.cil ?? '—',
+              'Centimetros Cubicos',
+              vm.recepcionGuardada?.cc ?? '—',
+            ),
+            _filaDoble(
+              vm.tipoKilometraje == 0
+                  ? t.translate(BlockTranslate.vehiculos, 'kilometraje')
+                  : t.translate(BlockTranslate.vehiculos, 'millaje'),
+
+              vm.recepcionGuardada?.kilometraje != null
+                  ? '${vm.recepcionGuardada!.kilometraje} ${vm.tipoKilometraje == 0 ? 'Kilómetros' : 'Millas'}'
+                  : '—',
+
+              'Tipo de Vehiculo',
+              vm.tipoVehiculoSeleccionado?.descripcion ?? '—',
+            ),
+            pw.SizedBox(height: 20),
+
+            // ===================== TÍTULO =====================
+            pw.Center(
+              child: pw.Text(
+                'ITEMS VERIFICADOS',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
                 ),
+              ),
+            ),
 
-                // ===================== FILAS =====================
-                ...vm.itemsAsignados.map((item) {
-                  return pw.TableRow(
+            pw.SizedBox(height: 15),
+
+            // ===================== TABLA DE ITEMS (SKU + OBSERVACIÓN) =====================
+            if (vm.itemsAsignados.isNotEmpty)
+              pw.Table(
+                border: pw.TableBorder.all(),
+                columnWidths: {
+                  0: const pw.FixedColumnWidth(30), // check
+                  1: const pw.FlexColumnWidth(2), // SKU
+                  2: const pw.FlexColumnWidth(3), // NOTA
+                },
+                children: [
+                  // ===================== HEADER =====================
+                  pw.TableRow(
+                    decoration: pw.BoxDecoration(color: PdfColors.grey300),
                     children: [
-                      // ✔ CHECK VERDE
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Center(
-                          child: pw.Text(
-                            'X',
-                            style: pw.TextStyle(
-                              color: PdfColors.green,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // SKU
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text(item.desProducto),
-                      ),
-
-                      // NOTA
                       pw.Padding(
                         padding: const pw.EdgeInsets.all(5),
                         child: pw.Text(
-                          item.detalle.isEmpty ? ' ' : item.detalle,
+                          'OK',
+                          textAlign: pw.TextAlign.center,
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Text(
+                          'SKU',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                        ),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.all(5),
+                        child: pw.Text(
+                          'NOTA',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
                         ),
                       ),
                     ],
-                  );
-                }).toList(),
-              ],
-            )
-          else
-            pw.Text('No se asignaron ítems'),
-          pw.SizedBox(height: 20),
+                  ),
 
-          // ===================== OBSERVACIONES ADICIONALES =====================
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                '${vm.getTextParam(43) ?? 'Vendedor'}: ${vm.vendedorSelect?.nomCuentaCorrentista}',
-                style: pw.TextStyle(fontSize: 12),
-              ),
+                  // ===================== FILAS =====================
+                  ...vm.itemsAsignados.map((item) {
+                    return pw.TableRow(
+                      children: [
+                        // ✔ CHECK VERDE
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(5),
+                          child: pw.Center(
+                            child: pw.Text(
+                              'X',
+                              style: pw.TextStyle(
+                                color: PdfColors.green,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
 
-              pw.SizedBox(height: 8),
+                        // SKU
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(5),
+                          child: pw.Text(item.desProducto),
+                        ),
 
-              _buildGasolinaPdf(vm.nivelGasolina),
+                        // NOTA
+                        pw.Padding(
+                          padding: const pw.EdgeInsets.all(5),
+                          child: pw.Text(
+                            item.detalle.isEmpty ? ' ' : item.detalle,
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ],
+              )
+            else
+              pw.Text('No se asignaron ítems'),
+            pw.SizedBox(height: 20),
 
-              pw.SizedBox(height: 8),
-
-              pw.Text(
-                'Obs. ${vm.getTextParam(136) ?? 'VEHICULO'}:',
-                style: pw.TextStyle(fontSize: 12),
-              ),
-            ],
-          ),
-          pw.SizedBox(height: 30),
-
-          // ===================== IMÁGENES DE LOS ITEMS =====================
-          if (vm.itemsAsignados.any((item) => item.fotos.isNotEmpty))
+            // ===================== OBSERVACIONES ADICIONALES =====================
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  'Fotografías ${vm.getTextParam(136) ?? 'VEHICULO'}',
-                  style: pw.TextStyle(
-                    fontSize: 16,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
+                  '${vm.getTextParam(43) ?? 'Vendedor'}: ${vm.vendedorSelect?.nomCuentaCorrentista}',
+                  style: pw.TextStyle(fontSize: 12),
                 ),
-                pw.Divider(),
-                pw.SizedBox(height: 10),
-                ...vm.itemsAsignados.expand((item) {
-                  if (item.fotos.isEmpty) return <pw.Widget>[];
-                  return [
-                    // Encabezado del item con SKU
-                    pw.Text(
+
+                pw.SizedBox(height: 8),
+
+                _buildGasolinaPdf(vm.nivelGasolina),
+
+                pw.SizedBox(height: 8),
+
+                pw.Text(
+                  'Obs. ${vm.getTextParam(136) ?? 'VEHICULO'}:',
+                  style: pw.TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 30),
+
+            // ===================== IMÁGENES DE LOS ITEMS =====================
+            // ===================== IMÁGENES DE LOS ITEMS =====================
+            // ===================== IMÁGENES AGRUPADAS POR ITEM =====================
+            if (vm.itemsAsignados.any((item) => item.fotos.isNotEmpty))
+              ...vm.itemsAsignados.expand((item) {
+                if (item.fotos.isEmpty) return <pw.Widget>[];
+
+                return [
+                  // =============================
+                  // TÍTULO ITEM
+                  // =============================
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.only(bottom: 8, top: 10),
+                    child: pw.Text(
                       'SKU: ${item.desProducto}',
                       style: pw.TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: pw.FontWeight.bold,
                       ),
                     ),
-                    pw.SizedBox(height: 5),
+                  ),
 
-                    // Fotos del item
-                    pw.Column(
-                      crossAxisAlignment: pw.CrossAxisAlignment.start,
-                      children: item.fotos.map((fotoPath) {
-                        try {
-                          final file = File(fotoPath);
-                          if (file.existsSync()) {
-                            final imgBytes = file.readAsBytesSync();
-                            return pw.Container(
-                              width: 150,
-                              height: 150,
-                              decoration: pw.BoxDecoration(
-                                border: pw.Border.all(color: PdfColors.grey300),
-                                borderRadius: pw.BorderRadius.circular(5),
-                              ),
-                              child: pw.Image(
-                                pw.MemoryImage(imgBytes),
-                                fit: pw.BoxFit.cover,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          debugPrint('Error cargando imagen: $e');
+                  // =============================
+                  // GALERÍA
+                  // =============================
+                  pw.GridView(
+                    crossAxisCount: 4,
+
+                    childAspectRatio: 0.75,
+
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+
+                    children: item.fotos.map((fotoPath) {
+                      try {
+                        final file = File(fotoPath);
+
+                        if (!file.existsSync()) {
+                          return pw.Container(
+                            width: 120,
+                            height: 120,
+                            alignment: pw.Alignment.center,
+                            child: pw.Text(
+                              'No encontrada',
+                              style: pw.TextStyle(fontSize: 6),
+                            ),
+                          );
                         }
-                        return pw.Container(
-                          width: 80,
-                          height: 80,
-                          decoration: pw.BoxDecoration(
-                            border: pw.Border.all(color: PdfColors.grey300),
-                            borderRadius: pw.BorderRadius.circular(5),
-                          ),
-                          child: pw.Center(
+
+                        // =============================
+                        // LEER
+                        // =============================
+                        final bytes = file.readAsBytesSync();
+
+                        final decoded = img.decodeImage(bytes);
+
+                        if (decoded == null) {
+                          return pw.Container(
+                            alignment: pw.Alignment.center,
                             child: pw.Text(
                               'Error',
-                              style: pw.TextStyle(fontSize: 10),
+                              style: pw.TextStyle(fontSize: 6),
                             ),
+                          );
+                        }
+
+                        // =============================
+                        // REDUCIR
+                        // =============================
+                        final resized = img.copyResize(decoded, width: 180);
+
+                        // =============================
+                        // COMPRIMIR FUERTE
+                        // =============================
+                        final compressed = Uint8List.fromList(
+                          img.encodeJpg(resized, quality: 50),
+                        );
+
+                        return pw.Container(
+                          decoration: pw.BoxDecoration(
+                            border: pw.Border.all(color: PdfColors.grey400),
+                          ),
+
+                          child: pw.Image(
+                            pw.MemoryImage(compressed),
+                            fit: pw.BoxFit.cover,
                           ),
                         );
-                      }).toList(),
-                    ),
-                    pw.SizedBox(height: 20),
-                  ];
-                }).toList(),
-              ],
-            ),
-          pw.SizedBox(height: 20),
-
-          // ===================== DATOS CLIENTE COMPLETOS =====================
-          // pw.Text(
-          //   'DATOS COMPLETOS',
-          //   style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
-          // ),
-          // pw.Divider(),
-          // _pdfDato('NIT', vm.nit),
-          // _pdfDato('Nombre', vm.nombre),
-          // _pdfDato('Dirección', vm.direccion),
-          // _pdfDato('Celular', vm.celular),
-          // _pdfDato('Email', vm.email),
-          // pw.SizedBox(height: 20),
-
-          // ===================== DATOS VEHÍCULO =====================
-          // _pdfDato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
-          // _pdfDato('Placa', vm.recepcionGuardada?.placa ?? '—'),
-          // _pdfDato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
-          // _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
-          // _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
-          // _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
-          // 🔹 Observación 1
-          if (vm.valueParametro(59))
-            _pdfDato(
-              vm.getTextParam(59) ?? 'Observación 1',
-              vm.observacion1Controller.text.isNotEmpty
-                  ? vm.observacion1Controller.text
-                  : '—',
-            ),
-
-          // 🔹 Observación 2
-          if (vm.valueParametro(60))
-            _pdfDato(
-              vm.getTextParam(60) ?? 'Observación 2',
-              vm.observacion2Controller.text.isNotEmpty
-                  ? vm.observacion2Controller.text
-                  : '—',
-            ),
-
-          // 🔹 Observación 3
-          if (vm.valueParametro(322))
-            _pdfDato(
-              vm.getTextParam(322) ?? 'Observación 3',
-              vm.observacion3Controller.text.isNotEmpty
-                  ? vm.observacion3Controller.text
-                  : '—',
-            ),
-
-          // ===================== IMAGEN VEHÍCULO + MARCAS =====================
-          if (imagenVehiculoPdf != null) ...[
-            pw.SizedBox(height: 15),
-            pw.Text(
-              'ESTADO DEL ${vm.getTextParam(136) ?? 'VEHICULO'}',
-              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 8),
-            _vehiculoConMarcasPdf(imagenVehiculoPdf, vm.marcasVehiculo),
-          ],
-          pw.SizedBox(height: 20),
-
-          // ===================== FECHAS =====================
-          _pdfDato(
-            fechas.isNotEmpty && fechas[0].trim().isNotEmpty
-                ? fechas[0].trim()
-                : t.translate(BlockTranslate.vehiculos, 'fechaRecibido'),
-            vm.fechaRecibido,
-          ),
-          _pdfDato(
-            fechas.isNotEmpty && fechas[1].trim().isNotEmpty
-                ? fechas[1].trim()
-                : t.translate(BlockTranslate.vehiculos, 'fechaEstimadaEntrega'),
-            vm.fechaSalida,
-          ),
-          pw.SizedBox(height: 30),
-
-          // ===================== FIRMAS =====================
-          pw.Text(
-            'FIRMAS',
-            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-          ),
-          pw.Divider(),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Column(
-                children: [
-                  pw.Container(
-                    width: 180,
-                    height: 80,
-                    decoration: pw.BoxDecoration(border: pw.Border.all()),
-                    child: firmaMecanicoPdf != null
-                        ? pw.Image(firmaMecanicoPdf, fit: pw.BoxFit.contain)
-                        : pw.Center(child: pw.Text('Firma Mecánico')),
+                      } catch (e) {
+                        return pw.Container(
+                          alignment: pw.Alignment.center,
+                          child: pw.Text(
+                            'Error',
+                            style: pw.TextStyle(fontSize: 6),
+                          ),
+                        );
+                      }
+                    }).toList(),
                   ),
-                  pw.SizedBox(height: 5),
-                  pw.Text(
-                    'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')}',
-                  ),
-                ],
+
+                  pw.SizedBox(height: 12),
+                ];
+              }).toList(),
+            pw.SizedBox(height: 20),
+
+            // ===================== DATOS CLIENTE COMPLETOS =====================
+            // pw.Text(
+            //   'DATOS COMPLETOS',
+            //   style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            // ),
+            // pw.Divider(),
+            // _pdfDato('NIT', vm.nit),
+            // _pdfDato('Nombre', vm.nombre),
+            // _pdfDato('Dirección', vm.direccion),
+            // _pdfDato('Celular', vm.celular),
+            // _pdfDato('Email', vm.email),
+            // pw.SizedBox(height: 20),
+
+            // ===================== DATOS VEHÍCULO =====================
+            // _pdfDato('Chasis', vm.recepcionGuardada?.chasis ?? '—'),
+            // _pdfDato('Placa', vm.recepcionGuardada?.placa ?? '—'),
+            // _pdfDato('Color', vm.colorSeleccionado?.descripcion ?? '—'),
+            // _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
+            // _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
+            // _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
+            // 🔹 Observación 1
+            if (vm.valueParametro(59))
+              _pdfDato(
+                vm.getTextParam(59) ?? 'Observación 1',
+                vm.observacion1Controller.text.isNotEmpty
+                    ? vm.observacion1Controller.text
+                    : '—',
               ),
-              pw.Column(
-                children: [
-                  pw.Container(
-                    width: 180,
-                    height: 80,
-                    decoration: pw.BoxDecoration(border: pw.Border.all()),
-                    child: firmaClientePdf != null
-                        ? pw.Image(firmaClientePdf, fit: pw.BoxFit.contain)
-                        : pw.Center(child: pw.Text('Firma Cliente')),
-                  ),
-                  pw.SizedBox(height: 5),
-                  pw.Text(
-                    'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
-                  ),
-                ],
-              ),
-            ],
-          ),
-          //  AGREGA ESTO DEBAJO
-          pw.SizedBox(height: 25),
 
-          pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
+            // 🔹 Observación 2
+            if (vm.valueParametro(60))
+              _pdfDato(
+                vm.getTextParam(60) ?? 'Observación 2',
+                vm.observacion2Controller.text.isNotEmpty
+                    ? vm.observacion2Controller.text
+                    : '—',
+              ),
+
+            // 🔹 Observación 3
+            if (vm.valueParametro(322))
+              _pdfDato(
+                vm.getTextParam(322) ?? 'Observación 3',
+                vm.observacion3Controller.text.isNotEmpty
+                    ? vm.observacion3Controller.text
+                    : '—',
+              ),
+
+            // ===================== IMAGEN VEHÍCULO + MARCAS =====================
+            if (imagenVehiculoPdf != null) ...[
+              pw.SizedBox(height: 15),
               pw.Text(
-                'Ubicación de recepción',
+                'ESTADO DEL ${vm.getTextParam(136) ?? 'VEHICULO'}',
                 style: pw.TextStyle(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-              if (vm.valueParametro(318)) pw.SizedBox(height: 5),
+              pw.SizedBox(height: 8),
+              _vehiculoConMarcasPdf(imagenVehiculoPdf, vm.marcasVehiculo),
+            ],
+            pw.SizedBox(height: 20),
 
-              pw.Text('Latitud: ${locationService.latitutd}'),
+            // ===================== FECHAS =====================
+            _pdfDato(
+              fechas.isNotEmpty && fechas[0].trim().isNotEmpty
+                  ? fechas[0].trim()
+                  : t.translate(BlockTranslate.vehiculos, 'fechaRecibido'),
+              vm.fechaRecibido,
+            ),
+            _pdfDato(
+              fechas.isNotEmpty && fechas[1].trim().isNotEmpty
+                  ? fechas[1].trim()
+                  : t.translate(
+                      BlockTranslate.vehiculos,
+                      'fechaEstimadaEntrega',
+                    ),
+              vm.fechaSalida,
+            ),
+            pw.SizedBox(height: 30),
 
-              pw.Text('Longitud: ${locationService.longitud}'),
-
-              pw.SizedBox(height: 5),
-
-              pw.UrlLink(
-                destination:
-                    'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                child: pw.Row(
-                  mainAxisSize: pw.MainAxisSize.min,
+            // ===================== FIRMAS =====================
+            pw.Text(
+              'FIRMAS',
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.Divider(),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
                   children: [
-                    pw.Image(ubicacionImage, width: 16, height: 16),
-
-                    pw.SizedBox(width: 5),
-
+                    pw.Container(
+                      width: 180,
+                      height: 80,
+                      decoration: pw.BoxDecoration(border: pw.Border.all()),
+                      child: firmaMecanicoPdf != null
+                          ? pw.Image(firmaMecanicoPdf, fit: pw.BoxFit.contain)
+                          : pw.Center(child: pw.Text('Firma Mecánico')),
+                    ),
+                    pw.SizedBox(height: 5),
                     pw.Text(
-                      'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                      style: pw.TextStyle(
-                        color: PdfColors.blue,
-                        decoration: pw.TextDecoration.underline,
-                      ),
+                      'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')}',
                     ),
                   ],
                 ),
+                pw.Column(
+                  children: [
+                    pw.Container(
+                      width: 180,
+                      height: 80,
+                      decoration: pw.BoxDecoration(border: pw.Border.all()),
+                      child: firmaClientePdf != null
+                          ? pw.Image(firmaClientePdf, fit: pw.BoxFit.contain)
+                          : pw.Center(child: pw.Text('Firma Cliente')),
+                    ),
+                    pw.SizedBox(height: 5),
+                    pw.Text(
+                      'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            //  AGREGA ESTO DEBAJO
+            pw.SizedBox(height: 25),
+            if (vm.valueParametro(318))
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'Ubicación de recepción',
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 5),
+
+                  pw.Text('Latitud: ${locationService.latitutd}'),
+
+                  pw.Text('Longitud: ${locationService.longitud}'),
+
+                  pw.SizedBox(height: 5),
+
+                  pw.UrlLink(
+                    destination:
+                        'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                    child: pw.Row(
+                      mainAxisSize: pw.MainAxisSize.min,
+                      children: [
+                        pw.Image(ubicacionImage, width: 16, height: 16),
+
+                        pw.SizedBox(width: 5),
+
+                        pw.Text(
+                          'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                          style: pw.TextStyle(
+                            color: PdfColors.blue,
+                            decoration: pw.TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/${placa}-ReporteRevisionItems.pdf');
-    await file.writeAsBytes(await pdf.save());
-    await OpenFilex.open(file.path);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('PDF generado: ${file.path}')));
+          ],
+        ),
+      );
+      final dir = await getApplicationDocumentsDirectory();
+      final file = File('${dir.path}/${placa}-ReporteRevisionItems.pdf');
+      await file.writeAsBytes(await pdf.save());
+      await OpenFilex.open(file.path);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('PDF generado: ${file.path}')));
+    } catch (e) {
+      NotificationService.showSnackbar('Error al generar PDF: ${e.toString()}');
+    }
   }
 
   Future<void> _compartirDocumento() async {
@@ -1348,7 +1395,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       await vm.sincronizarTransacciones(context);
       // ================= PASO 2.5: SUBIR FOTOS =================
 
-      await itemsVM.subirTodasLasFotos(context);
+      // await itemsVM.subirTodasLasFotos(context);
 
       await _subirImagenVehiculo(context);
 

@@ -70,10 +70,11 @@ class UploadService {
       print("Body: $responseBody");
 
       throw Exception("Error HTTP ${response.statusCode}: $responseBody");
-    } catch (e) {
-      print(" EXCEPCIÓN en uploadImages:");
+    } catch (e, stack) {
+      print("EXCEPCIÓN en uploadImages:");
       print(e);
-      return [];
+      print(stack);
+      rethrow;
     }
   }
 }

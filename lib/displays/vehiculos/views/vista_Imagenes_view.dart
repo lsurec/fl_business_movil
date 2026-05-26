@@ -8,6 +8,9 @@ class VistaImagenScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 💡 Obtenemos el ancho físico real de la pantalla del dispositivo
+    final double anchoPantalla = MediaQuery.of(context).size.width;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -19,10 +22,12 @@ class VistaImagenScreen extends StatelessWidget {
           tag: imagePath,
           child: InteractiveViewer(
             minScale: 0.5,
-            maxScale: 5,
+            maxScale:
+                4.0, // Reducir ligeramente de 5 a 4 ayuda a no sobrecargar los pixeles en memoria
             child: Image.file(
               File(imagePath),
               fit: BoxFit.contain,
+              cacheWidth: anchoPantalla.toInt(),
             ),
           ),
         ),
