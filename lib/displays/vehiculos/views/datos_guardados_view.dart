@@ -1317,9 +1317,14 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   }
 
   Future<void> _compartirDocumento() async {
+    final vm = context.read<InicioVehiculosViewModel>();
+
+    final placa = vm.recepcionGuardada?.placa ?? 'SIN_PLACA';
+
     try {
       final dir = await getApplicationDocumentsDirectory();
-      final file = File('${dir.path}/ReporteVehiculo.pdf');
+      // final file = File('${dir.path}/ReporteVehiculo.pdf');
+      final file = File('${dir.path}/${placa}-ReporteRevisionItems.pdf');
 
       if (!file.existsSync()) {
         ScaffoldMessenger.of(context).showSnackBar(
