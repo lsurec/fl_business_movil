@@ -222,6 +222,7 @@ class ConvertDocViewModel extends ChangeNotifier {
 
   // ir a formas de pago
   navigateToPayment(
+    OriginDocModel docOrigen,
     DestinationDocModel docDestino,
     BuildContext context,
   ) async {
@@ -231,7 +232,7 @@ class ConvertDocViewModel extends ChangeNotifier {
           listen: false,
         );
     vmConvert.destino = docDestino;
-
+    vmConvert.origen = docOrigen;
     //Buscar transacciones seleccioandas
     List<DetailOriginDocInterModel> elementosCheckTrue = detailsOrigin
         .where((elemento) => elemento.checked)
