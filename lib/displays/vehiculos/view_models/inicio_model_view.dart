@@ -41,6 +41,7 @@ import 'package:fl_business/fel/models/credencial_model.dart';
 import 'package:fl_business/models/api_res_model.dart';
 import 'package:fl_business/models/api_response_model.dart';
 import 'package:fl_business/models/elemento_asignado_model.dart';
+import 'package:fl_business/models/login_model.dart';
 import 'package:fl_business/models/tipo_cambio_model.dart';
 import 'package:fl_business/services/elemento_asignado_service.dart';
 import 'package:fl_business/services/language_service.dart';
@@ -960,7 +961,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         placa: placa,
         centimetrosCubicos: ccController.text.trim(),
         cilindros: cilController.text.trim(),
-        userName: Preferences.userName,
+        userName: user,
       );
 
       await _catalogoVehiculosService.crearVehiculo(
@@ -1076,7 +1077,16 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     BuildContext context,
     ElementoAsignadoModel elemento,
   ) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
     final token = Provider.of<LoginViewModel>(context, listen: false).token;
+    final empresa = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.empresa;
+    final estacionTrabajo = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEstacion!.estacionTrabajo;
 
     // ---------------------------
     // TEXTOS
@@ -1093,6 +1103,63 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     chasis = chasisController.text;
     cc = ccController.text;
     cil = cilController.text;
+
+    if (elemento.cuentaCorrentista != null || elemento.cuentaCorrentista == 0) {
+      final CuentaService cuentaService = CuentaService();
+
+      final ApiResModel resNameClient = await cuentaService.getNombreCuenta(
+        token,
+        elemento.cuentaCorrentista!,
+      );
+
+      //Si el api para  falló
+      if (!resNameClient.succes) {
+        isLoading = false;
+
+        await NotificationService.showErrorView(context, resNameClient);
+        return;
+      }
+
+      final RespLogin nameClient = resNameClient.response;
+
+      final MenuViewModel menuVM = Provider.of<MenuViewModel>(
+        context,
+        listen: false,
+      );
+
+      if (nameClient.data != null) {
+        final ApiResponseModel resCuentaClient = await cuentaService
+            .getCuentaCorrentista(
+              empresa,
+              nameClient.data,
+              user,
+              token,
+              menuVM.app,
+              estacionTrabajo,
+            );
+
+        //Si el api para  falló
+        if (!resCuentaClient.status) {
+          isLoading = false;
+
+          await NotificationService.showInfoErrorView(context, resCuentaClient);
+          return;
+        }
+
+        final List<ClientModel> cuentas = resCuentaClient.data;
+
+        for (var i = 0; i < cuentas.length; i++) {
+          final ClientModel item = cuentas[i];
+
+          if (item.cuentaCorrentista == elemento.cuentaCorrentista) {
+            clienteSelect = item;
+            break;
+          }
+        }
+      }
+    }
+
+    print('Cliente seleccionado: ${clienteSelect?.cuentaCorrentista}');
 
     // ---------------------------
     // MARCA

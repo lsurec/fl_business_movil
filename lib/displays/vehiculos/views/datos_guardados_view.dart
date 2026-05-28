@@ -1029,9 +1029,6 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               ],
             ),
             pw.SizedBox(height: 30),
-
-            // ===================== IMÁGENES DE LOS ITEMS =====================
-            // ===================== IMÁGENES DE LOS ITEMS =====================
             // ===================== IMÁGENES AGRUPADAS POR ITEM =====================
             if (vm.itemsAsignados.any((item) => item.fotos.isNotEmpty))
               ...vm.itemsAsignados.expand((item) {
@@ -1099,13 +1096,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                         // =============================
                         // REDUCIR
                         // =============================
-                        final resized = img.copyResize(decoded, width: 180);
+                        final resized = img.copyResize(decoded, width: 600);
 
                         // =============================
                         // COMPRIMIR FUERTE
                         // =============================
                         final compressed = Uint8List.fromList(
-                          img.encodeJpg(resized, quality: 50),
+                          img.encodeJpg(resized, quality: 90),
                         );
 
                         return pw.Container(
