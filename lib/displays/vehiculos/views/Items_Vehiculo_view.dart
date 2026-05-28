@@ -182,25 +182,21 @@ class _ItemsVehiculoView extends StatelessWidget {
                       ),
 
                       if (fotos.isNotEmpty)
-                        Column(
-                          children: fotos.map((foto) {
-                            return ListTile(
-                              dense: true,
+                        SizedBox(
+                          height: 110,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: fotos.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(width: 8),
 
-                              leading: const Icon(Icons.image),
+                            itemBuilder: (context, index) {
+                              final foto = fotos[index];
 
-                              title: Text(
-                                foto.split('/').last,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
+                              return Stack(
                                 children: [
-                                  // VER IMAGEN
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_red_eye),
-                                    onPressed: () {
+                                  GestureDetector(
+                                    onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -210,24 +206,57 @@ class _ItemsVehiculoView extends StatelessWidget {
                                         ),
                                       );
                                     },
+
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+
+                                      child: Hero(
+                                        tag: foto,
+
+                                        child: Image.file(
+                                          File(foto),
+                                          width: 100,
+                                          height: 100,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ),
                                   ),
 
-                                  // ELIMINAR DE LA LISTA
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () {
-                                      vm.fotosPorItem[idProducto]?.remove(foto);
+                                  // BOTÓN ELIMINAR
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
 
-                                      vm.notifyListeners();
-                                    },
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        vm.fotosPorItem[idProducto]?.remove(
+                                          foto,
+                                        );
+
+                                        vm.notifyListeners();
+                                      },
+
+                                      child: Container(
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+
+                                        padding: const EdgeInsets.all(4),
+
+                                        child: const Icon(
+                                          Icons.close,
+                                          color: Colors.white,
+                                          size: 18,
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ],
-                              ),
-                            );
-                          }).toList(),
+                              );
+                            },
+                          ),
                         ),
                       // if (fotos.length > 3)
                       //   Padding(

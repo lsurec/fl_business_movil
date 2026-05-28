@@ -172,8 +172,8 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
       if (foto == null) return;
 
-      final user = Provider.of<LoginViewModel>(context, listen: false).user;
-      final token = Provider.of<LoginViewModel>(context, listen: false).token;
+      // final user = Provider.of<LoginViewModel>(context, listen: false).user;
+      // final token = Provider.of<LoginViewModel>(context, listen: false).token;
       final destinoImagenes = Provider.of<LocalSettingsViewModel>(
         context,
         listen: false,
