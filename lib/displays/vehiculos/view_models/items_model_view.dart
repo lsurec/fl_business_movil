@@ -165,9 +165,13 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       // 1. Bajamos sutilmente las dimensiones para un alivio drástico de RAM gráfica
       final XFile? foto = await _picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 55,
-        maxWidth: 900,
-        maxHeight: 900,
+
+        // calidad alta
+        imageQuality: 90,
+
+        // tamaño razonable
+        maxWidth: 2000,
+        maxHeight: 2000,
       );
 
       if (foto == null) return;
