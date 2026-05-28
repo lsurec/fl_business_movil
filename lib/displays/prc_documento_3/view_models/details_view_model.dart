@@ -638,9 +638,25 @@ class DetailsViewModel extends ChangeNotifier {
       }
     }
 
+    TipoTransaccionModel? tipoTra = Utilities.getTipoTransaccion(
+      producto!.tipoProducto,
+      docVM.tiposTransaccion,
+    );
+
+    if (tipoTra == null) {
+      NotificationService.showSnackbar(
+        AppLocalizations.of(context)!.translate(
+          BlockTranslate.notificacion,
+          'tipoTransaccionNoEncontrado',
+        ),
+      );
+      return;
+    }
+
     //agregar transacion al documento
     detailsVM.addTransaction(
       TraInternaModel(
+        tipoTransaccion: tipoTra.tipoTransaccion,
         files: null,
         bodega: productVM.selectedBodega!,
         cantidad: (int.tryParse(productVM.controllerNum.text) ?? 0),
@@ -921,9 +937,26 @@ class DetailsViewModel extends ChangeNotifier {
     //ocultar teclado
     FocusScope.of(context).unfocus();
 
+    final docVM = Provider.of<DocumentViewModel>(context, listen: false);
+
     //operacion 1: cargo
     //operacion 2: descuento
     if (!isValidForm()) return;
+
+    TipoTransaccionModel? tipoTra = Utilities.getTipoTransaccion(
+      operacion == 1 ? 4 : 3,
+      docVM.tiposTransaccion,
+    );
+
+    if (tipoTra == null) {
+      NotificationService.showSnackbar(
+        AppLocalizations.of(context)!.translate(
+          BlockTranslate.notificacion,
+          'tipoTransaccionNoEncontrado',
+        ),
+      );
+      return;
+    }
 
     //view model externo
     final paymentVM = Provider.of<PaymentViewModel>(context, listen: false);
@@ -988,6 +1021,7 @@ class DetailsViewModel extends ChangeNotifier {
       //Elemento que se va a agregar
       if (element.isChecked) {
         TraInternaModel transaction = TraInternaModel(
+          tipoTransaccion: tipoTra.tipoTransaccion,
           cantidadDias: 0,
           consecutivo: 0,
           estadoTra: 0,

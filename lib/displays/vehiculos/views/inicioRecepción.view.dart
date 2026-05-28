@@ -17,12 +17,14 @@ import 'package:fl_business/themes/app_theme.dart';
 import 'package:fl_business/themes/styles.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/elemento_asignado_view_model.dart';
+import 'package:fl_business/view_models/menu_view_model.dart';
 import 'package:fl_business/view_models/referencia_view_model.dart';
 import 'package:fl_business/view_models/theme_view_model.dart';
 import 'package:fl_business/widgets/load_widget.dart';
 import 'package:fl_business/widgets/not_found_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
 
 class InicioVehiculosView extends StatefulWidget {
@@ -106,7 +108,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     final ElementoAsigandoViewModel elVM =
         Provider.of<ElementoAsigandoViewModel>(context);
     final inicioVM = context.read<InicioVehiculosViewModel>();
-
+    final vmMenu = Provider.of<MenuViewModel>(context);
+    final fechas = (vm.getTextParam(44) ?? '').split(',');
     final isDark = AppTheme.isDark();
     final backgroundColor = isDark
         ? AppTheme.darkBackroundColor
@@ -143,9 +146,10 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
               elevation: 0,
               centerTitle: true,
               title: Text(
-                AppLocalizations.of(
-                  context,
-                )!.translate(BlockTranslate.vehiculos, 'recepcionVehiculos'),
+                vmMenu.name,
+                // AppLocalizations.of(
+                //   context,
+                // )!.translate(BlockTranslate.vehiculos, 'recepcionVehiculos'),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -321,96 +325,96 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         ),
                       ],
                     ),
-                  if (vm.valueParametro(58))
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 20),
-                        Text(
-                          AppLocalizations.of(
-                            context,
-                          )!.translate(BlockTranslate.general, 'referencia'),
-                          style: StyleApp.title.copyWith(color: textColor),
-                        ),
+                  // if (vm.valueParametro(58))
+                  //   Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       const SizedBox(height: 20),
+                  //       Text(
+                  //         AppLocalizations.of(
+                  //           context,
+                  //         )!.translate(BlockTranslate.general, 'referencia'),
+                  //         style: StyleApp.title.copyWith(color: textColor),
+                  //       ),
 
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, AppRoutes.ref),
-                          child: ListTile(
-                            title: Row(
-                              children: [
-                                Text(
-                                  refVM.referencia == null
-                                      ? AppLocalizations.of(context)!.translate(
-                                          BlockTranslate.general,
-                                          'buscar',
-                                        )
-                                      : refVM.referencia!.descripcion,
-                                  style: StyleApp.normal.copyWith(
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                                ),
-                                const Text(" * ", style: StyleApp.obligatory),
-                                const SizedBox(width: 30),
-                              ],
-                            ),
-                            leading: Icon(
-                              Icons.search,
-                              color: vmTheme.colorPref(AppTheme.idColorTema),
-                            ),
-                            contentPadding: const EdgeInsets.all(0),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  if (vm.valueParametro(259))
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.translate(
-                            BlockTranslate.vehiculos,
-                            'elementoAsignado',
-                          ),
+                  //       TextButton(
+                  //         onPressed: () =>
+                  //             Navigator.pushNamed(context, AppRoutes.ref),
+                  //         child: ListTile(
+                  //           title: Row(
+                  //             children: [
+                  //               Text(
+                  //                 refVM.referencia == null
+                  //                     ? AppLocalizations.of(context)!.translate(
+                  //                         BlockTranslate.general,
+                  //                         'buscar',
+                  //                       )
+                  //                     : refVM.referencia!.descripcion,
+                  //                 style: StyleApp.normal.copyWith(
+                  //                   color: Theme.of(context).primaryColor,
+                  //                 ),
+                  //               ),
+                  //               const Text(" * ", style: StyleApp.obligatory),
+                  //               const SizedBox(width: 30),
+                  //             ],
+                  //           ),
+                  //           leading: Icon(
+                  //             Icons.search,
+                  //             color: vmTheme.colorPref(AppTheme.idColorTema),
+                  //           ),
+                  //           contentPadding: const EdgeInsets.all(0),
+                  //         ),
+                  //       ),
+                  //       const SizedBox(height: 20),
+                  //     ],
+                  //   ),
+                  // if (vm.valueParametro(259))
+                  //   Column(
+                  //     crossAxisAlignment: CrossAxisAlignment.start,
+                  //     children: [
+                  //       Text(
+                  //         AppLocalizations.of(context)!.translate(
+                  //           BlockTranslate.vehiculos,
+                  //           'elementoAsignado',
+                  //         ),
 
-                          style: StyleApp.title.copyWith(color: textColor),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pushNamed(
-                            context,
-                            AppRoutes.elementoAsignado,
-                          ),
-                          child: ListTile(
-                            title: Row(
-                              children: [
-                                Text(
-                                  elVM.elemento == null
-                                      ? AppLocalizations.of(context)!.translate(
-                                          BlockTranslate.general,
-                                          'buscar',
-                                        )
-                                      : elVM.elemento!.descripcion,
-                                  style: StyleApp.normal.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).secondaryHeaderColor,
-                                  ),
-                                ),
-                                const Text(" * ", style: StyleApp.obligatory),
-                                const SizedBox(width: 30),
-                              ],
-                            ),
-                            leading: Icon(
-                              Icons.search,
-                              color: vmTheme.colorPref(AppTheme.idColorTema),
-                            ),
-                            contentPadding: const EdgeInsets.all(0),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
+                  //         style: StyleApp.title.copyWith(color: textColor),
+                  //       ),
+                  //       TextButton(
+                  //         onPressed: () => Navigator.pushNamed(
+                  //           context,
+                  //           AppRoutes.elementoAsignado,
+                  //         ),
+                  //         child: ListTile(
+                  //           title: Row(
+                  //             children: [
+                  //               Text(
+                  //                 elVM.elemento == null
+                  //                     ? AppLocalizations.of(context)!.translate(
+                  //                         BlockTranslate.general,
+                  //                         'buscar',
+                  //                       )
+                  //                     : elVM.elemento!.descripcion,
+                  //                 style: StyleApp.normal.copyWith(
+                  //                   color: Theme.of(
+                  //                     context,
+                  //                   ).secondaryHeaderColor,
+                  //                 ),
+                  //               ),
+                  //               const Text(" * ", style: StyleApp.obligatory),
+                  //               const SizedBox(width: 30),
+                  //             ],
+                  //           ),
+                  //           leading: Icon(
+                  //             Icons.search,
+                  //             color: vmTheme.colorPref(AppTheme.idColorTema),
+                  //           ),
+                  //           contentPadding: const EdgeInsets.all(0),
+                  //         ),
+                  //       ),
+                  //       const SizedBox(height: 20),
+                  //     ],
+                  //   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -473,16 +477,20 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  SwitchListTile(
-                    activeColor: AppTheme.hexToColor(Preferences.valueColor),
-                    contentPadding: EdgeInsets.zero,
-                    value: vm.cf,
-                    onChanged: (value) => vm.changeCF(context, value),
-                    title: Text(
-                      t.translate(BlockTranslate.factura, 'factura_cf'),
-                      style: StyleApp.title.copyWith(color: textColor),
+                  if (vm.valueParametro(259))
+                    SwitchListTile(
+                      activeColor: AppTheme.hexToColor(Preferences.valueColor),
+                      contentPadding: EdgeInsets.zero,
+                      value: vm.cf,
+                      onChanged: (value) => vm.changeCF(context, value),
+                      title: Text(
+                        vm.getTextParam(209) ??
+                            AppLocalizations.of(
+                              context,
+                            )!.translate(BlockTranslate.factura, 'factura_cf'),
+                        style: StyleApp.title.copyWith(color: textColor),
+                      ),
                     ),
-                  ),
                   if (vm.clienteSelect != null)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,10 +595,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
                   // 🔹 Sección Identificación Vehículo 🔹
                   _buildModernSection(
-                    title: AppLocalizations.of(context)!.translate(
-                      BlockTranslate.vehiculos,
-                      'identificacionVehiculo',
-                    ),
+                    title:
+                        "${t.translate(BlockTranslate.vehiculos, 'identificacionVehiculo')} ${vm.getTextParam(136) ?? 'VEHÍCULO'}",
 
                     icon: Icons.confirmation_number_outlined,
                     children: [
@@ -599,10 +605,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                         controller: elVM.buscarElementoAsignado,
                         style: TextStyle(color: textColor),
                         decoration: InputDecoration(
-                          labelText: t.translate(
-                            BlockTranslate.vehiculos,
-                            'buscarVehiculoPlaca',
-                          ),
+                          labelText:
+                              "Buscar ${(vm.getTextParam(136) ?? 'VEHÍCULO').toLowerCase()} por placa",
 
                           labelStyle: TextStyle(color: textColor),
                           filled: true,
@@ -730,10 +734,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
                   // 🔹 Sección Datos del Vehículo 🔹
                   _buildModernSection(
-                    title: t.translate(
-                      BlockTranslate.vehiculos,
-                      'datosVehiculo',
-                    ),
+                    title:
+                        "${t.translate(BlockTranslate.vehiculos, 'datosVehiculo')} ${vm.getTextParam(136) ?? 'VEHÍCULO'}",
                     icon: Icons.directions_car_outlined,
                     children: [_buildTabsVehiculo(context, vm)],
                   ),
@@ -757,20 +759,26 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                     children: [
                       _buildDateSelector(
                         context,
-                        label: t.translate(
-                          BlockTranslate.vehiculos,
-                          'fechaRecibido',
-                        ),
+                        label: fechas.isNotEmpty && fechas[0].trim().isNotEmpty
+                            ? fechas[0].trim()
+                            : t.translate(
+                                BlockTranslate.vehiculos,
+                                'fechaRecibido',
+                              ),
                         fecha: vm.fechaRecibido,
+                        maxDate: DateTime.tryParse(vm.fechaSalida),
                         onFechaSeleccionada: vm.seleccionarFechaRecibido,
                       ),
                       _buildDateSelector(
                         context,
-                        label: t.translate(
-                          BlockTranslate.vehiculos,
-                          'fechaEstimadaEntrega',
-                        ),
+                        label: fechas.length > 1 && fechas[1].trim().isNotEmpty
+                            ? fechas[1].trim()
+                            : t.translate(
+                                BlockTranslate.vehiculos,
+                                'fechaEstimadaEntrega',
+                              ),
                         fecha: vm.fechaSalida,
+                        minDate: DateTime.tryParse(vm.fechaRecibido),
                         onFechaSeleccionada: vm.seleccionarFechaSalida,
                       ),
                     ],
@@ -781,15 +789,57 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             ),
           ),
         ),
-        if (vm.isLoading)
+        if (vm.isLoading || (!vmLocation.isLocation && vm.valueParametro(318)))
           ModalBarrier(
             dismissible: false,
-            // color: Colors.black.withOpacity(0.3),
             color: AppTheme.isDark()
                 ? AppTheme.darkBackroundColor
                 : AppTheme.backroundColor,
           ),
+
+        // 🔹 Loader
         if (vm.isLoading) const LoadWidget(),
+
+        // 🔹 Error de ubicación
+        if (!vmLocation.isLocation && vm.valueParametro(318) && !vm.isLoading)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.location_off, size: 80, color: Colors.red),
+
+                const SizedBox(height: 10),
+
+                Text(
+                  vmLocation.mensaje,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => Geolocator.openAppSettings(),
+                      child: const Text("Configuraciones"),
+                    ),
+
+                    const SizedBox(width: 16),
+
+                    ElevatedButton(
+                      onPressed: () => vmLocation.getLocation(context),
+                      child: const Text("Reintentar"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }
@@ -829,8 +879,8 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         isExpanded: true,
         value: vm.tipoVehiculoSeleccionado,
         decoration: InputDecoration(
-          labelText: t.translate(BlockTranslate.vehiculos, 'tipoVehiculo'),
-
+          labelText:
+              '${t.translate(BlockTranslate.vehiculos, 'tipoVehiculo')} ${(vm.getTextParam(136) ?? 'Vehículo').toLowerCase()}',
           labelStyle: TextStyle(color: txtColor),
           filled: true,
           fillColor: bgColor,
@@ -908,7 +958,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            t.translate(BlockTranslate.vehiculos, 'vehiculoSeleccionado'),
+            "${vm.getTextParam(136) ?? 'VEHÍCULO'} ${t.translate(BlockTranslate.vehiculos, 'vehiculoSeleccionado')} ",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -1183,26 +1233,83 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
         ),
         const SizedBox(height: 20),
 
-        // 🔹 Sección: Observaciones
-        Text(
-          t.translate(BlockTranslate.vehiculos, 'observaciones'),
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: Color(0xff134895),
+        //  Observación 1
+        if (vm.valueParametro(59)) ...[
+          Text(
+            vm.getTextParam(59) ?? 'Observación 1',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xff134895),
+            ),
           ),
-        ),
-        const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
-        _buildTextField(
-          t.translate(BlockTranslate.vehiculos, 'detallesTrabajo'),
-          vm.detalleTrabajoController,
-        ),
-        const SizedBox(height: 20),
+          const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
+          _buildTextField(
+            vm.getTextParam(59) ?? 'Observación 1',
+            vm.observacion1Controller,
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        //  Observación 2 (DEFAULT)
+        // 🔹 Observación 1
+        if (vm.valueParametro(59)) ...[
+          Text(
+            vm.getTextParam(59) ?? 'Observación 1',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xff134895),
+            ),
+          ),
+          const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
+          _buildTextField(
+            vm.getTextParam(59) ?? 'Observación 1',
+            vm.observacion1Controller,
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // 🔹 Observación 2
+        if (vm.valueParametro(60)) ...[
+          Text(
+            vm.getTextParam(60) ?? 'Observación 2',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xff134895),
+            ),
+          ),
+          const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
+          _buildTextField(
+            vm.getTextParam(60) ?? 'Observación 2',
+            vm.observacion2Controller,
+          ),
+          const SizedBox(height: 20),
+        ],
+
+        // 🔹 Observación 3
+        if (vm.valueParametro(322)) ...[
+          Text(
+            vm.getTextParam(322) ?? 'Observación 3',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xff134895),
+            ),
+          ),
+          const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
+          _buildTextField(
+            vm.getTextParam(322) ?? 'Observación 3',
+            vm.observacion3Controller,
+          ),
+          const SizedBox(height: 20),
+        ],
       ],
     );
   }
 
-  // 🚗 Tabs
+  //  Tabs
   Widget _buildTabsVehiculo(BuildContext context, InicioVehiculosViewModel vm) {
     final t = AppLocalizations.of(context)!;
 
@@ -1547,12 +1654,13 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
   // 📅 Selector de fecha y hora moderno
   Widget _buildDateSelector(
     BuildContext context, {
-
     required String label,
     required String fecha,
     required Function(String) onFechaSeleccionada,
-    Color? backgroundColor, // Nullable
-    Color? textColor, // Nullable
+    DateTime? minDate,
+    DateTime? maxDate,
+    Color? backgroundColor,
+    Color? textColor,
   }) {
     final t = AppLocalizations.of(context)!;
 
@@ -1647,7 +1755,30 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                 selectedTime.hour,
                 selectedTime.minute,
               );
+              // Validar que no sea menor a la fecha mínima
+              // Validar mínima
+              if (minDate != null && dateTime.isBefore(minDate)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'La fecha salida no puede ser menor a la fecha inicio',
+                    ),
+                  ),
+                );
+                return;
+              }
 
+              // Validar máxima
+              if (maxDate != null && dateTime.isAfter(maxDate)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'La fecha inicio no puede ser mayor a la fecha salida',
+                    ),
+                  ),
+                );
+                return;
+              }
               // Callback con fecha y hora
               onFechaSeleccionada(dateTime.toString());
             },

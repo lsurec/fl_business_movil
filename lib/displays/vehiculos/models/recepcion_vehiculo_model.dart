@@ -18,7 +18,9 @@ class RecepcionVehiculoModel {
   final String fechaRecibido;
   final String fechaSalida;
 
-  final String detalleTrabajo;
+  final String docObservacion2;
+  final String docObservacion1;
+  final String docObservacion3;
   final String kilometraje;
   final String cc;
   final String cil;
@@ -40,7 +42,9 @@ class RecepcionVehiculoModel {
     this.idColor,
     required this.fechaRecibido,
     required this.fechaSalida,
-    required this.detalleTrabajo,
+    required this.docObservacion2,
+    required this.docObservacion1,
+    required this.docObservacion3,
     required this.kilometraje,
     required this.cc,
     required this.cil,
@@ -61,7 +65,9 @@ class RecepcionVehiculoModel {
       'color': color,
       'fechaRecibido': fechaRecibido,
       'fechaSalida': fechaSalida,
-      'detalleTrabajo': detalleTrabajo,
+      'docObservacion2': docObservacion2,
+      'docObservacion1': docObservacion1,
+      'docObservacion3': docObservacion3,
       'kilometraje': kilometraje,
       'cc': cc,
       'cil': cil,
@@ -83,7 +89,9 @@ class RecepcionVehiculoModel {
       color: json['color'] ?? '',
       fechaRecibido: json['fechaRecibido'] ?? '',
       fechaSalida: json['fechaSalida'] ?? '',
-      detalleTrabajo: json['detalleTrabajo'] ?? '',
+      docObservacion2: json['docObservacion2'] ?? '',
+      docObservacion1: json['docObservacion1'] ?? '',
+      docObservacion3: json['docObservacion3'] ?? '',
       kilometraje: json['kilometraje'] ?? '',
       cc: json['cc'] ?? '',
       cil: json['cil'] ?? '',

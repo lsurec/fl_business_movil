@@ -466,9 +466,25 @@ class ProductViewModel extends ChangeNotifier {
       }
     }
 
+    TipoTransaccionModel? tipoTra = Utilities.getTipoTransaccion(
+      product.tipoProducto,
+      docVM.tiposTransaccion,
+    );
+
+    if (tipoTra == null) {
+      NotificationService.showSnackbar(
+        AppLocalizations.of(context)!.translate(
+          BlockTranslate.notificacion,
+          'tipoTransaccionNoEncontrado',
+        ),
+      );
+      return;
+    }
+
     //agregar transacion al documento
     detailsVM.addTransaction(
       TraInternaModel(
+        tipoTransaccion: tipoTra.tipoTransaccion,
         files: null,
         bodega: selectedBodega!,
         cantidad: (int.tryParse(controllerNum.text) ?? 0),
@@ -1172,10 +1188,21 @@ class ProductViewModel extends ChangeNotifier {
 
     //Validacion de producto
 
-    TipoTransaccionModel tipoTra = getTipoTransaccion(
+    TipoTransaccionModel? tipoTra = Utilities.getTipoTransaccion(
       product.tipoProducto,
-      context,
+      docVM.tiposTransaccion,
     );
+
+    if (tipoTra == null) {
+      NotificationService.showSnackbar(
+        AppLocalizations.of(context)!.translate(
+          BlockTranslate.notificacion,
+          'tipoTransaccionNoEncontrado',
+        ),
+      );
+      return;
+    }
+
     ProductService productService = ProductService();
 
     if (tipoTra.altCantidad) {
@@ -1348,6 +1375,7 @@ class ProductViewModel extends ChangeNotifier {
       //agregar transacion al documento
       detailsVM.addTransaction(
         TraInternaModel(
+          tipoTransaccion: tipoTra.tipoTransaccion,
           files: null,
           consecutivo: 0,
           estadoTra: 1,
@@ -1400,6 +1428,7 @@ class ProductViewModel extends ChangeNotifier {
         cantidadDias: docVM.valueParametro(44) ? cantidadDias : 0,
         precioDia: docVM.valueParametro(44) ? precioDias : null,
         observacion: docVM.valueParametro(74) ? observacion.text : null,
+        tipoTransaccion: tipoTra.tipoTransaccion,
       );
 
       detailsVM.calculateTotales(context);
@@ -1460,27 +1489,6 @@ class ProductViewModel extends ChangeNotifier {
     } else {
       Navigator.pop(context);
     }
-  }
-
-  //devuelve el tipo de transaccion que se va a usar
-  TipoTransaccionModel getTipoTransaccion(int tipo, BuildContext context) {
-    final docVM = Provider.of<DocumentViewModel>(context, listen: false);
-
-    for (var i = 0; i < docVM.tiposTransaccion.length; i++) {
-      final TipoTransaccionModel tipoTra = docVM.tiposTransaccion[i];
-
-      if (tipo == tipoTra.tipo) {
-        return tipoTra;
-      }
-    }
-
-    //si no encunetra el tipo
-    return TipoTransaccionModel(
-      tipoTransaccion: 0,
-      descripcion: "descripcion",
-      tipo: tipo,
-      altCantidad: true,
-    );
   }
 
   //ver imagenes
