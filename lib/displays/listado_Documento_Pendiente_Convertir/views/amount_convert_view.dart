@@ -243,16 +243,34 @@ class _ButtonConfirm extends StatelessWidget {
 
     return SizedBox(
       height: 55,
-      child: GestureDetector(
-        onTap: () => vm.addAmount(payment, context),
-        child: Container(
-          color: AppTheme.hexToColor(Preferences.valueColor),
-          child: Center(
-            child: Text(
-              AppLocalizations.of(
-                context,
-              )!.translate(BlockTranslate.factura, 'agregarPago'),
-              style: StyleApp.whiteNormal,
+      width: double.infinity,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(22),
+          onTap: () => vm.addAmount(payment, context),
+          child: Ink(
+            decoration: BoxDecoration(
+              color: AppTheme.hexToColor(Preferences.valueColor),
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.factura, 'agregarPago'),
+                style: StyleApp.whiteNormal.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
             ),
           ),
         ),

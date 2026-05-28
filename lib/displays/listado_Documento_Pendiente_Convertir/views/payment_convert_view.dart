@@ -32,10 +32,6 @@ class PaymentConvertView extends StatelessWidget {
     );
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => vm.confirmPayments(),
-        child: const Icon(Icons.check),
-      ),
       appBar: AppBar(),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -174,6 +170,39 @@ class PaymentConvertView extends StatelessWidget {
                       },
                     ),
                   ],
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 55,
+              width: double.infinity,
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(22),
+                  onTap: () => vm.confirmPayments(context),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      color: AppTheme.hexToColor(Preferences.valueColor),
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        'Continuar',
+                        style: StyleApp.whiteNormal.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

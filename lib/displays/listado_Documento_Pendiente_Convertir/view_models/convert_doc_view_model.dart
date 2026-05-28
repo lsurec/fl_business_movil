@@ -232,6 +232,27 @@ class ConvertDocViewModel extends ChangeNotifier {
         );
     vmConvert.destino = docDestino;
 
+    //Buscar transacciones seleccioandas
+    List<DetailOriginDocInterModel> elementosCheckTrue = detailsOrigin
+        .where((elemento) => elemento.checked)
+        .toList();
+
+    //si no hay transacciones seleccionadas
+    if (elementosCheckTrue.isEmpty) {
+      NotificationService.showSnackbar(
+        AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'seleccionaTrans'),
+      );
+      return;
+    }
+
+    //Calcular cantidades
+    vmConvert.total = elementosCheckTrue.fold(
+      0,
+      (previousValue, element) => previousValue + element.detalle.monto,
+    );
+
     isLoading = true;
 
     await vmConvert.loadPayments(context);

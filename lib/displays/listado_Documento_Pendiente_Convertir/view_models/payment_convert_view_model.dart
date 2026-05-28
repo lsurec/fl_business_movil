@@ -27,10 +27,10 @@ class PaymentConvertViewModel extends ChangeNotifier {
   }
 
   //Totales globales
-  double saldo = 1000;
+  double saldo = 0;
   double cambio = 0;
   double pagado = 0;
-  double total = 1000;
+  double total = 0;
 
   //Seleccionar todas las formas de pago
   bool selectAllAmounts = false;
@@ -64,12 +64,9 @@ class PaymentConvertViewModel extends ChangeNotifier {
 
     //Consumo del servicio
     ApiResModel res = await pagoService.getFormas(
-      // destino!.fTipoDocumento, // doc,
-      46,
-      // destino!.fSerieDocumento, // serie,
-      "2",
-      // destino!.fEmpresa, // empresa,
-      3,
+      destino!.fTipoDocumento, // doc,
+      destino!.fSerieDocumento, // serie,
+      destino!.fEmpresa, // empresa,
       loginVM.token, // token,
     );
 
@@ -86,6 +83,7 @@ class PaymentConvertViewModel extends ChangeNotifier {
 
     //agregar formas de pago encontradas
     paymentList.addAll(res.response);
+
     calculateTotales(context);
 
     notifyListeners();
@@ -399,7 +397,30 @@ class PaymentConvertViewModel extends ChangeNotifier {
     );
   }
 
-  confirmPayments() {
+  confirmPayments(BuildContext context) {
+    //Validar que se agregaron formas de pago
+    if (paymentList.isNotEmpty) {
+      //si no hay pagos agregados mostar mensaje
+      if (amounts.isEmpty) {
+        NotificationService.showSnackbar(
+          AppLocalizations.of(
+            context,
+          )!.translate(BlockTranslate.notificacion, 'sinPago'),
+        );
+        return;
+      }
+
+      // si no se ha pagado el total mostrar mensaje
+      if (double.parse(saldo.toStringAsFixed(2)) > 0) {
+        NotificationService.showSnackbar(
+          AppLocalizations.of(
+            context,
+          )!.translate(BlockTranslate.notificacion, 'saldoPendiente'),
+        );
+        return;
+      }
+    }
+
     //Proceso doc estructura y FEL
   }
 
