@@ -176,8 +176,6 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
       if (foto == null) return;
 
-      // final user = Provider.of<LoginViewModel>(context, listen: false).user;
-      // final token = Provider.of<LoginViewModel>(context, listen: false).token;
       final destinoImagenes = Provider.of<LocalSettingsViewModel>(
         context,
         listen: false,
@@ -195,14 +193,6 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
       //  OPTIMIZACIÓN CLAVE: Mover el archivo en vez de copiarlo evita duplicar la RAM de la foto actual
       final File savedImage = await File(foto.path).copy(savedPath);
-
-      // 3. Guardar en galería de forma pasiva (Desconectado del flujo prioritario de la UI)
-      // Future.microtask(() {
-      //   Gal.putImage(savedImage.path).catchError((e) {
-      //     print("Error secundario al guardar en galería: $e");
-      //     return null;
-      //   });
-      // });
 
       // 4. Actualizar colecciones de inmediato
       fotosPorItem[idProducto] ??= [];
@@ -233,14 +223,6 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         idProducto: idProducto,
         imagePath: savedImage.path,
       );
-      // Encolar de manera segura
-      // _enconlarSubida(
-      //   idProducto: idProducto,
-      //   imagePath: savedImage.path,
-      //   token: token,
-      //   user: user,
-      //   destinoImagenes: destinoImagenes,
-      // );
     } catch (e, stack) {
       print("ERROR CRÍTICO AL TOMAR FOTO: $e");
       print(stack);

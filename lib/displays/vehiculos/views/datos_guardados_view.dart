@@ -74,393 +74,428 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
     return Stack(
       children: [
-        Scaffold(
-          appBar: AppBar(
-            backgroundColor: const Color(0xff134895),
-            title: Text(
-              t.translate(BlockTranslate.vehiculos, 'vehiculos_datosGuardados'),
-              style: TextStyle(color: Colors.white),
-            ),
-            iconTheme: const IconThemeData(color: Colors.white),
-            actions: [
-              IconButton(
-                tooltip: AppLocalizations.of(
-                  context,
-                )!.translate(BlockTranslate.factura, 'docRecientes'),
-                onPressed: () => Navigator.pushNamed(context, AppRoutes.recent),
-                icon: const Icon(Icons.schedule),
+        PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, result) {
+            if (_documentoEnviado) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'No es posible regresar después de enviar el documento',
+                  ),
+                ),
+              );
+              return;
+            }
+
+            Navigator.pop(context);
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              backgroundColor: const Color(0xff134895),
+              title: Text(
+                t.translate(
+                  BlockTranslate.vehiculos,
+                  'vehiculos_datosGuardados',
+                ),
+                style: TextStyle(color: Colors.white),
               ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ================= DATOS CLIENTE =================
-                Row(
-                  children: [
-                    _titulo(
-                      "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosCliente')} ${vm.getTextCuenta(context).toUpperCase()}",
-                    ),
-                  ],
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'vehiculos_nit'),
-                  vm.recepcionGuardada?.nit ?? "",
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'vehiculos_nombre'),
-                  vm.recepcionGuardada?.nombre ?? "",
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'vehiculos_direccion'),
-                  vm.clienteSelect?.facturaDireccion ?? "",
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'celular'),
-                  vm.recepcionGuardada?.celular ?? "",
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'email'),
-                  vm.recepcionGuardada?.email ?? "",
-                ),
-
-                const SizedBox(height: 20),
-
-                // ================= DATOS VEHÍCULO =================
-                _titulo(
-                  "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosVehiculo')} ${vm.getTextParam(136) ?? 'VEHICULO'}",
-                ),
-
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'chasis'),
-                  vm.recepcionGuardada?.chasis ?? '—',
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'placa'),
-                  vm.recepcionGuardada?.placa ?? '—',
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'marca'),
-                  vm.marcaSeleccionada?.descripcion ?? '—',
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'linea'),
-                  vm.modeloSeleccionado?.descripcion ?? '—',
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'vehiculos_modeloAnio'),
-                  vm.anioSeleccionado?.anio.toString() ?? '—',
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'color'),
-                  vm.colorSeleccionado?.descripcion ?? '—',
-                ),
-
-                const SizedBox(height: 20),
-
-                // ================= VEHÍCULO MARCADO =================
-                if (vm.imagenTipoVehiculo != null) ...[
-                  RepaintBoundary(
-                    key: _vehiculoKey,
-                    child: VehiculoMarcadoWidget(
-                      imagePath: vm.imagenTipoVehiculo!,
-                      marcas: vm.marcasVehiculo,
-                      onTap: vm.agregarMarca,
-                      readOnly: _documentoEnviado,
-                    ),
-                  ),
-                  // VehiculoMarcadoWidget(
-                  //   imagePath: vm.imagenTipoVehiculo!,
-                  //   marcas: vm.marcasVehiculo,
-                  //   onTap: vm.agregarMarca,
-                  // ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.undo, color: Colors.white),
-                        label: const Text(
-                          'Eliminar última',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        onPressed: vm.marcasVehiculo.isEmpty
-                            ? null
-                            : vm.eliminarUltimaMarca,
-                      ),
-                      const SizedBox(width: 12),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.delete_forever),
-                        label: const Text('Eliminar todas'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                        ),
-                        onPressed: vm.marcasVehiculo.isEmpty
-                            ? null
-                            : vm.limpiarMarcas,
-                      ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 20),
-
-                // ================= FECHAS =================
-                _titulo(t.translate(BlockTranslate.vehiculos, 'fechas')),
-
-                _dato(
-                  fechas.isNotEmpty && fechas[0].trim().isNotEmpty
-                      ? fechas[0].trim()
-                      : t.translate(BlockTranslate.vehiculos, 'fechaRecibido'),
-                  vm.fechaRecibido,
-                ),
-                _dato(
-                  fechas.length > 1 && fechas[1].trim().isNotEmpty
-                      ? fechas[1].trim()
-                      : t.translate(
-                          BlockTranslate.vehiculos,
-                          'fechaEstimadaEntrega',
-                        ),
-                  vm.fechaSalida,
-                ),
-
-                const SizedBox(height: 20),
-
-                // ================= OBSERVACIONES =================
-                _titulo(
-                  t.translate(
-                    BlockTranslate.vehiculos,
-                    'vehiculos_detalleTrabajo',
-                  ),
-                ),
-
-                // 🔹 Observación 1
-                if (vm.valueParametro(59))
-                  _dato(
-                    vm.getTextParam(59) ?? 'Observación 1',
-                    vm.observacion1Controller.text.isNotEmpty
-                        ? vm.observacion1Controller.text
-                        : '—',
-                  ),
-
-                // 🔹 Observación 2
-                if (vm.valueParametro(60))
-                  _dato(
-                    vm.getTextParam(60) ?? 'Observación 2',
-                    vm.observacion2Controller.text.isNotEmpty
-                        ? vm.observacion2Controller.text
-                        : '—',
-                  ),
-
-                // 🔹 Observación 3
-                if (vm.valueParametro(322))
-                  _dato(
-                    vm.getTextParam(322) ?? 'Observación 3',
-                    vm.observacion3Controller.text.isNotEmpty
-                        ? vm.observacion3Controller.text
-                        : '—',
-                  ),
-                _dato(
-                  vm.tipoKilometraje == 0
-                      ? t.translate(BlockTranslate.vehiculos, 'kilometraje')
-                      : t.translate(BlockTranslate.vehiculos, 'millaje'),
-                  vm.recepcionGuardada?.kilometraje != null
-                      ? '${vm.recepcionGuardada!.kilometraje} ${vm.tipoKilometraje == 0 ? 'Kilómetros' : 'Millas'}'
-                      : '—',
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'cc'),
-                  vm.recepcionGuardada?.cc ?? '—',
-                ),
-                _dato(
-                  t.translate(BlockTranslate.vehiculos, 'cil'),
-                  vm.recepcionGuardada?.cil ?? '—',
-                ),
-                _dato(
-                  vm.getTextParam(43) ??
-                      AppLocalizations.of(
-                        context,
-                      )!.translate(BlockTranslate.factura, 'VENDEDOR'),
-
-                  vm.vendedorSelect?.nomCuentaCorrentista ?? '—',
-                ),
-
-                const SizedBox(height: 30),
-
-                // ================= ÍTEMS =================
-                _titulo(
-                  t.translate(BlockTranslate.vehiculos, 'itemsVehiculo_titulo'),
-                ),
-
-                if (items.isEmpty)
-                  Text(t.translate(BlockTranslate.vehiculos, 'noItems'))
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: items.length,
-                    itemBuilder: (_, i) => _itemCard(items[i]),
-                  ),
-
-                // ================= Combustible =================
-                const SizedBox(height: 30),
-
-                // ================= GASOLINA =================
-                _titulo('Nivel de Gasolina'),
-                _gasolinaSlider(),
-
-                const SizedBox(height: 30),
-
-                // ================= FIRMAS =================
-                _titulo(
-                  t.translate(BlockTranslate.vehiculos, 'vehiculos_firmas'),
-                ),
-
-                Text(
-                  'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'VENDEDOR')}',
-                ),
-                _firmaBox(_firmaMecanico, enabled: !_documentoEnviado),
-
-                const SizedBox(height: 20),
-
-                Row(
-                  children: [
-                    Text(
-                      'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
-                    ),
-                  ],
-                ),
-                _firmaBox(_firmaCliente, enabled: !_documentoEnviado),
-
-                const SizedBox(height: 30),
-
-                // ================= BOTONES ACCIÓN =================
-                Center(
-                  child: Column(
-                    children: [
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff134895),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 14,
-                          ),
-                        ),
-                        icon: const Icon(Icons.send, color: Colors.white),
-                        label: Text(
-                          t.translate(
-                            BlockTranslate.vehiculos,
-                            'vehiculos_enviarDocumento',
-                          ),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-
-                        onPressed: bloqueado
-                            ? null
-                            : () async {
-                                setState(() {
-                                  _documentoEnviado = true;
-                                });
-
-                                await _enviarDocumento(context);
-                              },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Compartir Documento
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                        ),
-                        icon: const Icon(Icons.share, color: Colors.white),
-                        label: Text(
-                          t.translate(
-                            BlockTranslate.vehiculos,
-                            'vehiculos_compartirDocumento',
-                          ),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-
-                        onPressed: () async {
-                          final vm = context.read<InicioVehiculosViewModel>();
-
-                          try {
-                            vm.setLoading(true); // ACTIVAR LOADING
-
-                            final firmaMecBytes = await _firmaMecanico
-                                .toPngBytes();
-                            final firmaCliBytes = await _firmaCliente
-                                .toPngBytes();
-
-                            await _generarPdf(
-                              context,
-                              firmaMecanico: firmaMecBytes,
-                              firmaCliente: firmaCliBytes,
-                            );
-
-                            await _compartirDocumento();
-                          } catch (e) {
-                            print(e);
-                          } finally {
-                            vm.setLoading(false); // DESACTIVAR LOADING
-                          }
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Nueva Orden
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 14,
-                          ),
-                        ),
-                        icon: const Icon(Icons.add, color: Colors.white),
-                        label: Text(
-                          t.translate(
-                            BlockTranslate.vehiculos,
-                            'vehiculos_nuevaOrden',
-                          ),
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        onPressed: () async {
-                          final vm = context.read<InicioVehiculosViewModel>();
-                          final elVM = context
-                              .read<ElementoAsigandoViewModel>();
-                          final itemsVM = context
-                              .read<ItemsVehiculoViewModel>();
-
-                          // Limpiar datos de todos los ViewModels
-                          await itemsVM.limpiarDatosItems();
-                          vm.cancelar();
-                          elVM.cancelar();
-
-                          // Regresar al inicio
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            final navigator = Navigator.of(context);
-                            try {
-                              navigator.pop(); // Cierra DatosGuardadosScreen
-                              navigator.pop(); // Cierra ItemsVehiculoScreen
-                            } catch (e) {
-                              print('Error al navegar: $e');
-                              navigator.popUntil((route) => route.isFirst);
-                            }
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+              iconTheme: const IconThemeData(color: Colors.white),
+              actions: [
+                IconButton(
+                  tooltip: AppLocalizations.of(
+                    context,
+                  )!.translate(BlockTranslate.factura, 'docRecientes'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.recent),
+                  icon: const Icon(Icons.schedule),
                 ),
               ],
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ================= DATOS CLIENTE =================
+                  Row(
+                    children: [
+                      _titulo(
+                        "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosCliente')} ${vm.getTextCuenta(context).toUpperCase()}",
+                      ),
+                    ],
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'vehiculos_nit'),
+                    vm.recepcionGuardada?.nit ?? "",
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'vehiculos_nombre'),
+                    vm.recepcionGuardada?.nombre ?? "",
+                  ),
+                  _dato(
+                    t.translate(
+                      BlockTranslate.vehiculos,
+                      'vehiculos_direccion',
+                    ),
+                    vm.clienteSelect?.facturaDireccion ?? "",
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'celular'),
+                    vm.recepcionGuardada?.celular ?? "",
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'email'),
+                    vm.recepcionGuardada?.email ?? "",
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ================= DATOS VEHÍCULO =================
+                  _titulo(
+                    "${t.translate(BlockTranslate.vehiculos, 'vehiculos_datosVehiculo')} ${vm.getTextParam(136) ?? 'VEHICULO'}",
+                  ),
+
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'chasis'),
+                    vm.recepcionGuardada?.chasis ?? '—',
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'placa'),
+                    vm.recepcionGuardada?.placa ?? '—',
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'marca'),
+                    vm.marcaSeleccionada?.descripcion ?? '—',
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'linea'),
+                    vm.modeloSeleccionado?.descripcion ?? '—',
+                  ),
+                  _dato(
+                    t.translate(
+                      BlockTranslate.vehiculos,
+                      'vehiculos_modeloAnio',
+                    ),
+                    vm.anioSeleccionado?.anio.toString() ?? '—',
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'color'),
+                    vm.colorSeleccionado?.descripcion ?? '—',
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ================= VEHÍCULO MARCADO =================
+                  if (vm.imagenTipoVehiculo != null) ...[
+                    RepaintBoundary(
+                      key: _vehiculoKey,
+                      child: VehiculoMarcadoWidget(
+                        imagePath: vm.imagenTipoVehiculo!,
+                        marcas: vm.marcasVehiculo,
+                        onTap: vm.agregarMarca,
+                        readOnly: _documentoEnviado,
+                      ),
+                    ),
+                    // VehiculoMarcadoWidget(
+                    //   imagePath: vm.imagenTipoVehiculo!,
+                    //   marcas: vm.marcasVehiculo,
+                    //   onTap: vm.agregarMarca,
+                    // ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.undo, color: Colors.white),
+                          label: const Text(
+                            'Eliminar última',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed:
+                              (_documentoEnviado || vm.marcasVehiculo.isEmpty)
+                              ? null
+                              : vm.eliminarUltimaMarca,
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.delete_forever),
+                          label: const Text('Eliminar todas'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                          ),
+                          onPressed:
+                              (_documentoEnviado || vm.marcasVehiculo.isEmpty)
+                              ? null
+                              : vm.limpiarMarcas,
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+
+                  // ================= FECHAS =================
+                  _titulo(t.translate(BlockTranslate.vehiculos, 'fechas')),
+
+                  _dato(
+                    fechas.isNotEmpty && fechas[0].trim().isNotEmpty
+                        ? fechas[0].trim()
+                        : t.translate(
+                            BlockTranslate.vehiculos,
+                            'fechaRecibido',
+                          ),
+                    vm.fechaRecibido,
+                  ),
+                  _dato(
+                    fechas.length > 1 && fechas[1].trim().isNotEmpty
+                        ? fechas[1].trim()
+                        : t.translate(
+                            BlockTranslate.vehiculos,
+                            'fechaEstimadaEntrega',
+                          ),
+                    vm.fechaSalida,
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // ================= OBSERVACIONES =================
+                  _titulo(
+                    t.translate(
+                      BlockTranslate.vehiculos,
+                      'vehiculos_detalleTrabajo',
+                    ),
+                  ),
+
+                  // 🔹 Observación 1
+                  if (vm.valueParametro(59))
+                    _dato(
+                      vm.getTextParam(59) ?? 'Observación 1',
+                      vm.observacion1Controller.text.isNotEmpty
+                          ? vm.observacion1Controller.text
+                          : '—',
+                    ),
+
+                  // 🔹 Observación 2
+                  if (vm.valueParametro(60))
+                    _dato(
+                      vm.getTextParam(60) ?? 'Observación 2',
+                      vm.observacion2Controller.text.isNotEmpty
+                          ? vm.observacion2Controller.text
+                          : '—',
+                    ),
+
+                  // 🔹 Observación 3
+                  if (vm.valueParametro(322))
+                    _dato(
+                      vm.getTextParam(322) ?? 'Observación 3',
+                      vm.observacion3Controller.text.isNotEmpty
+                          ? vm.observacion3Controller.text
+                          : '—',
+                    ),
+                  _dato(
+                    vm.tipoKilometraje == 0
+                        ? t.translate(BlockTranslate.vehiculos, 'kilometraje')
+                        : t.translate(BlockTranslate.vehiculos, 'millaje'),
+                    vm.recepcionGuardada?.kilometraje != null
+                        ? '${vm.recepcionGuardada!.kilometraje} ${vm.tipoKilometraje == 0 ? 'Kilómetros' : 'Millas'}'
+                        : '—',
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'cc'),
+                    vm.recepcionGuardada?.cc ?? '—',
+                  ),
+                  _dato(
+                    t.translate(BlockTranslate.vehiculos, 'cil'),
+                    vm.recepcionGuardada?.cil ?? '—',
+                  ),
+                  _dato(
+                    vm.getTextParam(43) ??
+                        AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.factura, 'VENDEDOR'),
+
+                    vm.vendedorSelect?.nomCuentaCorrentista ?? '—',
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // ================= ÍTEMS =================
+                  _titulo(
+                    t.translate(
+                      BlockTranslate.vehiculos,
+                      'itemsVehiculo_titulo',
+                    ),
+                  ),
+
+                  if (items.isEmpty)
+                    Text(t.translate(BlockTranslate.vehiculos, 'noItems'))
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: items.length,
+                      itemBuilder: (_, i) => _itemCard(items[i]),
+                    ),
+
+                  // ================= Combustible =================
+                  const SizedBox(height: 30),
+
+                  // ================= GASOLINA =================
+                  _titulo('Nivel de Gasolina'),
+                  _gasolinaSlider(),
+
+                  const SizedBox(height: 30),
+
+                  // ================= FIRMAS =================
+                  _titulo(
+                    t.translate(BlockTranslate.vehiculos, 'vehiculos_firmas'),
+                  ),
+
+                  Text(
+                    'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'VENDEDOR')}',
+                  ),
+                  _firmaBox(_firmaMecanico, enabled: !_documentoEnviado),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      Text(
+                        'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                      ),
+                    ],
+                  ),
+                  _firmaBox(_firmaCliente, enabled: !_documentoEnviado),
+
+                  const SizedBox(height: 30),
+
+                  // ================= BOTONES ACCIÓN =================
+                  Center(
+                    child: Column(
+                      children: [
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xff134895),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 14,
+                            ),
+                          ),
+                          icon: const Icon(Icons.send, color: Colors.white),
+                          label: Text(
+                            t.translate(
+                              BlockTranslate.vehiculos,
+                              'vehiculos_enviarDocumento',
+                            ),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+
+                          onPressed: bloqueado
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _documentoEnviado = true;
+                                  });
+
+                                  await _enviarDocumento(context);
+                                },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Compartir Documento
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 14,
+                            ),
+                          ),
+                          icon: const Icon(Icons.share, color: Colors.white),
+                          label: Text(
+                            t.translate(
+                              BlockTranslate.vehiculos,
+                              'vehiculos_compartirDocumento',
+                            ),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+
+                          onPressed: () async {
+                            final vm = context.read<InicioVehiculosViewModel>();
+
+                            try {
+                              vm.setLoading(true); // ACTIVAR LOADING
+
+                              final firmaMecBytes = await _firmaMecanico
+                                  .toPngBytes();
+                              final firmaCliBytes = await _firmaCliente
+                                  .toPngBytes();
+
+                              await _generarPdf(
+                                context,
+                                firmaMecanico: firmaMecBytes,
+                                firmaCliente: firmaCliBytes,
+                              );
+
+                              await _compartirDocumento();
+                            } catch (e) {
+                              print(e);
+                            } finally {
+                              vm.setLoading(false); // DESACTIVAR LOADING
+                            }
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Nueva Orden
+                        ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 14,
+                            ),
+                          ),
+                          icon: const Icon(Icons.add, color: Colors.white),
+                          label: Text(
+                            t.translate(
+                              BlockTranslate.vehiculos,
+                              'vehiculos_nuevaOrden',
+                            ),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          onPressed: () async {
+                            final vm = context.read<InicioVehiculosViewModel>();
+                            final elVM = context
+                                .read<ElementoAsigandoViewModel>();
+                            final itemsVM = context
+                                .read<ItemsVehiculoViewModel>();
+
+                            // Limpiar datos de todos los ViewModels
+                            await itemsVM.limpiarDatosItems();
+                            vm.cancelar();
+                            elVM.cancelar();
+
+                            // Regresar al inicio
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              final navigator = Navigator.of(context);
+                              try {
+                                navigator.pop(); // Cierra DatosGuardadosScreen
+                                navigator.pop(); // Cierra ItemsVehiculoScreen
+                              } catch (e) {
+                                print('Error al navegar: $e');
+                                navigator.popUntil((route) => route.isFirst);
+                              }
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
