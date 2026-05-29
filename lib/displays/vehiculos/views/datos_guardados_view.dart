@@ -1052,13 +1052,9 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   // =============================
                   // GALERÍA
                   // =============================
-                  pw.GridView(
-                    crossAxisCount: 4,
-
-                    childAspectRatio: 0.75,
-
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+                  pw.Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
 
                     children: item.fotos.map((fotoPath) {
                       try {
@@ -1066,62 +1062,53 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
                         if (!file.existsSync()) {
                           return pw.Container(
-                            width: 120,
-                            height: 120,
+                            width: 200,
+                            height: 200,
                             alignment: pw.Alignment.center,
-                            child: pw.Text(
-                              'No encontrada',
-                              style: pw.TextStyle(fontSize: 6),
-                            ),
+                            child: pw.Text('No encontrada'),
                           );
                         }
 
-                        // =============================
-                        // LEER
-                        // =============================
                         final bytes = file.readAsBytesSync();
 
                         final decoded = img.decodeImage(bytes);
 
                         if (decoded == null) {
                           return pw.Container(
+                            width: 200,
+                            height: 200,
                             alignment: pw.Alignment.center,
-                            child: pw.Text(
-                              'Error',
-                              style: pw.TextStyle(fontSize: 6),
-                            ),
+                            child: pw.Text('Error'),
                           );
                         }
 
-                        // =============================
-                        // REDUCIR
-                        // =============================
-                        final resized = img.copyResize(decoded, width: 600);
+                        final resized = img.copyResize(decoded, width: 1000);
 
-                        // =============================
-                        // COMPRIMIR FUERTE
-                        // =============================
                         final compressed = Uint8List.fromList(
                           img.encodeJpg(resized, quality: 90),
                         );
 
                         return pw.Container(
+                          width: 154,
+
+                          padding: const pw.EdgeInsets.all(4),
+
                           decoration: pw.BoxDecoration(
                             border: pw.Border.all(color: PdfColors.grey400),
                           ),
 
                           child: pw.Image(
                             pw.MemoryImage(compressed),
-                            fit: pw.BoxFit.cover,
+
+                            fit: pw.BoxFit.contain,
                           ),
                         );
                       } catch (e) {
                         return pw.Container(
+                          width: 200,
+                          height: 200,
                           alignment: pw.Alignment.center,
-                          child: pw.Text(
-                            'Error',
-                            style: pw.TextStyle(fontSize: 6),
-                          ),
+                          child: pw.Text('Error'),
                         );
                       }
                     }).toList(),

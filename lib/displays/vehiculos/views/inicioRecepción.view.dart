@@ -603,16 +603,44 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       // Búsqueda de vehículo
                       TextFormField(
                         controller: elVM.buscarElementoAsignado,
+
+                        textInputAction: TextInputAction.search,
+
+                        onFieldSubmitted: (value) async {
+                          FocusScope.of(context).unfocus();
+
+                          if (elVM.buscarElementoAsignado.text.trim().isEmpty)
+                            return;
+
+                          final vm = context.read<InicioVehiculosViewModel>();
+
+                          try {
+                            vm.setLoading(true);
+
+                            await elVM.getElementoAsignado(context);
+
+                            elVM.mostrarLista();
+                          } catch (e) {
+                            print(e);
+                          } finally {
+                            vm.setLoading(false);
+                          }
+                        },
+
                         style: TextStyle(color: textColor),
+
                         decoration: InputDecoration(
                           labelText:
                               "Buscar ${(vm.getTextParam(136) ?? 'VEHÍCULO').toLowerCase()} por placa",
 
                           labelStyle: TextStyle(color: textColor),
+
                           filled: true,
                           fillColor: cardColor,
+
                           suffixIcon: IconButton(
                             icon: const Icon(Icons.search),
+
                             onPressed: () async {
                               FocusScope.of(context).unfocus();
 
@@ -625,14 +653,15 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                                   .read<InicioVehiculosViewModel>();
 
                               try {
-                                vm.setLoading(true); // ACTIVAR LOADING
+                                vm.setLoading(true);
 
                                 await elVM.getElementoAsignado(context);
+
                                 elVM.mostrarLista();
                               } catch (e) {
                                 print(e);
                               } finally {
-                                vm.setLoading(false); // DESACTIVAR LOADING
+                                vm.setLoading(false);
                               }
                             },
                           ),
