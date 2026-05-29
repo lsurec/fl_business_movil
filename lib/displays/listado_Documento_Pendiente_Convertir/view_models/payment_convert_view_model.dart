@@ -1,16 +1,27 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:math';
+
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/destination_doc_model.dart';
+import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/origin_detail_model.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/origin_doc_model.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/amount_convert_view_model.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/view_models/convert_doc_view_model.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/views/views.dart';
+import 'package:fl_business/displays/prc_documento_3/models/mensaje_model.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
 import 'package:fl_business/displays/prc_documento_3/services/services.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/view_models.dart';
+import 'package:fl_business/displays/report/reports/factura/provider.dart';
+import 'package:fl_business/displays/report/reports/factura/tmu.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/view_models.dart';
+import 'package:fl_business/fel/models/credencial_model.dart';
+import 'package:fl_business/fel/models/data_infile_model.dart';
+import 'package:fl_business/fel/models/doc_xml_model.dart';
+import 'package:fl_business/fel/models/post_doc_xml_model.dart';
 import 'package:fl_business/models/models.dart';
 import 'package:fl_business/services/services.dart';
+import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:fl_business/widgets/widgets.dart';
@@ -426,6 +437,7 @@ class PaymentConvertViewModel extends ChangeNotifier {
     }
 
     //Proceso doc estructura y FEL
+    processDocument(context);
   }
 
   /**FEL */
@@ -470,17 +482,56 @@ class PaymentConvertViewModel extends ChangeNotifier {
 
   //cinsecutivo para obtener plantilla (impresion)
   int consecutivoDoc = 0;
+  DocEstructuraModel? docGlobal;
+
+  //Mostrar boton para imprimir
+  bool _showPrint = false;
+  bool get showPrint => _showPrint;
+
+  set showPrint(bool value) {
+    _showPrint = value;
+    notifyListeners();
+  }
+
+  int idDocumentoRef = 0;
+
+  //Mostrar boton para imprimir
+  bool _directPrint = Preferences.directPrint;
+  bool get directPrint => _directPrint;
+
+  set directPrint(bool value) {
+    _directPrint = value;
+    Preferences.directPrint = value;
+    notifyListeners();
+  }
+
+  void setIdDocumentoRef() {
+    DateTime date = DateTime.now();
+
+    final random = Random();
+    int numeroAleatorio = 100 + random.nextInt(900); // 100 a 999
+
+    // Combinar los dos números para formar uno de 14 dígitos
+    String combinedStr =
+        numeroAleatorio.toString() +
+        date.day.toString().padLeft(2, '0') +
+        date.month.toString().padLeft(2, '0') +
+        date.year.toString() +
+        date.hour.toString().padLeft(2, '0') +
+        date.minute.toString().padLeft(2, '0') +
+        date.second.toString().padLeft(2, '0');
+
+    // ref id
+    idDocumentoRef = int.parse(combinedStr);
+    notifyListeners();
+  }
 
   //enviar el odcumento
   Future<ApiResModel> sendDocument(BuildContext context) async {
+    setIdDocumentoRef();
     //view models ecternos
 
     // final LocationService vmLocation = Provider.of<LocationService>(
-    //   scaffoldKey.currentContext!,
-    //   listen: false,
-    // );
-
-    // final docVM = Provider.of<DocumentViewModel>(
     //   scaffoldKey.currentContext!,
     //   listen: false,
     // );
@@ -490,10 +541,6 @@ class PaymentConvertViewModel extends ChangeNotifier {
     //   listen: false,
     // );
 
-    // final menuVM = Provider.of<MenuViewModel>(
-    //   scaffoldKey.currentContext!,
-    //   listen: false,
-    // );
     // final localVM = Provider.of<LocalSettingsViewModel>(
     //   scaffoldKey.currentContext!,
     //   listen: false,
@@ -518,7 +565,18 @@ class PaymentConvertViewModel extends ChangeNotifier {
       listen: false,
     );
 
-    final ConvertDocViewModel convertDocVM = Provider.of<ConvertDocViewModel>(
+    final ConvertDocViewModel vmConvert = Provider.of<ConvertDocViewModel>(
+      context,
+      listen: false,
+    );
+
+    final DocumentViewModel docVM = Provider.of<DocumentViewModel>(
+      context,
+      listen: false,
+    );
+
+    //TODO:Validar carga de tipo cambio
+    final MenuViewModel menuVM = Provider.of<MenuViewModel>(
       context,
       listen: false,
     );
@@ -528,19 +586,19 @@ class PaymentConvertViewModel extends ChangeNotifier {
     String token = loginVM.token;
 
     //valores necesarios para el docuemento
-    int? cuentaVendedor = destino.docVM.cuentasCorrentistasRef.isEmpty
-        ? null
-        : docVM.vendedorSelect!.cuentaCorrentista;
-    int cuentaCorrentisata = docVM.clienteSelect!.cuentaCorrentista;
-    String cuentaCta = docVM.clienteSelect!.cuentaCta;
-    int tipoDocumento = menuVM.documento!;
-    String serieDocumento = docVM.serieSelect!.serieDocumento!;
-    int empresa = localVM.selectedEmpresa!.empresa;
-    int estacion = localVM.selectedEstacion!.estacionTrabajo;
-    List<AmountModel> amounts = paymentVM.amounts;
-    List<TraInternaModel> products = detailsVM.traInternas;
+    int? cuentaVendedor = origen?.cuentaCorrentistaRef;
+    int cuentaCorrentisata = origen!.cuentaCorrentista!;
+    String cuentaCta = origen!.cuentaCta!;
+    int tipoDocumento = destino!.fTipoDocumento;
+    String serieDocumento = destino!.fSerieDocumento;
+    int empresa = destino!.fEmpresa;
+    int estacion = origen!.estacionTrabajo; //TODO:Confirmar datos
 
     final ProductService productService = ProductService();
+
+    List<DetailOriginDocInterModel> products = vmConvert.detailsOrigin
+        .where((elemento) => elemento.checked)
+        .toList();
 
     //validar transaccionnes
     for (var item in products) {
@@ -548,26 +606,27 @@ class PaymentConvertViewModel extends ChangeNotifier {
       ApiResModel resDisponibiladProducto = await productService
           .getValidaProducto(
             user,
-            docVM.serieSelect!.serieDocumento!,
-            menuVM.documento!,
-            localVM.selectedEstacion!.estacionTrabajo,
-            localVM.selectedEmpresa!.empresa,
-            item.bodega!.bodega,
-
-            item.tipoTransaccion!,
-            item.producto.unidadMedida,
-            item.producto.producto,
-            item.cantidad,
-            menuVM.tipoCambio.toInt(),
-            item.precio!.moneda,
-            item.precio!.id,
+            destino!.fSerieDocumento,
+            destino!.fTipoDocumento, //TODO:Confirmar datos
+            origen!.estacionTrabajo, //TODO:Confirmar datos
+            destino!.fEmpresa,
+            item.detalle.bodega,
+            // item.tipoTransaccion!, //TODO:NO esta en el modelo
+            1, //TODO:NO esta en el modelo
+            item.detalle.unidadMedida,
+            item.detalle.producto,
+            item.detalle.cantidad.toInt(),
+            menuVM.tipoCambio.toInt(), //TODO:No esta en el modelo
+            // item.precio!.moneda, //TODO:NO esta en el modelo
+            1, //TODO:NO esta en el modelo
+            item.detalle.tipoPrecio,
             token,
-            docVM.clienteSelect!.cuentaCorrentista,
-            docVM.clienteSelect!.cuentaCta,
+            origen!.cuentaCorrentista!,
+            origen!.cuentaCta!,
             docVM.fechaInicial,
             docVM.fechaFinal,
-            item.cantidad * item.precio!.precioU,
-            item.total,
+            item.detalle.monto,
+            total,
           );
 
       if (!resDisponibiladProducto.succes) {
@@ -575,7 +634,7 @@ class PaymentConvertViewModel extends ChangeNotifier {
 
         //si algo salio mal mostrar alerta
         await NotificationService.showErrorView(
-          scaffoldKey.currentContext!,
+          context,
           resDisponibiladProducto,
         );
 
@@ -583,7 +642,7 @@ class PaymentConvertViewModel extends ChangeNotifier {
           typeError: 1,
           succes: false,
           response: AppLocalizations.of(
-            scaffoldKey.currentContext!,
+            context,
           )!.translate(BlockTranslate.notificacion, 'errorValidarProducto'),
           url: resDisponibiladProducto.url,
           storeProcedure: resDisponibiladProducto.storeProcedure,
@@ -608,12 +667,11 @@ class PaymentConvertViewModel extends ChangeNotifier {
         isLoading = false;
 
         ValidateProductModel validacion = ValidateProductModel(
-          sku: item.producto.productoId,
-          productoDesc: item.producto.desProducto,
-          bodega: "${item.bodega!.nombre} (${item.bodega!.bodega})",
-          tipoDoc: "${menuVM.name} (${menuVM.documento!})",
-          serie:
-              "${docVM.serieSelect!.descripcion!} (${docVM.serieSelect!.serieDocumento!})",
+          sku: item.detalle.producto.toString(),
+          productoDesc: item.detalle.productoDescripcion,
+          bodega: "${item.detalle.bodegaDescripcion} (${item.detalle.bodega})",
+          tipoDoc: "${destino!.fTipoDocumento}",
+          serie: destino!.fSerieDocumento,
           mensajes: mensajes,
         );
 
@@ -621,16 +679,13 @@ class PaymentConvertViewModel extends ChangeNotifier {
         validaciones.add(validacion);
 
         //aqui abre un dialogo con notificacion
-        await NotificationService.showMessageValidations(
-          scaffoldKey.currentContext!,
-          validaciones,
-        );
+        await NotificationService.showMessageValidations(context, validaciones);
 
         return ApiResModel(
           typeError: 1,
           succes: false,
           response: AppLocalizations.of(
-            scaffoldKey.currentContext!,
+            context,
           )!.translate(BlockTranslate.notificacion, 'errorValidarProducto'),
           url: resDisponibiladProducto.url,
           storeProcedure: resDisponibiladProducto.storeProcedure,
@@ -655,86 +710,84 @@ class PaymentConvertViewModel extends ChangeNotifier {
       final List<DocTransaccion> cargos = [];
       final List<DocTransaccion> descuentos = [];
 
-      for (var operacion in transaction.operaciones) {
-        //Cargo
-        if (operacion.cargo != 0) {
-          consectivo++;
-          cargos.add(
-            DocTransaccion(
-              traMontoDias: null,
-              traObservacion: null,
-              dConsecutivoInterno: firstPart,
-              traConsecutivoInterno: consectivo,
-              traConsecutivoInternoPadre: padre,
-              traBodega: transaction.bodega!.bodega,
-              traProducto: transaction.producto.producto,
-              traUnidadMedida: transaction.producto.unidadMedida,
-              traCantidad: 0,
-              traTipoCambio: menuVM.tipoCambio,
-              traMoneda: transaction.precio!.moneda,
-              traTipoPrecio: transaction.precio!.precio
-                  ? transaction.precio!.id
-                  : null,
-              traFactorConversion: !transaction.precio!.precio
-                  ? transaction.precio!.id
-                  : null,
-              traTipoTransaccion: transaction.tipoTransaccion!,
-              traMonto: operacion.cargo,
-            ),
-          );
-        }
+      // for (var operacion in transaction.operaciones) {
+      //   //Cargo
+      //   if (operacion.cargo != 0) {
+      //     consectivo++;
+      //     cargos.add(
+      //       DocTransaccion(
+      //         traMontoDias: null,
+      //         traObservacion: null,
+      //         dConsecutivoInterno: firstPart,
+      //         traConsecutivoInterno: consectivo,
+      //         traConsecutivoInternoPadre: padre,
+      //         traBodega: transaction.bodega!.bodega,
+      //         traProducto: transaction.producto.producto,
+      //         traUnidadMedida: transaction.producto.unidadMedida,
+      //         traCantidad: 0,
+      //         traTipoCambio: menuVM.tipoCambio,
+      //         traMoneda: transaction.precio!.moneda,
+      //         traTipoPrecio: transaction.precio!.precio
+      //             ? transaction.precio!.id
+      //             : null,
+      //         traFactorConversion: !transaction.precio!.precio
+      //             ? transaction.precio!.id
+      //             : null,
+      //         traTipoTransaccion: transaction.tipoTransaccion!,
+      //         traMonto: operacion.cargo,
+      //       ),
+      //     );
+      //   }
 
-        //Descuento
-        if (operacion.descuento != 0) {
-          consectivo++;
+      //   //Descuento
+      //   if (operacion.descuento != 0) {
+      //     consectivo++;
 
-          descuentos.add(
-            DocTransaccion(
-              traMontoDias: null,
-              traObservacion: null,
-              dConsecutivoInterno: firstPart,
-              traConsecutivoInterno: consectivo,
-              traConsecutivoInternoPadre: padre,
-              traBodega: transaction.bodega!.bodega,
-              traProducto: transaction.producto.producto,
-              traUnidadMedida: transaction.producto.unidadMedida,
-              traCantidad: 0,
-              traTipoCambio: menuVM.tipoCambio,
-              traMoneda: transaction.precio!.moneda,
-              traTipoPrecio: transaction.precio!.precio
-                  ? transaction.precio!.id
-                  : null,
-              traFactorConversion: !transaction.precio!.precio
-                  ? transaction.precio!.id
-                  : null,
-              traTipoTransaccion: transaction.tipoTransaccion!,
-              traMonto: operacion.descuento,
-            ),
-          );
-        }
-      }
+      //     descuentos.add(
+      //       DocTransaccion(
+      //         traMontoDias: null,
+      //         traObservacion: null,
+      //         dConsecutivoInterno: firstPart,
+      //         traConsecutivoInterno: consectivo,
+      //         traConsecutivoInternoPadre: padre,
+      //         traBodega: transaction.bodega!.bodega,
+      //         traProducto: transaction.producto.producto,
+      //         traUnidadMedida: transaction.producto.unidadMedida,
+      //         traCantidad: 0,
+      //         traTipoCambio: menuVM.tipoCambio,
+      //         traMoneda: transaction.precio!.moneda,
+      //         traTipoPrecio: transaction.precio!.precio
+      //             ? transaction.precio!.id
+      //             : null,
+      //         traFactorConversion: !transaction.precio!.precio
+      //             ? transaction.precio!.id
+      //             : null,
+      //         traTipoTransaccion: transaction.tipoTransaccion!,
+      //         traMonto: operacion.descuento,
+      //       ),
+      //     );
+      //   }
+      // }
 
       transactions.add(
         DocTransaccion(
-          traObservacion: transaction.observacion,
+          traObservacion: "", //TODO:No esta en el modelo
           dConsecutivoInterno: firstPart,
           traConsecutivoInterno: padre,
           traConsecutivoInternoPadre: null,
-          traBodega: transaction.bodega!.bodega,
-          traProducto: transaction.producto.producto,
-          traUnidadMedida: transaction.producto.unidadMedida,
-          traCantidad: transaction.cantidad,
-          traTipoCambio: menuVM.tipoCambio,
-          traMoneda: transaction.precio!.moneda,
-          traTipoPrecio: transaction.precio!.precio
-              ? transaction.precio!.id
-              : null,
-          traFactorConversion: !transaction.precio!.precio
-              ? transaction.precio!.id
-              : null,
-          traTipoTransaccion: transaction.tipoTransaccion!,
-          traMonto: transaction.total,
-          traMontoDias: transaction.precioDia,
+          traBodega: transaction.detalle.bodega,
+          traProducto: transaction.detalle.producto,
+          traUnidadMedida: transaction.detalle.unidadMedida,
+          traCantidad: transaction.detalle.cantidad.toInt(),
+          traTipoCambio: menuVM.tipoCambio, //TODO:No esta en el modelo
+          // traMoneda: transaction.precio!.moneda, //TODO:No esta en el modelo
+          traMoneda: 1, //TODO:No esta en el modelo
+          traTipoPrecio: transaction.detalle.tipoPrecio,
+          traFactorConversion: null, //TODO:No esta en el modelo
+          // traTipoTransaccion: transaction.tipoTransaccion!, //TODO:No esta en el modelo
+          traTipoTransaccion: 1, //TODO:No esta en el modelo
+          traMonto: transaction.detalle.monto,
+          traMontoDias: 0, //TODO:Calcular si ecotizacion (Alfa y Omega)
         ),
       );
 
@@ -788,10 +841,10 @@ class PaymentConvertViewModel extends ChangeNotifier {
       docComanda: null,
       docMesa: null,
       docUbicacion: null,
-      docLatitud: vmLocation.latitutd,
-      docLongitud: vmLocation.longitud,
+      docLatitud: "", //TODO: Obtener latitud
+      docLongitud: "", //TODO: Obtener longitud
       consecutivoInterno: firstPart,
-      docTraMonto: detailsVM.total,
+      docTraMonto: total,
       docCaMonto: totalCA,
       docIdCertificador: 1, //TODO: Agrgar certificador
       docCuentaVendedor: cuentaVendedor,
@@ -810,35 +863,22 @@ class PaymentConvertViewModel extends ChangeNotifier {
       docEmpresa: empresa,
       docEstacionTrabajo: estacion,
       docUserName: user,
-      docObservacion1: observacion.text,
+      docObservacion1: origen!.observacion1 ?? "",
       docTipoPago: 1, //TODO: preguntar
-      docElementoAsignado: docVM.valueParametro(259)
-          ? elVM.elemento!.elementoAsignado
-          : null,
+      docElementoAsignado: null, //TODO: Agregar elemento asignado
       docTransaccion: transactions,
       docCargoAbono: payments,
-      docRefTipoReferencia: docVM.valueParametro(58)
-          ? docVM.referenciaSelect?.tipoReferencia
-          : null, //TODO:Si es ilgua buscar en otra parte
-      docFechaIni: docVM.valueParametro(44) ? docVM.fechaInicial : null,
-      docFechaFin: docVM.valueParametro(44) ? docVM.fechaFinal : null,
-      docRefFechaIni: docVM.valueParametro(381) ? docVM.fechaRefIni : null,
-      docRefFechaFin: docVM.valueParametro(382) ? docVM.fechaRefFin : null,
-      docRefObservacion: docVM.valueParametro(383)
-          ? docVM.refObservacionParam384.text
-          : null,
-      docRefDescripcion: docVM.valueParametro(384)
-          ? docVM.refDescripcionParam383.text
-          : null,
-      docRefObservacion2: docVM.valueParametro(385)
-          ? docVM.refContactoParam385.text
-          : null,
-      docRefObservacion3: docVM.valueParametro(386)
-          ? docVM.refDirecEntregaParam386.text
-          : null,
-      docReferencia: docVM.valueParametro(58)
-          ? refVM.referencia!.referencia
-          : null,
+      docRefTipoReferencia:
+          origen!.tipoReferencia, //TODO:Si es ilgua buscar en otra parte
+      docFechaIni: origen!.fechaIni,
+      docFechaFin: origen!.fechaFin,
+      docRefFechaIni: origen!.referenciaDFechaIni,
+      docRefFechaFin: origen!.referenciaDFechaFin,
+      docRefObservacion: origen!.referenciaDObservacion,
+      docRefDescripcion: origen!.referenciaDDescripcion,
+      docRefObservacion2: origen!.referenciaDObservacion2,
+      docRefObservacion3: origen!.referenciaDObservacion3,
+      docReferencia: origen!.referencia, //TODO: Validar referencia
     );
 
     //objeto enviar documento
@@ -855,6 +895,416 @@ class PaymentConvertViewModel extends ChangeNotifier {
     ApiResModel res = await documentService.postDocument(document, token);
 
     return res;
+  }
+
+  //certificar DTE (Servicios del certificador)
+  Future<ApiResModel> certDTE(BuildContext context) async {
+    //Proveedor de datos externo
+    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+
+    //usuario token y cadena de conexion
+    int empresa = destino!.fEmpresa;
+    String user = loginVM.user;
+    String token = loginVM.token;
+    String uuid = "";
+    String apiUse = "";
+    int certificador = 1; //TODO:parametrizar
+
+    //Servicio para documentos
+
+    final FelService felService = FelService();
+
+    //Obtener plantilla xml para certificar
+    ApiResModel resXmlDoc = await felService.getDocXml(
+      user,
+      token,
+      consecutivoDoc,
+    );
+
+    //Si el api falló
+    if (!resXmlDoc.succes) return resXmlDoc;
+
+    //plantilla del documento
+    List<DocXmlModel> docs = resXmlDoc.response;
+
+    //si no se encuntra el documento
+    if (docs.isEmpty) {
+      return ApiResModel(
+        typeError: 1,
+        succes: false,
+        response: AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'noDispoDocCert'),
+        url: "",
+        storeProcedure: null,
+      );
+    }
+
+    //Docuemnto que se va a usar
+    DocXmlModel docXMl = docs.first;
+    uuid = docXMl.dIdUnc;
+    //Certificador del que se obtiene el token
+
+    //obtner credenciales
+    ApiResModel resCredenciales = await felService.getCredenciales(
+      certificador,
+      empresa,
+      user,
+      token,
+    );
+
+    //Si el api falló
+    if (!resCredenciales.succes) return resCredenciales;
+
+    //Credenciales encontradas
+    List<CredencialModel> credenciales = resCredenciales.response;
+
+    //Si se quiere certificar un documento buscar el api que se va a usar
+    for (var credencial in credenciales) {
+      if (credencial.campoNombre == 'apiUnificadaInfile') {
+        //econtrar api en catalogo api (identificador)
+        apiUse = credencial.campoValor;
+        break;
+      }
+    }
+
+    //si no se encpntró el api que se va a usar mostrar alerta
+    if (apiUse.isEmpty) {
+      return ApiResModel(
+        typeError: 1,
+        succes: false,
+        response: AppLocalizations.of(
+          context,
+        )!.translate(BlockTranslate.notificacion, 'noDispoServiProceDoc'),
+        url: "",
+        storeProcedure: null,
+      );
+    }
+
+    String llaveApi = "";
+    String llaveFirma = "";
+    String usuarioApi = "";
+    String usuarioFirma = "";
+
+    for (var i = 0; i < credenciales.length; i++) {
+      final CredencialModel credencial = credenciales[i];
+
+      switch (credencial.campoNombre) {
+        case "LlaveApi":
+          llaveApi = credencial.campoValor;
+
+          break;
+        case "LlaveFirma":
+          llaveFirma = credencial.campoValor;
+          break;
+
+        case "UsuarioApi":
+          usuarioApi = credencial.campoValor;
+          break;
+        case "UsuarioFirma":
+          usuarioFirma = credencial.campoValor;
+          break;
+        default:
+          break;
+      }
+    }
+
+    final DataInfileModel paramFel = DataInfileModel(
+      usuarioFirma: usuarioFirma,
+      llaveFirma: llaveFirma,
+      usuarioApi: usuarioApi,
+      llaveApi: llaveApi,
+      identificador: uuid,
+      docXml: docXMl.xmlContenido,
+      //       docXml:
+      //           """<dte:GTDocumento xmlns:dte="http://www.sat.gob.gt/dte/fel/0.2.0" Version="0.1">
+      //   <dte:SAT ClaseDocumento="dte">
+      //     <dte:DTE ID="DatosCertificados">
+      //       <dte:DatosEmision ID="DatosEmision">
+      //         <dte:DatosGenerales CodigoMoneda="GTQ" FechaHoraEmision="2024-06-03T02:53:51.000-06:00" Tipo="FCAM" />
+      //         <dte:Emisor AfiliacionIVA="GEN" CodigoEstablecimiento="1" CorreoEmisor="" NITEmisor="9300000118K" NombreComercial="TEXAS MUEBLES Y MAS" NombreEmisor="CORPORACION NR, SOCIEDAD ANONIMA">
+      //           <dte:DireccionEmisor>
+      //             <dte:Direccion>4 AVENIDA 5-99 ZONA 1</dte:Direccion>
+      //             <dte:CodigoPostal>010020</dte:CodigoPostal>
+      //             <dte:Municipio>SANTA LUCIA COTZULMALGUAPA</dte:Municipio>
+      //             <dte:Departamento>ESCUINTLA</dte:Departamento>
+      //             <dte:Pais>GT</dte:Pais>
+      //           </dte:DireccionEmisor>
+      //         </dte:Emisor>
+      //         <dte:Receptor CorreoReceptor="" IDReceptor="2768220480502" NombreReceptor="MELVIN DANIEL ,SOMA MÉNDEZ" TipoEspecial="CUI">
+      //           <dte:DireccionReceptor>
+      //             <dte:Direccion>Ciudad</dte:Direccion>
+      //             <dte:CodigoPostal>01007</dte:CodigoPostal>
+      //             <dte:Municipio>Guatemala</dte:Municipio>
+      //             <dte:Departamento>Guatemala</dte:Departamento>
+      //             <dte:Pais>GT</dte:Pais>
+      //           </dte:DireccionReceptor>
+      //         </dte:Receptor>
+      //         <dte:Frases>
+      //           <dte:Frase CodigoEscenario="1" TipoFrase="1" />
+      //         </dte:Frases>
+      //         <dte:Items>
+      //           <dte:Item NumeroLinea="1" BienOServicio="B">
+      //             <dte:Cantidad>1.0000</dte:Cantidad>
+      //             <dte:UnidadMedida>UND</dte:UnidadMedida>
+      //             <dte:Descripcion>457224|TELEFONO SAMSUNG GALAXY A34 457224RFCWA0SDV8Y     IMEI1: 350350681547282 IMEI2:351525681547288</dte:Descripcion>
+      //             <dte:PrecioUnitario>2200.0000</dte:PrecioUnitario>
+      //             <dte:Precio>2200.0000</dte:Precio>
+      //             <dte:Descuento>0</dte:Descuento>
+      //             <dte:Impuestos>
+      //               <dte:Impuesto>
+      //                 <dte:NombreCorto>IVA</dte:NombreCorto>
+      //                 <dte:CodigoUnidadGravable>1</dte:CodigoUnidadGravable>
+      //                 <dte:MontoGravable>1964.29</dte:MontoGravable>
+      //                 <dte:MontoImpuesto>235.7143</dte:MontoImpuesto>
+      //               </dte:Impuesto>
+      //             </dte:Impuestos>
+      //             <dte:Total>2200.0000</dte:Total>
+      //           </dte:Item>
+      //         </dte:Items>
+      //         <dte:Totales>
+      //           <dte:TotalImpuestos>
+      //             <dte:TotalImpuesto NombreCorto="IVA" TotalMontoImpuesto="235.7143" />
+      //           </dte:TotalImpuestos>
+      //           <dte:GranTotal>2200.0000</dte:GranTotal>
+      //         </dte:Totales>
+      //         <dte:Complementos>
+      //           <dte:Complemento IDComplemento="Cambiaria" NombreComplemento="Cambiaria" URIComplemento="http://www.sat.gob.gt/fel/cambiaria.xsd">
+      //             <cfc:AbonosFacturaCambiaria xmlns:cfc="http://www.sat.gob.gt/dte/fel/CompCambiaria/0.1.0" Version="1">
+      //               <cfc:Abono>
+      //                 <cfc:NumeroAbono>1</cfc:NumeroAbono>
+      //                 <cfc:FechaVencimiento>2024-03-29</cfc:FechaVencimiento>
+      //                 <cfc:MontoAbono>2200.00</cfc:MontoAbono>
+      //               </cfc:Abono>
+      //             </cfc:AbonosFacturaCambiaria>
+      //           </dte:Complemento>
+      //         </dte:Complementos>
+      //       </dte:DatosEmision>
+      //     </dte:DTE>
+      //   </dte:SAT>
+      // </dte:GTDocumento>""",
+    );
+
+    final ApiResModel resCertDoc = await felService.postInfile(
+      apiUse,
+      paramFel,
+      token,
+    );
+
+    if (!resCertDoc.succes) return resCertDoc;
+
+    final dynamic doc = resCertDoc.response;
+
+    final PostDocXmlModel paramUpdate = PostDocXmlModel(
+      usuario: user,
+      documento: doc,
+      uuid: uuid,
+      documentoCompleto: doc,
+    );
+
+    final ApiResModel resUpdateXml = await felService.postXmlUpdate(
+      token,
+      paramUpdate,
+    );
+
+    if (!resUpdateXml.succes) return resUpdateXml;
+
+    final List<DataFelModel> dataFel = resUpdateXml.response;
+
+    if (dataFel.isNotEmpty) {
+      final DataFelModel fel = dataFel.first;
+
+      DateTime fechaAnt = fel.fechaHoraCertificacion;
+
+      String strDate =
+          "${fechaAnt.day}/${fechaAnt.month}/${fechaAnt.year} "
+          "${fechaAnt.hour}:${fechaAnt.minute}:${fechaAnt.second}";
+
+      docGlobal!.docFelSerie = fel.serieDocumento;
+      docGlobal!.docFelUUID = fel.numeroAutorizacion;
+      docGlobal!.docFelFechaCertificacion = strDate;
+      docGlobal!.docFelNumeroDocumento = fel.numeroDocumento;
+
+      final PostDocumentModel estructuraupdate = PostDocumentModel(
+        estructura: docGlobal!.toJson(),
+        user: user,
+        estado: 11,
+      );
+
+      final DocumentService documentService = DocumentService();
+
+      final ApiResModel resUpdateEstructura = await documentService
+          .updateDocument(estructuraupdate, token, consecutivoDoc);
+
+      if (!resUpdateEstructura.succes) {
+        NotificationService.showSnackbar(
+          "No se pudo actalizar documento estructura",
+        );
+      }
+    } else {
+      NotificationService.showSnackbar("No se obtieron los datos FEL");
+    }
+
+    return ApiResModel(
+      typeError: 1,
+      succes: true,
+      response: AppLocalizations.of(
+        context,
+      )!.translate(BlockTranslate.notificacion, 'docCertificado'),
+      storeProcedure: null,
+      url: "",
+    );
+  }
+
+  //Navgar a pantalla de impresion
+  Future<void> navigatePrint(BuildContext context) async {
+    final DocumentoViewModel docsVm = Provider.of<DocumentoViewModel>(
+      context,
+      listen: false,
+    );
+
+    final DocumentViewModel docVm = Provider.of<DocumentViewModel>(
+      context,
+      listen: false,
+    );
+
+    final FacturaProvider facturaProvider = FacturaProvider();
+
+    final FacturaTMU facturaTMU = FacturaTMU();
+
+    isLoading = true;
+
+    //cragar datos del reporte
+    bool loadData = await facturaProvider.loaData(context, consecutivoDoc);
+
+    isLoading = false;
+    if (!loadData) return;
+
+    await facturaTMU.getReport(context);
+
+    //TODO: Validar si se regresa a la pantalla de documentos o se queda en la de impresion
+    // if (docVm.valueParametro(48)) {
+    //   docsVm.backTabs(context);
+    // }
+  }
+
+  //Volver a certificar
+  Future<void> reloadCert(BuildContext context) async {
+    //cargar paso en pantalla d carga
+    steps[1].isLoading = true;
+    steps[1].status = 1;
+
+    notifyListeners();
+
+    //iniciar proceso
+    ApiResModel felProcces = await certDTE(context);
+
+    //No se completo el proceso fel
+    if (!felProcces.succes) {
+      //parar proceso
+      steps[1].isLoading = false;
+      steps[1].status = 3;
+
+      //verificar tipo de error
+      if (felProcces.typeError == 1) {
+        //mensaje de error
+        error = felProcces.response;
+        viewMessage = true;
+      } else {
+        //si es necesario pantalla de error
+        errorView = ErrorModel(
+          date: DateTime.now(),
+          description: felProcces.response.toString(),
+          url: felProcces.url,
+          storeProcedure: felProcces.storeProcedure,
+        );
+
+        //ver mensaje de error
+        viewError = true;
+      }
+
+      //ver botones de error
+      viewErrorFel = true;
+
+      notifyListeners();
+
+      return;
+    }
+
+    //se completo el proceso fel
+    //actualizar status del paso
+    for (var step in steps) {
+      step.isLoading = false;
+      step.status = 2;
+    }
+
+    stepsSucces++;
+
+    //boton proceso correto
+    isLoadingDTE = false;
+    showPrint = true;
+
+    if (directPrint) {
+      // if (screen == 1) {
+      navigatePrint(context);
+      // } else {
+      // printNetwork(context);
+      // }
+    }
+    notifyListeners();
+  }
+
+  //Immprimir sin firma fel
+  printWithoutFel(BuildContext context) async {
+    //Proveedor de datos externo
+    final loginVM = Provider.of<LoginViewModel>(context, listen: false);
+
+    String user = loginVM.user;
+    String token = loginVM.token;
+
+    //finalizar proceso
+    isLoadingDTE = false;
+    //Mostrar boton para imprimir
+    showPrint = true;
+    //boton proceso correto
+
+    //TODO:Actaulizar estado
+
+    final PostDocumentModel estructuraupdate = PostDocumentModel(
+      estructura: docGlobal!.toJson(),
+      user: user,
+      estado: 11,
+    );
+
+    final DocumentService documentService = DocumentService();
+
+    isLoading = true;
+
+    final ApiResModel resUpdateEstructura = await documentService
+        .updateDocument(estructuraupdate, token, consecutivoDoc);
+
+    isLoading = false;
+
+    if (!resUpdateEstructura.succes) {
+      NotificationService.showSnackbar(
+        "No se pudo actalizar documento estructura",
+      );
+
+      return;
+    }
+
+    if (directPrint) {
+      // if (screen == 1) {
+      navigatePrint(context);
+      // } else {
+      // printNetwork(context);
+      // }
+    }
+  }
+
+  //Ir a la pantalla de error
+  navigateError(BuildContext context) {
+    Navigator.pushNamed(context, "error", arguments: errorView);
   }
 
   Future<void> processDocument(BuildContext context) async {
@@ -880,7 +1330,7 @@ class PaymentConvertViewModel extends ChangeNotifier {
     isLoadingDTE = true;
 
     //Enviar documento a demosoft
-    ApiResModel sendProcess = await sendDocument();
+    ApiResModel sendProcess = await sendDocument(context);
 
     //Verificar si el documento se creo
     if (!sendProcess.succes) {
@@ -967,7 +1417,7 @@ class PaymentConvertViewModel extends ChangeNotifier {
 
     if (directPrint) {
       // if (screen == 1) {
-      navigatePrint();
+      navigatePrint(context);
       // } else {
       // printNetwork(context);
       // }
