@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/report/reports/pdf/utilities_pdf.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
+import 'package:fl_business/displays/tablero_kanban/models/usuario_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
@@ -811,6 +812,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       final vm = context.read<InicioVehiculosViewModel>();
       final fechas = (vm.getTextParam(44) ?? '').split(',');
       final placa = vm.recepcionGuardada?.placa ?? 'SIN_PLACA';
+      final user = Provider.of<LoginViewModel>(context, listen: false).user;
 
       final pdf = pw.Document();
       final imagenVehiculoPdf = await _cargarImagenPdf(context);
@@ -867,19 +869,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               'Fecha: ${Utilities.formatearFechaHora(fechaActual)}',
               'Serie: ${vm.serieSelect?.descripcion ?? '-'} (${vm.serieSelect?.serieDocumento ?? '—'})',
               'ID Doc: $consecutivoDoc',
+              'Usuario ${user.toUpperCase()}',
             ],
           ),
           footer: (context) => UtilitiesPdf.buildFooter(
             logoDemo, //  ByteData original (NO logoBytes)
             context,
-            ' ', //  aquí tu storeProcedure
+            ' ', //
           ),
 
           build: (_) => [
             pw.SizedBox(height: 10),
             pw.SizedBox(height: 10),
 
-            // ===================== ENCABEZADO =====================
             // ===================== INFORMACIÓN DEL CLIENTE =====================
             pw.Text(
               'INFORMACION DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
@@ -1257,6 +1259,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     pw.Text(
                       'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')}',
                     ),
+                    pw.Text(vm.vendedorSelect?.nomCuentaCorrentista ?? ''),
                   ],
                 ),
                 pw.Column(
@@ -1273,6 +1276,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     pw.Text(
                       'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
                     ),
+                    pw.Text(vm.clienteSelect?.facturaNombre ?? ''),
                   ],
                 ),
               ],

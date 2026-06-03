@@ -54,7 +54,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('¿Estás seguro de abandonar?'),
+          title: const Text('¿Estás seguro de realizar esta acción?'),
           content: const Text('Se perderán los datos ingresados.'),
           actions: [
             TextButton(
@@ -64,7 +64,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
             ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
               child: const Text(
-                'Sí, salir',
+                'Sí, estoy seguro',
                 style: TextStyle(color: Colors.white),
               ),
             ),
@@ -200,11 +200,16 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                   )!.translate(BlockTranslate.botones, 'cancelar'),
 
                   onPressed: () async {
-                    final itemsVM = context.read<ItemsVehiculoViewModel>();
-                    await itemsVM.limpiarDatosItems();
+                    final confirmar = await _mostrarConfirmacionSalir(context);
 
-                    vm.cancelar();
-                    elVM.cancelar();
+                    if (confirmar == true) {
+                      final itemsVM = context.read<ItemsVehiculoViewModel>();
+
+                      await itemsVM.limpiarDatosItems();
+
+                      vm.cancelar();
+                      elVM.cancelar();
+                    }
                   },
                 ),
                 IconButton(
