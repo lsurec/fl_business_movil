@@ -622,6 +622,16 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                       _buildTipoVehiculoDropdown(context),
                     ],
                   ),
+
+                  const SizedBox(height: 10),
+                  const Divider(),
+                  // 🔹 Sección Datos del Vehículo 🔹
+                  _buildModernSection(
+                    title:
+                        "${t.translate(BlockTranslate.vehiculos, 'datosVehiculo')} ${vm.getTextParam(136) ?? 'VEHÍCULO'}",
+                    icon: Icons.directions_car_outlined,
+                    children: [_buildTabsVehiculo(context, vm)],
+                  ),
                   const SizedBox(height: 10),
                   const Divider(),
                   if (vm.valueParametro(57)) ...[
@@ -773,13 +783,7 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                   ],
                   const SizedBox(height: 10),
                   const Divider(),
-                  // 🔹 Sección Datos del Vehículo 🔹
-                  _buildModernSection(
-                    title:
-                        "${t.translate(BlockTranslate.vehiculos, 'datosVehiculo')} ${vm.getTextParam(136) ?? 'VEHÍCULO'}",
-                    icon: Icons.directions_car_outlined,
-                    children: [_buildTabsVehiculo(context, vm)],
-                  ),
+                  const SizedBox(height: 10),
 
                   // 🔹 Sección Detalle del Trabajo 🔹
                   _buildModernSection(
@@ -1291,26 +1295,6 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
           ),
           const SizedBox(height: 20),
         ],
-
-        //  Observación 2 (DEFAULT)
-        // 🔹 Observación 1
-        if (vm.valueParametro(59)) ...[
-          Text(
-            vm.getTextParam(59) ?? 'Observación 1',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xff134895),
-            ),
-          ),
-          const Divider(thickness: 1, height: 20, color: Color(0xFFE0E0E0)),
-          _buildTextField(
-            vm.getTextParam(59) ?? 'Observación 1',
-            vm.observacion1Controller,
-          ),
-          const SizedBox(height: 20),
-        ],
-
         // 🔹 Observación 2
         if (vm.valueParametro(60)) ...[
           Text(
