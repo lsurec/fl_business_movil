@@ -12,7 +12,7 @@ class CatalogoVehiculosModel {
   final String centimetrosCubicos;
   final String cilindros;
   final String userName;
-  // final int cuentaCorrentista;
+  final int cuentaCorrentista;
 
   CatalogoVehiculosModel({
     required this.descripcion,
@@ -28,7 +28,7 @@ class CatalogoVehiculosModel {
     required this.centimetrosCubicos,
     required this.cilindros,
     required this.userName,
-    // required this.cuentaCorrentista,
+    required this.cuentaCorrentista,
   });
 
   Map<String, dynamic> toJson() {
@@ -44,7 +44,7 @@ class CatalogoVehiculosModel {
       'cilindros': cilindros,
       'empresa': empresa,
       'userName': userName,
-      // 'cuentaCorrentista': cuentaCorrentista,
+      'cuentaCorrentista': cuentaCorrentista,
     };
 
     if (modeloFecha != null) {

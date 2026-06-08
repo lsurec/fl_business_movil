@@ -962,7 +962,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         centimetrosCubicos: ccController.text.trim(),
         cilindros: cilController.text.trim(),
         userName: user,
-        // cuentaCorrentista: clienteSelect!.cuentaCorrentista,
+        cuentaCorrentista: clienteSelect!.cuentaCorrentista,
       );
 
       await _catalogoVehiculosService.crearVehiculo(

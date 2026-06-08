@@ -634,153 +634,150 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                   ),
                   const SizedBox(height: 10),
                   const Divider(),
-                  if (vm.valueParametro(57)) ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  // if (vm.valueParametro(57)) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        vm.getTextCuenta(context),
+                        style: StyleApp.title.copyWith(color: textColor),
+                      ),
+                      IconButton(
+                        onPressed: () =>
+                            Navigator.pushNamed(context, AppRoutes.addClient),
+                        icon: const Icon(Icons.person_add_outlined),
+                        tooltip: AppLocalizations.of(
+                          context,
+                        )!.translate(BlockTranslate.cuenta, 'nueva'),
+                      ),
+                    ],
+                  ),
+                  if (vm.clienteSelect == null) const SizedBox(height: 20),
+                  // if (vm.clienteSelect == null)
+                  Form(
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    key: vm.formKeyClient,
+                    child: TextFormField(
+                      controller: vm.client,
+                      onFieldSubmitted: (value) =>
+                          vm.performSearchClient(context),
+                      textInputAction: TextInputAction.search,
+                      style: TextStyle(color: textColor),
+                      decoration: InputDecoration(
+                        hintText: vm.getTextCuenta(context),
+                        hintStyle: TextStyle(color: hintColor),
+                        filled: true,
+                        fillColor: cardColor,
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search),
+                          onPressed: () async {
+                            FocusScope.of(context).unfocus();
+
+                            try {
+                              vm.setLoading(true); //  activar loader
+
+                              await vm.performSearchClient(context);
+                            } catch (e) {
+                              print(e);
+                            } finally {
+                              vm.setLoading(false); //  quitar loader
+                            }
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context)!.translate(
+                            BlockTranslate.notificacion,
+                            'requerido',
+                          );
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  if (vm.valueParametro(259))
+                    SwitchListTile(
+                      activeColor: AppTheme.hexToColor(Preferences.valueColor),
+                      contentPadding: EdgeInsets.zero,
+                      value: vm.cf,
+                      onChanged: (value) => vm.changeCF(context, value),
+                      title: Text(
+                        vm.getTextParam(209) ??
+                            AppLocalizations.of(
+                              context,
+                            )!.translate(BlockTranslate.factura, 'factura_cf'),
+                        style: StyleApp.title.copyWith(color: textColor),
+                      ),
+                    ),
+                  if (vm.clienteSelect != null)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          vm.getTextCuenta(context),
-                          style: StyleApp.title.copyWith(color: textColor),
-                        ),
-                        IconButton(
-                          onPressed: () =>
-                              Navigator.pushNamed(context, AppRoutes.addClient),
-                          icon: const Icon(Icons.person_add_outlined),
-                          tooltip: AppLocalizations.of(
-                            context,
-                          )!.translate(BlockTranslate.cuenta, 'nueva'),
-                        ),
-                      ],
-                    ),
-                    if (vm.clienteSelect == null) const SizedBox(height: 20),
-                    // if (vm.clienteSelect == null)
-                    Form(
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      key: vm.formKeyClient,
-                      child: TextFormField(
-                        controller: vm.client,
-                        onFieldSubmitted: (value) =>
-                            vm.performSearchClient(context),
-                        textInputAction: TextInputAction.search,
-                        style: TextStyle(color: textColor),
-                        decoration: InputDecoration(
-                          hintText: vm.getTextCuenta(context),
-                          hintStyle: TextStyle(color: hintColor),
-                          filled: true,
-                          fillColor: cardColor,
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.search),
-                            onPressed: () async {
-                              FocusScope.of(context).unfocus();
-
-                              try {
-                                vm.setLoading(true); //  activar loader
-
-                                await vm.performSearchClient(context);
-                              } catch (e) {
-                                print(e);
-                              } finally {
-                                vm.setLoading(false); //  quitar loader
-                              }
-                            },
-                          ),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppLocalizations.of(context)!.translate(
-                              BlockTranslate.notificacion,
-                              'requerido',
-                            );
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    if (vm.valueParametro(259))
-                      SwitchListTile(
-                        activeColor: AppTheme.hexToColor(
-                          Preferences.valueColor,
-                        ),
-                        contentPadding: EdgeInsets.zero,
-                        value: vm.cf,
-                        onChanged: (value) => vm.changeCF(context, value),
-                        title: Text(
-                          vm.getTextParam(209) ??
-                              AppLocalizations.of(context)!.translate(
-                                BlockTranslate.factura,
-                                'factura_cf',
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "${vm.getTextCuenta(context)} Seleccionado",
+                              style: StyleApp.titlegrey.copyWith(
+                                color: textColor,
                               ),
-                          style: StyleApp.title.copyWith(color: textColor),
+                            ),
+                            if (!vm.cf)
+                              IconButton(
+                                onPressed: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.updateClient,
+                                  arguments: vm.clienteSelect,
+                                ),
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: AppTheme.grey,
+                                ),
+                              ),
+                          ],
                         ),
-                      ),
-                    if (vm.clienteSelect != null)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                        const SizedBox(height: 10),
+                        Text(
+                          vm.clienteSelect!.facturaNit,
+                          style: StyleApp.normal.copyWith(color: textColor),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          vm.clienteSelect!.facturaNombre,
+                          style: StyleApp.normal.copyWith(color: textColor),
+                        ),
+                        if (vm.clienteSelect!.facturaDireccion.isNotEmpty &&
+                            vmFactura.editDoc)
+                          Column(
                             children: [
+                              const SizedBox(height: 10),
                               Text(
-                                "${vm.getTextCuenta(context)} Seleccionado",
-                                style: StyleApp.titlegrey.copyWith(
+                                vm.clienteSelect!.facturaDireccion,
+                                style: StyleApp.normal.copyWith(
                                   color: textColor,
                                 ),
                               ),
-                              if (!vm.cf)
-                                IconButton(
-                                  onPressed: () => Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.updateClient,
-                                    arguments: vm.clienteSelect,
-                                  ),
-                                  icon: Icon(
-                                    Icons.edit_outlined,
-                                    color: AppTheme.grey,
-                                  ),
-                                ),
                             ],
                           ),
-
-                          const SizedBox(height: 10),
-                          Text(
-                            vm.clienteSelect!.facturaNit,
-                            style: StyleApp.normal.copyWith(color: textColor),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            vm.clienteSelect!.facturaNombre,
-                            style: StyleApp.normal.copyWith(color: textColor),
-                          ),
-                          if (vm.clienteSelect!.facturaDireccion.isNotEmpty &&
-                              vmFactura.editDoc)
-                            Column(
-                              children: [
-                                const SizedBox(height: 10),
-                                Text(
-                                  vm.clienteSelect!.facturaDireccion,
-                                  style: StyleApp.normal.copyWith(
-                                    color: textColor,
-                                  ),
+                        if (vm.clienteSelect!.desCuentaCta.isNotEmpty &&
+                            vmFactura.editDoc)
+                          Column(
+                            children: [
+                              const SizedBox(height: 10),
+                              Text(
+                                "(${vm.clienteSelect!.desCuentaCta})",
+                                style: StyleApp.greyText.copyWith(
+                                  color: textColor,
                                 ),
-                              ],
-                            ),
-                          if (vm.clienteSelect!.desCuentaCta.isNotEmpty &&
-                              vmFactura.editDoc)
-                            Column(
-                              children: [
-                                const SizedBox(height: 10),
-                                Text(
-                                  "(${vm.clienteSelect!.desCuentaCta})",
-                                  style: StyleApp.greyText.copyWith(
-                                    color: textColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                  ],
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  // ],
                   const SizedBox(height: 10),
                   const Divider(),
                   const SizedBox(height: 10),
