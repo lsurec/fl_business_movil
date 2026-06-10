@@ -742,8 +742,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       // --------------------
       // Observaciones
       // --------------------
-      docObservacion2: observacion2Controller.text.trim(),
       docObservacion1: observacion1Controller.text.trim(),
+
+      docObservacion2: observacion2Controller.text.trim(),
       docObservacion3: observacion3Controller.text.trim(),
       kilometraje: kilometrajeController.text.trim(),
       cc: ccController.text.trim(),
@@ -1999,6 +2000,11 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void limpiarMarcasVehiculo() {
+    marcasVehiculo.clear();
+    notifyListeners();
+  }
+
   //Docestructura/////////////////////////////////////////////////////////
 
   //enviar el odcumento
@@ -2219,6 +2225,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     if (payments.isEmpty && docVM.printFel()) {
       throw Exception('Documento FEL requiere pagos');
     }
+    print('docCuentaCorrentista: $cuentaCorrentisata');
 
     docGlobal = DocEstructuraModel(
       docVersionApp: SplashViewModel.versionLocal,
@@ -2248,8 +2255,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docEmpresa: empresa,
       docEstacionTrabajo: estacion,
       docUserName: user,
-      docObservacion1: recepcionGuardada?.placa ?? '—',
-      docObservacion2: recepcionGuardada?.docObservacion2,
+      docObservacion1: recepcionGuardada?.docObservacion1 ?? '',
+      docObservacion2: recepcionGuardada?.docObservacion2 ?? '',
+      docObservacion3: recepcionGuardada?.docObservacion3 ?? '',
       docTipoPago: 1,
       docElementoAsignado: elVM.elemento!.elementoAsignado,
       docTransaccion: transactions,
@@ -2323,7 +2331,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     final estructuraJson = docGlobal!.toJson();
 
     // debugPrint('KILOMETRAJE TEST: ${docGlobal!.docKilometrajeMillaje}');
-    // debugPrint('===== DOC ESTRUCTURA JSON =====');
+    debugPrint('===== DOC ESTRUCTURA JSON =====');
     debugPrint(jsonEncode(estructuraJson));
 
     for (var t in itemsVM.transaciciones) {
@@ -2370,21 +2378,15 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   Future<void> sincronizarTransacciones(BuildContext context) async {
     final itemsVM = Provider.of<ItemsVehiculoViewModel>(context, listen: false);
 
-    // print('=== SINCRONIZANDO TRANSAcCIONES ===');
-
-    // 🔹 Verificar que haya transacciones cargadas
     if (itemsVM.transaciciones.isEmpty) {
-      // print('⚠️ Transacciones vacías, cargando...');
       await itemsVM.loadItems(context);
     }
 
-    // 🔹 PRIMERO: Resetear todos a false
     for (var transaccion in itemsVM.transaciciones) {
       transaccion.isChecked = false;
       transaccion.observacion = '';
     }
 
-    // 🔹 SEGUNDO: Marcar solo los que el usuario COMPLETÓ (checkbox marcado)
     int contador = 0;
     for (var item in itemsAsignados) {
       final index = itemsVM.transaciciones.indexWhere(
@@ -2392,22 +2394,31 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       );
 
       if (index != -1) {
-        //  USAR COMPLETADO, NO DETALLE
         if (item.completado) {
           itemsVM.transaciciones[index].isChecked = true;
           itemsVM.transaciciones[index].observacion = item.detalle;
           contador++;
-          print(' ${item.idProducto} - sincronizado (completado=true)');
-        } else {
-          print(' ${item.idProducto} - NO sincronizado (completado=false)');
+          print('${item.idProducto} - sincronizado (completado=true)');
         }
-      } else {
-        print(' ${item.idProducto} - No encontrado en transaciciones');
       }
     }
 
+    print("========== RESUMEN TRANSACCIONES ==========");
+    print("Total transacciones: ${itemsVM.transaciciones.length}");
+
+    for (var t in itemsVM.transaciciones) {
+      print(
+        "Producto: ${t.producto.productoId} | "
+        "Check: ${t.isChecked} | "
+        "Obs: ${t.observacion} | "
+        "Files: ${t.files?.length ?? 0} | "
+        "FilesUpload: ${t.filesUpload?.length ?? 0}",
+      );
+    }
+
+    print("==========================================");
+
     itemsVM.notifyListeners();
-    // print('=== SINCRONIZADAS: $contador transacciones ===');
   }
 
   DateTime? _parseFecha(String? fechaStr) {

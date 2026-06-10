@@ -474,17 +474,19 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                             final itemsVM = context
                                 .read<ItemsVehiculoViewModel>();
 
-                            // Limpiar datos de todos los ViewModels
+                            // Limpiar marcas del vehículo
+                            vm.limpiarMarcasVehiculo();
+
+                            // Limpiar datos de los ViewModels
                             await itemsVM.limpiarDatosItems();
                             vm.cancelar();
                             elVM.cancelar();
 
-                            // Regresar al inicio
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               final navigator = Navigator.of(context);
                               try {
-                                navigator.pop(); // Cierra DatosGuardadosScreen
-                                navigator.pop(); // Cierra ItemsVehiculoScreen
+                                navigator.pop();
+                                navigator.pop();
                               } catch (e) {
                                 print('Error al navegar: $e');
                                 navigator.popUntil((route) => route.isFirst);
@@ -792,6 +794,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       final ByteData logo = await pictureService.getLogo(
         empresa.absolutePathPicture,
       );
+      print("Ruta logo empresa: ${empresa.absolutePathPicture}");
 
       final LocationService locationService = Provider.of<LocationService>(
         context,
@@ -1426,12 +1429,14 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       // await itemsVM.subirTodasLasFotos(context);
 
       await _subirImagenVehiculo(context);
+      print("=== ANTES DE sendDocument ===");
 
       // ================= PASO 3: ENVIAR DOCUMENTO =================
       final res = await vm.sendDocument(context);
-      consecutivoDoc = res.response["data"];
 
       if (res.succes) {
+        consecutivoDoc = res.response["data"];
+
         // ✅ Guardar referencias ANTES de cualquier cambio
         final scaffoldMessenger = ScaffoldMessenger.of(context);
 
@@ -1448,24 +1453,26 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         });
       } else {
         //  ERROR
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              res.response?.toString() ?? ' Error al enviar documento',
-            ),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 4),
-          ),
-        );
+        NotificationService.showErrorView(context, res);
       }
-    } catch (e) {
+    } catch (e, stack) {
+      print("=== ERROR EN _enviarDocumento ===");
+      print(e);
+      print(stack);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(' Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
       );
-    } finally {
+    }
+    // } catch (e) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     SnackBar(
+    //       content: Text(' Error: ${e.toString()}'),
+    //       backgroundColor: Colors.red,
+    //     ),
+    //   );
+    // }
+    finally {
       vm.setLoading(false);
     }
   }
