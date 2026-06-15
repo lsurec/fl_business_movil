@@ -6,6 +6,7 @@ import 'package:fl_business/themes/themes.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/utilities/utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 class ErrorView extends StatelessWidget {
@@ -108,6 +109,63 @@ class ErrorView extends StatelessWidget {
               ),
               Text(error.description),
               const SizedBox(height: 10),
+              if (error.docEstructura != null &&
+                  error.docEstructura!.isNotEmpty) ...[
+                const Divider(),
+                const SizedBox(height: 10),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "JSON enviado:",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(text: error.docEstructura!),
+                        );
+
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('JSON copiado al portapapeles'),
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.copy, size: 18),
+                      label: const Text('Copiar'),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(
+                    error.docEstructura!,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+              ],
               const Divider(),
               Text("Versión: ${SplashViewModel.versionLocal}"),
             ],

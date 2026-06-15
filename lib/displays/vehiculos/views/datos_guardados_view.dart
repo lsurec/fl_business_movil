@@ -1437,13 +1437,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       if (res.succes) {
         consecutivoDoc = res.response["data"];
 
-        // ✅ Guardar referencias ANTES de cualquier cambio
+        //  Guardar referencias ANTES de cualquier cambio
         final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-        // ✅ Mostrar mensaje (usando la referencia guardada)
+        //  Mostrar mensaje (usando la referencia guardada)
         scaffoldMessenger.showSnackBar(
           const SnackBar(
-            content: Text('✅ Documento enviado correctamente'),
+            content: Text(' Documento enviado correctamente'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 2),
           ),
@@ -1453,7 +1453,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
         });
       } else {
         //  ERROR
-        NotificationService.showErrorView(context, res);
+        NotificationService.showErrorView(
+          context,
+          res,
+          estructuraJson: vm.docGlobal,
+        );
       }
     } catch (e, stack) {
       print("=== ERROR EN _enviarDocumento ===");

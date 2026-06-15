@@ -12,7 +12,6 @@ class ItemVehiculoService {
     required String token,
     required String user,
   }) async {
-
     final String url = "${Preferences.urlApi}v2/ItemsVehiculo/items";
 
     final headers = {
@@ -34,10 +33,7 @@ class ItemVehiculoService {
     });
 
     try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: headers,
-      );
+      final response = await http.get(Uri.parse(url), headers: headers);
 
       print(" STATUS CODE: ${response.statusCode}");
       print(" RESPONSE BODY:");

@@ -445,13 +445,15 @@ class NotificationService {
 
   static Future<void> showErrorView(
     BuildContext context,
-    ApiResModel res,
-  ) async {
+    ApiResModel res, {
+    DocEstructuraModel? estructuraJson,
+  }) async {
     ErrorModel error = ErrorModel(
       date: DateTime.now(),
       description: res.response.toString(),
       url: res.url,
       storeProcedure: res.storeProcedure,
+      docEstructura: estructuraJson?.toJson(),
     );
 
     bool result =
