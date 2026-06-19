@@ -312,7 +312,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         context,
         listen: false,
       ).selectedEmpresa!.uploadLocal;
-
+      print("urlCarpeta: $destinoImagenes");
       final uploadedFiles = await _uploadService.uploadImages(
         imagePaths: [imagePath],
         token: token,

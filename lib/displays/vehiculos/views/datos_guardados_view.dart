@@ -6,6 +6,7 @@ import 'package:fl_business/displays/report/reports/pdf/utilities_pdf.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/displays/tablero_kanban/models/usuario_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
+import 'package:fl_business/displays/vehiculos/services/elemento_asignado_croquis_service.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
@@ -24,6 +25,7 @@ import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -72,6 +74,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final items = vm.itemsAsignados;
     final bool bloqueado = _documentoEnviado || vm.isLoading;
     final fechas = (vm.getTextParam(44) ?? '').split(',');
+    final CroquisService _croquisService = CroquisService();
 
     return Stack(
       children: [
@@ -188,12 +191,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   const SizedBox(height: 20),
 
                   // ================= VEHÍCULO MARCADO =================
-                  if (vm.imagenTipoVehiculo != null) ...[
+                  if (vm.imagenCroquisSeleccionado != null) ...[
                     RepaintBoundary(
                       key: _vehiculoKey,
                       child: VehiculoMarcadoWidget(
-                        imagePath: vm.imagenTipoVehiculo!,
+                        imagePath: vm.imagenCroquisSeleccionado!,
                         marcas: vm.marcasVehiculo,
+                        esUrl: true,
                         onTap: vm.agregarMarca,
                         readOnly: _documentoEnviado,
                       ),
@@ -610,6 +614,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       user: user,
       urlCarpeta: destinoImagenes,
     );
+    print("UrlCarpeta usada para subir imagen: $destinoImagenes");
 
     // 5. VALIDAR respuesta
     if (uploaded.isEmpty) {
@@ -635,10 +640,34 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   /// Carga la imagen del vehículo (asset) y la convierte en ImageProvider para PDF
   Future<pw.ImageProvider?> _cargarImagenPdf(BuildContext context) async {
     final vm = context.read<InicioVehiculosViewModel>();
-    final path = vm.imagenTipoVehiculo;
-    if (path == null) return null;
-    final bytes = await DefaultAssetBundle.of(context).load(path);
-    return pw.MemoryImage(bytes.buffer.asUint8List());
+
+    final path = vm.imagenCroquisSeleccionado;
+
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+
+    try {
+      Uint8List bytes;
+
+      if (path.startsWith('http')) {
+        final response = await http.get(Uri.parse(path));
+
+        if (response.statusCode != 200) {
+          return null;
+        }
+
+        bytes = response.bodyBytes;
+      } else {
+        final data = await DefaultAssetBundle.of(context).load(path);
+        bytes = data.buffer.asUint8List();
+      }
+
+      return pw.MemoryImage(bytes);
+    } catch (e) {
+      debugPrint('Error cargando imagen PDF: $e');
+      return null;
+    }
   }
 
   pw.Widget _vehiculoConMarcasPdf(
@@ -721,6 +750,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       ),
     );
   }
+
+  /////
 
   // ================= PDF =================
   final DateTime fechaActual = DateTime.now();

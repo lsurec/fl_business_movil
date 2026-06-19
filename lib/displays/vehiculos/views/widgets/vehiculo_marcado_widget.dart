@@ -6,6 +6,7 @@ class VehiculoMarcadoWidget extends StatefulWidget {
   final List<MarcaVehiculo> marcas;
   final void Function(double x, double y)? onTap;
   final bool readOnly;
+  final bool esUrl;
 
   const VehiculoMarcadoWidget({
     super.key,
@@ -13,6 +14,7 @@ class VehiculoMarcadoWidget extends StatefulWidget {
     required this.marcas,
     this.onTap,
     this.readOnly = false,
+    this.esUrl = true,
   });
 
   @override
@@ -28,21 +30,48 @@ class _VehiculoMarcadoWidgetState extends State<VehiculoMarcadoWidget> {
     _loadImageRatio();
   }
 
+  void didUpdateWidget(covariant VehiculoMarcadoWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.imagePath != widget.imagePath) {
+      _imageRatio = null;
+      _loadImageRatio();
+    }
+  }
+
   void _loadImageRatio() {
-    final image = AssetImage(widget.imagePath);
+    print("Cargando imagen:");
+    print(widget.imagePath);
+
+    ImageProvider image;
+
+    if (widget.esUrl) {
+      image = NetworkImage(widget.imagePath);
+    } else {
+      image = AssetImage(widget.imagePath);
+    }
+
     final stream = image.resolve(const ImageConfiguration());
 
     stream.addListener(
-      ImageStreamListener((info, _) {
-        final width = info.image.width.toDouble();
-        final height = info.image.height.toDouble();
+      ImageStreamListener(
+        (info, _) {
+          print("Imagen cargada correctamente");
 
-        if (mounted) {
-          setState(() {
-            _imageRatio = width / height;
-          });
-        }
-      }),
+          final width = info.image.width.toDouble();
+          final height = info.image.height.toDouble();
+
+          if (mounted) {
+            setState(() {
+              _imageRatio = width / height;
+            });
+          }
+        },
+        onError: (error, stackTrace) {
+          print("ERROR CARGANDO IMAGEN");
+          print(error);
+        },
+      ),
     );
   }
 
@@ -95,10 +124,7 @@ class _VehiculoMarcadoWidgetState extends State<VehiculoMarcadoWidget> {
                   final dx = pos.dx - offsetX;
                   final dy = pos.dy - offsetY;
 
-                  widget.onTap!(
-                    dx / imageWidth,
-                    dy / imageHeight,
-                  );
+                  widget.onTap!(dx / imageWidth, dy / imageHeight);
                 },
           child: SizedBox(
             width: containerWidth,
@@ -109,12 +135,19 @@ class _VehiculoMarcadoWidgetState extends State<VehiculoMarcadoWidget> {
                 Positioned(
                   left: offsetX,
                   top: offsetY,
-                  child: Image.asset(
-                    widget.imagePath,
-                    width: imageWidth,
-                    height: imageHeight,
-                    fit: BoxFit.contain,
-                  ),
+                  child: widget.esUrl
+                      ? Image.network(
+                          widget.imagePath,
+                          width: imageWidth,
+                          height: imageHeight,
+                          fit: BoxFit.contain,
+                        )
+                      : Image.asset(
+                          widget.imagePath,
+                          width: imageWidth,
+                          height: imageHeight,
+                          fit: BoxFit.contain,
+                        ),
                 ),
 
                 // ================= MARCAS =================
@@ -182,10 +215,7 @@ class _MarcasPainter extends CustomPainter {
 
       textPainter.paint(
         canvas,
-        Offset(
-          dx - textPainter.width / 2,
-          dy - textPainter.height / 2,
-        ),
+        Offset(dx - textPainter.width / 2, dy - textPainter.height / 2),
       );
     }
   }

@@ -43,6 +43,7 @@ class UploadService {
       print(" STATUS CODE: ${response.statusCode}");
       print(" RESPONSE BODY:");
       print(responseBody);
+      print(" CARPETA: $urlCarpeta");
 
       if (response.statusCode == 200) {
         final decoded = json.decode(responseBody);

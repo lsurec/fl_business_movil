@@ -72,6 +72,7 @@ class CroquisService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        print("url de la petición: $url");
         res.data = (res.data as List)
             .map((e) => CroquisModel.fromMap(e))
             .toList();

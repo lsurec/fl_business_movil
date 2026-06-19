@@ -27,6 +27,8 @@ import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_mo
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/models/VehiculoColorModel.dart';
+import 'package:fl_business/displays/vehiculos/models/elemento_asignado_croquis_model.dart';
+import 'package:fl_business/displays/vehiculos/services/elemento_asignado_croquis_service.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/TipoVehiculoModel.dart';
@@ -396,6 +398,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   /// tipo de Vehiculo
   final TipoVehiculoService _tipoVehiculoService = TipoVehiculoService();
   List<TipoVehiculoModel> tiposVehiculo = [];
+  List<CroquisModel> croquisVehiculos = [];
   TipoVehiculoModel? tipoVehiculoSeleccionado;
   bool cargandoTiposVehiculo = false;
 
@@ -464,6 +467,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
       //  PRIMERO tipos de vehículo
       await cargarTiposVehiculo(context);
+      await cargarCroquis(context);
       setIdDocumentoRef();
 
       final MenuViewModel vmMenu = Provider.of<MenuViewModel>(
@@ -1226,26 +1230,66 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     return null;
   }
-  // String? getColor(int color) {
-  //   // Texto por defecto
-  //   String? name;
 
-  //   //sino existe serie, retornar false
-  //   if (serieSelect == null) return name;
+  ////// Integración de elemento asignado croquis
+  final CroquisService _croquisService = CroquisService();
 
-  //   // Recorrer lista de parámetros
-  //   for (var item in colores) {
-  //     // Buscar el nombre en el parámetro 57
-  //     if (item.color == color) {
-  //       // Si nombre es nulo, agregar el texto por defecto
-  //       name = item.descripcion;
-  //       break;
-  //     }
-  //   }
+  List<CroquisModel> croquis = [];
 
-  //   // Retornar texto
-  //   return name;
-  // }
+  bool cargandoCroquis = false;
+
+  Future<void> cargarCroquis(BuildContext context) async {
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+    final empresa = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.empresa;
+
+    cargandoCroquis = true;
+    notifyListeners();
+
+    final response = await _croquisService.obtenerCroquis(empresa, token);
+
+    if (response.status) {
+      croquis = List<CroquisModel>.from(response.data);
+    }
+
+    cargandoCroquis = false;
+    notifyListeners();
+  }
+
+  /// Getter para obtener el croquis seleccionado basado en el tipo de vehículo seleccionado
+  CroquisModel? get croquisSeleccionado {
+    if (tipoVehiculoSeleccionado == null) {
+      return null;
+    }
+
+    try {
+      return croquis.firstWhere(
+        (e) =>
+            e.descripcion.toLowerCase() ==
+            tipoVehiculoSeleccionado!.descripcion?.toLowerCase(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creación de getter para obtener la URL de la imagen del croquis seleccionado
+  String? get imagenCroquisSeleccionado {
+    return croquisSeleccionadoManual?.imagenUrl;
+  }
+
+  CroquisModel? croquisSeleccionadoManual;
+
+  void seleccionarCroquis(CroquisModel? value) {
+    croquisSeleccionadoManual = value;
+
+    print(croquisSeleccionadoManual?.imagenUrl);
+
+    notifyListeners();
+  }
 
   //Funcion para obtener tipo de Vehiculo
   Future<void> cargarTiposVehiculo(BuildContext context) async {
@@ -1281,9 +1325,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   String? get imagenTipoVehiculo {
-    final key = tipoVehiculoSeleccionado?.consecutivoInterno?.toString();
-    if (key == null) return null;
-    return imagenPorTipoVehiculo[key];
+    return croquisSeleccionado?.imagenUrl;
   }
 
   /// Cambiar input de km y mill
