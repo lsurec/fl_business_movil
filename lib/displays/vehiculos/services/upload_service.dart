@@ -12,7 +12,9 @@ class UploadService {
     required String urlCarpeta,
     required String user,
   }) async {
-    final String url = "${Preferences.urlApi}v2/Shared/files";
+    // final String url = "${Preferences.urlApi}v2/Shared/files";
+    final String url =
+        "https://po.proyect1.com/cl/lubritec/GD01/Apis/Api/v2/Shared/files";
 
     var uri = Uri.parse(url);
 
@@ -22,7 +24,8 @@ class UploadService {
     request.headers.addAll({
       "Authorization": "bearer $token",
       "UserName": user,
-      "urlCarpeta": urlCarpeta, //  AQUÍ VA
+      "urlCarpeta": "E:/LUBRITEC/PO/UploadFile", //  AQUÍ VA
+      // "urlCarpeta": urlCarpeta, //  AQUÍ VA
     });
 
     //  ELIMINAR ESTO
