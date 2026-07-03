@@ -295,49 +295,48 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           );
                         }).toList(),
                       ),
-                    if (vm.valueParametro(318))
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 10),
-                          RichText(
-                            text: TextSpan(
-                              style: StyleApp.normal.copyWith(color: textColor),
-                              children: [
-                                TextSpan(
-                                  text: AppLocalizations.of(
-                                    context,
-                                  )!.translate(BlockTranslate.tiket, 'latitud'),
-                                  style: StyleApp.normalBold,
-                                ),
-                                TextSpan(
-                                  text: vmLocation.latitutd,
-                                  style: StyleApp.normal,
-                                ),
-                              ],
-                            ),
+                    // if (vm.valueParametro(318))
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10),
+                        RichText(
+                          text: TextSpan(
+                            style: StyleApp.normal.copyWith(color: textColor),
+                            children: [
+                              TextSpan(
+                                text: AppLocalizations.of(
+                                  context,
+                                )!.translate(BlockTranslate.tiket, 'latitud'),
+                                style: StyleApp.normalBold,
+                              ),
+                              TextSpan(
+                                text: vmLocation.latitutd,
+                                style: StyleApp.normal,
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 5),
-                          RichText(
-                            text: TextSpan(
-                              style: StyleApp.normal.copyWith(color: textColor),
-                              children: [
-                                TextSpan(
-                                  text: AppLocalizations.of(context)!.translate(
-                                    BlockTranslate.tiket,
-                                    'longitud',
-                                  ),
-                                  style: StyleApp.normalBold,
-                                ),
-                                TextSpan(
-                                  text: vmLocation.longitud,
-                                  style: StyleApp.normal,
-                                ),
-                              ],
-                            ),
+                        ),
+                        const SizedBox(height: 5),
+                        RichText(
+                          text: TextSpan(
+                            style: StyleApp.normal.copyWith(color: textColor),
+                            children: [
+                              TextSpan(
+                                text: AppLocalizations.of(
+                                  context,
+                                )!.translate(BlockTranslate.tiket, 'longitud'),
+                                style: StyleApp.normalBold,
+                              ),
+                              TextSpan(
+                                text: vmLocation.longitud,
+                                style: StyleApp.normal,
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
 
                     // if (vm.valueParametro(58))
                     //   Column(
@@ -911,24 +910,28 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            const Expanded(
-              child: Text(
-                'Croquis del vehículo',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        if (vm.valueParametro(64))
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Croquis del vehículo',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
 
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.crearCroquis);
-              },
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: const Text('Nuevo', style: TextStyle(color: Colors.white)),
-            ),
-          ],
-        ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.crearCroquis);
+                },
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text(
+                  'Nuevo',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
 
         const SizedBox(height: 10),
 

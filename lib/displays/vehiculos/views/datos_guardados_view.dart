@@ -631,6 +631,96 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     print(" Imagen vehículo guardada en VM:");
     print(vm.vehiculoImagen?.map((e) => e.system).toList());
   }
+
+  Future<void> _capturarFirmas(BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.uploadLocal;
+
+    final vm = context.read<InicioVehiculosViewModel>();
+
+    if (destinoImagenes == null || destinoImagenes.isEmpty) {
+      NotificationService.showSnackbar(
+        "Error: No se ha configurado la ruta de destino para las imágenes.",
+      );
+
+      return;
+    }
+
+    final uploadService = UploadService();
+
+    // ==========================
+    // FIRMA MECANICO
+    // ==========================
+
+    final firmaMecanicoBytes = await _firmaMecanico.toPngBytes();
+
+    if (firmaMecanicoBytes != null) {
+      final path = await _guardarFirmaTemp(
+        firmaMecanicoBytes,
+        "firma_mecanico",
+      );
+
+      if (path != null) {
+        final uploaded = await uploadService.uploadImages(
+          imagePaths: [path],
+          token: token,
+          user: user,
+          urlCarpeta: destinoImagenes,
+        );
+
+        if (uploaded.isNotEmpty) {
+          vm.firmaMecanico = uploaded.map((e) {
+            return TraFileUploadModel(original: e.original, system: e.system);
+          }).toList();
+
+          print("Firma mecánico guardada: ${vm.firmaMecanico}");
+        }
+      }
+    }
+
+    // ==========================
+    // FIRMA CLIENTE
+    // ==========================
+
+    final firmaClienteBytes = await _firmaCliente.toPngBytes();
+
+    if (firmaClienteBytes != null) {
+      final path = await _guardarFirmaTemp(firmaClienteBytes, "firma_cliente");
+
+      if (path != null) {
+        final uploaded = await uploadService.uploadImages(
+          imagePaths: [path],
+          token: token,
+          user: user,
+          urlCarpeta: destinoImagenes,
+        );
+
+        if (uploaded.isNotEmpty) {
+          vm.firmaCliente = uploaded.map((e) {
+            return TraFileUploadModel(original: e.original, system: e.system);
+          }).toList();
+
+          print("Firma cliente guardada: ${vm.firmaCliente}");
+        }
+      }
+    }
+  }
+
+  Future<String?> _guardarFirmaTemp(Uint8List bytes, String nombre) async {
+    final dir = await getTemporaryDirectory();
+
+    final file = File('${dir.path}/$nombre.png');
+
+    await file.writeAsBytes(bytes);
+
+    return file.path;
+  }
   ///// Imagen Logo
   // Future<Uint8List> cargarImagenDesdeAssets(String path) async {
   //   final data = await rootBundle.load(path);
@@ -1316,48 +1406,48 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               ],
             ),
             //  AGREGA ESTO DEBAJO
-            pw.SizedBox(height: 25),
-            if (vm.valueParametro(318))
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Ubicación de recepción',
-                    style: pw.TextStyle(
-                      fontSize: 12,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
+            // pw.SizedBox(height: 25),
+            // if (vm.valueParametro(318))
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Ubicación de recepción',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
                   ),
-                  pw.SizedBox(height: 5),
+                ),
+                pw.SizedBox(height: 5),
 
-                  pw.Text('Latitud: ${locationService.latitutd}'),
+                pw.Text('Latitud: ${locationService.latitutd}'),
 
-                  pw.Text('Longitud: ${locationService.longitud}'),
+                pw.Text('Longitud: ${locationService.longitud}'),
 
-                  pw.SizedBox(height: 5),
+                pw.SizedBox(height: 5),
 
-                  pw.UrlLink(
-                    destination:
-                        'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                    child: pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Image(ubicacionImage, width: 16, height: 16),
+                pw.UrlLink(
+                  destination:
+                      'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                  child: pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      pw.Image(ubicacionImage, width: 16, height: 16),
 
-                        pw.SizedBox(width: 5),
+                      pw.SizedBox(width: 5),
 
-                        pw.Text(
-                          'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                          style: pw.TextStyle(
-                            color: PdfColors.blue,
-                            decoration: pw.TextDecoration.underline,
-                          ),
+                      pw.Text(
+                        'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                        style: pw.TextStyle(
+                          color: PdfColors.blue,
+                          decoration: pw.TextDecoration.underline,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
           ],
         ),
       );
@@ -1459,7 +1549,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
       // await itemsVM.subirTodasLasFotos(context);
 
+      await _capturarFirmas(context);
+      print("=== ANTES DE _subirImagenVehiculo ===");
+
       await _subirImagenVehiculo(context);
+
       print("=== ANTES DE sendDocument ===");
 
       // ================= PASO 3: ENVIAR DOCUMENTO =================

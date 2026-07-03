@@ -83,6 +83,7 @@ class AppRoutes {
   static const printerView = "printView";
   static const vehiculos = "prcRecepcionVehiculo";
   static const crearCroquis = "crearCroquis";
+  static const mantenimientoCroquis = "mntElementoAsignadoCroquis";
 
   //static const vehiculos = "prcRecepcionVehiculo";
 
@@ -155,6 +156,8 @@ class AppRoutes {
     printerView: (BuildContext context) => const PrinterView(),
     vehiculos: (BuildContext context) => const InicioVehiculosView(),
     crearCroquis: (BuildContext context) => const CrearCroquisView(),
+    mantenimientoCroquis: (BuildContext context) =>
+        const CrearCroquisView(modoActualizar: true),
     PaymentConvertView.routeName: (BuildContext context) =>
         const PaymentConvertView(),
   };

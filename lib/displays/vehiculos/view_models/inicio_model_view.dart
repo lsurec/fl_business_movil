@@ -60,6 +60,7 @@ import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:signature/signature.dart';
 
 /// Representa un ítem a revisar en el vehículo.
 /// Cada ítem puede tener:
@@ -347,6 +348,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   double nivelGasolina = 50;
 
   List<TraFileUploadModel>? vehiculoImagen;
+  List<TraFileUploadModel>? firmaCliente;
+  List<TraFileUploadModel>? firmaMecanico;
 
   // ============================================================================
   // CONTROLADORES DE INPUT
@@ -809,6 +812,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     cilController.clear();
     placaController.clear();
     chasisController.clear();
+    croquisSeleccionadoManual = null;
 
     notifyListeners();
   }
@@ -2072,6 +2076,16 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       listen: false,
     );
 
+    final SignatureController firmaClienteController = SignatureController(
+      penStrokeWidth: 3,
+      penColor: Colors.black,
+    );
+
+    final SignatureController firmaMecanicoController = SignatureController(
+      penStrokeWidth: 3,
+      penColor: Colors.black,
+    );
+
     //usuario token y cadena de conexion
     String user = loginVM.user;
     String tokenUser = loginVM.token;
@@ -2327,6 +2341,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
           ? refVM.referencia!.referencia
           : null,
 
+      docReporte: "rpt_OrdenTrabajo",
       // --------------------
       // Datos del cliente
       // --------------------
@@ -2368,6 +2383,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docVehiculoImagen: context
           .read<InicioVehiculosViewModel>()
           .vehiculoImagen,
+      docFirmaCliente: context.read<InicioVehiculosViewModel>().firmaCliente,
+      docFirmaMecanico: context.read<InicioVehiculosViewModel>().firmaMecanico,
     );
 
     final estructuraJson = docGlobal!.toJson();

@@ -9,12 +9,23 @@ import 'package:provider/provider.dart';
 import '../view_models/crear_croquis_view_model.dart';
 
 class CrearCroquisView extends StatelessWidget {
-  const CrearCroquisView({super.key});
+  final bool modoActualizar;
 
+  const CrearCroquisView({super.key, this.modoActualizar = false});
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => CrearCroquisViewModel()..cargarPantalla(),
+      create: (_) {
+        final vm = CrearCroquisViewModel();
+
+        vm.cargarPantalla();
+
+        if (modoActualizar) {
+          vm.abrirActualizar();
+        }
+
+        return vm;
+      },
 
       child: const _CrearCroquisBody(),
     );
@@ -41,7 +52,22 @@ class _CrearCroquisBody extends StatelessWidget {
     return Stack(
       children: [
         Scaffold(
-          appBar: AppBar(title: const Text("Nuevo Croquis")),
+          appBar: AppBar(
+            title: const Text("Nuevo Croquis"),
+
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh),
+
+                tooltip: "Actualizar croquis",
+
+                onPressed: () async {
+                  vm.abrirActualizar();
+                  await vm.cargarCroquisActualizar(context);
+                },
+              ),
+            ],
+          ),
 
           body: vm.modoActualizar
               ? const _ActualizarCroquisBody()
@@ -127,26 +153,6 @@ class _CrearCroquisBody extends StatelessWidget {
 
                           child: const Text(
                             "Crear",
-
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      SizedBox(
-                        width: double.infinity,
-
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            vm.abrirActualizar();
-                            await vm.cargarCroquisActualizar(context);
-                          },
-
-                          icon: const Icon(Icons.edit, color: Colors.white),
-
-                          label: const Text(
-                            "Actualizar croquis",
 
                             style: TextStyle(color: Colors.white),
                           ),
