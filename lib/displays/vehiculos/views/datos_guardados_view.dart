@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/report/reports/pdf/utilities_pdf.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
-import 'package:fl_business/displays/tablero_kanban/models/usuario_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/services/elemento_asignado_croquis_service.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
@@ -356,17 +355,42 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     t.translate(BlockTranslate.vehiculos, 'vehiculos_firmas'),
                   ),
 
-                  Text(
-                    'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'VENDEDOR')}',
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text:
+                              'FIRMA DE ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'VENDEDOR')}: ',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(
+                          text: vm.vendedorSelect?.nomCuentaCorrentista ?? '',
+                        ),
+                      ],
+                    ),
                   ),
+
                   _firmaBox(_firmaMecanico, enabled: !_documentoEnviado),
 
                   const SizedBox(height: 20),
 
                   Row(
                     children: [
-                      Text(
-                        'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text:
+                                  'FIRMA DE ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}: ',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: vm.clienteSelect?.facturaNombre ?? '',
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -860,37 +884,42 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       child: pw.Column(
         children: [
           pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Container(
-                width: PdfPageFormat.letter.width * 0.20,
-                margin: const pw.EdgeInsets.symmetric(horizontal: 15),
+              pw.Expanded(
+                flex: 4,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    ...headersStart.map(
-                      (text) =>
-                          pw.Text(text, style: const pw.TextStyle(fontSize: 9)),
-                    ),
-                  ],
+                  children: headersStart
+                      .map(
+                        (text) => pw.Text(
+                          text,
+                          style: const pw.TextStyle(fontSize: 9),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
 
-              //  FIX AQUÍ
+              pw.SizedBox(width: 15),
+
               pw.Image(image, width: 120, height: 65, fit: pw.BoxFit.contain),
 
-              pw.Container(
-                width: PdfPageFormat.letter.width * 0.20,
+              pw.SizedBox(width: 15),
+
+              pw.Expanded(
+                flex: 4,
                 child: pw.Column(
-                  children: [
-                    ...headersEnd.map(
-                      (text) => pw.Text(
-                        text,
-                        style: const pw.TextStyle(fontSize: 9),
-                        textAlign: pw.TextAlign.center,
-                      ),
-                    ),
-                  ],
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: headersEnd
+                      .map(
+                        (text) => pw.Text(
+                          text,
+                          style: const pw.TextStyle(fontSize: 9),
+                          textAlign: pw.TextAlign.right,
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ],
@@ -1381,7 +1410,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     ),
                     pw.SizedBox(height: 5),
                     pw.Text(
-                      'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')}',
+                      'FIRMA DE ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')} ',
                     ),
                     pw.Text(vm.vendedorSelect?.nomCuentaCorrentista ?? ''),
                   ],
@@ -1398,7 +1427,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     ),
                     pw.SizedBox(height: 5),
                     pw.Text(
-                      'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                      'FIRMA DE ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
                     ),
                     pw.Text(vm.clienteSelect?.facturaNombre ?? ''),
                   ],

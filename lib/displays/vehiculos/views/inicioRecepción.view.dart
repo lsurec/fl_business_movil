@@ -751,14 +751,68 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           ),
 
                           const SizedBox(height: 10),
-                          Text(
-                            vm.clienteSelect!.facturaNit,
-                            style: StyleApp.normal.copyWith(color: textColor),
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Nit: ',
+                                  style: StyleApp.normal.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: vm.clienteSelect!.facturaNit,
+                                  style: StyleApp.normal.copyWith(
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 10),
-                          Text(
-                            vm.clienteSelect!.facturaNombre,
-                            style: StyleApp.normal.copyWith(color: textColor),
+
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Nombre: ',
+                                  style: StyleApp.normal.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: vm.clienteSelect!.facturaNombre,
+                                  style: StyleApp.normal.copyWith(
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: 'Id Cuenta: ',
+                                  style: StyleApp.normal.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text:
+                                      vm.clienteSelect!.idCuentaCorrentista ??
+                                      '',
+                                  style: StyleApp.normal.copyWith(
+                                    color: textColor,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           if (vm.clienteSelect!.facturaDireccion.isNotEmpty &&
                               vmFactura.editDoc)

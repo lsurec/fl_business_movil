@@ -291,7 +291,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       return;
     }
 
-    // 🔥 AQUÍ ESTÁ LA CLAVE
+    // AQUÍ ESTÁ LA CLAVE
     final client = clients.firstWhere(
       (c) => c.facturaNit == cuenta.nit,
       orElse: () => clients.first,

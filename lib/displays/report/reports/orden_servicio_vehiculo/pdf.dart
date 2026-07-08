@@ -135,7 +135,7 @@ class DocumentoConversionPDF {
             ],
 
             [
-              'Fecha: $encabezado.fechaDocumento',
+              'Fecha: ${encabezado.docFechaDocumento ?? ''}',
               'Serie: ${encabezado.serieDocumento ?? ''}',
               'Documento: ${encabezado.idDocumento ?? ''}',
               // 'Documento: ${docGlobal.toJson()['Consecutivo_Interno']}',
