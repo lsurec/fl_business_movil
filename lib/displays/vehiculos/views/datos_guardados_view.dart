@@ -270,7 +270,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     ),
                   ),
 
-                  // 🔹 Observación 1
+                  // Observación 1
                   if (vm.valueParametro(59))
                     _dato(
                       vm.getTextParam(59) ?? 'Observación 1',
@@ -279,7 +279,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           : '—',
                     ),
 
-                  // 🔹 Observación 2
+                  //  Observación 2
                   if (vm.valueParametro(60))
                     _dato(
                       vm.getTextParam(60) ?? 'Observación 2',
@@ -288,7 +288,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           : '—',
                     ),
 
-                  // 🔹 Observación 3
+                  //  Observación 3
                   if (vm.valueParametro(322))
                     _dato(
                       vm.getTextParam(322) ?? 'Observación 3',
@@ -792,12 +792,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     const double containerWidth = 300;
     const double containerHeight = 200;
 
-    // 🔹 Ratio REAL de la imagen
     final double imageRatio = imagen.width! / imagen.height!;
     double imageWidth;
     double imageHeight;
 
-    // 🔹 Replicar BoxFit.contain (igual que en Flutter)
+    //  Replicar BoxFit.contain (igual que en Flutter)
     if (containerWidth / containerHeight > imageRatio) {
       imageHeight = containerHeight;
       imageWidth = imageHeight * imageRatio;
@@ -806,7 +805,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       imageHeight = imageWidth / imageRatio;
     }
 
-    // 🔹 Offsets para centrar la imagen
+    //  Offsets para centrar la imagen
     final double offsetX = (containerWidth - imageWidth) / 2;
     final double offsetY = (containerHeight - imageHeight) / 2;
 
@@ -1329,7 +1328,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             // _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
             // _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
             // _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
-            // 🔹 Observación 1
+            //  Observación 1
             if (vm.valueParametro(59))
               _pdfDato(
                 vm.getTextParam(59) ?? 'Observación 1',
@@ -1338,7 +1337,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     : '—',
               ),
 
-            // 🔹 Observación 2
+            //  Observación 2
             if (vm.valueParametro(60))
               _pdfDato(
                 vm.getTextParam(60) ?? 'Observación 2',
@@ -1347,7 +1346,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     : '—',
               ),
 
-            // 🔹 Observación 3
+            //  Observación 3
             if (vm.valueParametro(322))
               _pdfDato(
                 vm.getTextParam(322) ?? 'Observación 3',

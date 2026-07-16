@@ -95,27 +95,24 @@ class CrearCroquisViewModel extends ChangeNotifier {
       final user = login.user;
 
       final empresa = empresaVM.selectedEmpresa!.empresa;
+      final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+        context,
+        listen: false,
+      ).selectedEmpresa!.uploadLocal;
 
       String? imagenUrl;
 
       // SUBIR IMAGEN
 
-      final archivos = await _uploadService.uploadImages(
+      await _uploadService.uploadImages(
         imagePaths: [imagenSeleccionada!],
 
         token: token,
 
         user: user,
 
-        urlCarpeta: "E:/LUBRITEC/PO/UploadFile",
+        urlCarpeta: destinoImagenes!,
       );
-
-      if (archivos.isNotEmpty) {
-        final nombreArchivo = archivos.first.system;
-
-        imagenUrl =
-            "https://po.proyect1.com/cl/lubritec/PO/UploadFile/$nombreArchivo";
-      }
 
       // CREAR CROQUIS
 
@@ -223,30 +220,24 @@ class CrearCroquisViewModel extends ChangeNotifier {
 
       final login = Provider.of<LoginViewModel>(context, listen: false);
 
-      final empresaVM = Provider.of<LocalSettingsViewModel>(
+      final destinoImagenes = Provider.of<LocalSettingsViewModel>(
         context,
         listen: false,
-      );
-
+      ).selectedEmpresa!.uploadLocal;
       String? nuevaImagen;
 
       // Si cambió imagen subirla
       if (imagenSeleccionada != null &&
           !imagenSeleccionada!.startsWith("http")) {
-        final archivos = await _uploadService.uploadImages(
+        await _uploadService.uploadImages(
           imagePaths: [imagenSeleccionada!],
 
           token: login.token,
 
           user: login.user,
 
-          urlCarpeta: "E:/LUBRITEC/PO/UploadFile",
+          urlCarpeta: destinoImagenes!,
         );
-
-        if (archivos.isNotEmpty) {
-          nuevaImagen =
-              "https://po.proyect1.com/cl/lubritec/PO/UploadFile/${archivos.first.system}";
-        }
       }
 
       final model = ActualizarCroquisModel(

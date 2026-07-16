@@ -106,9 +106,6 @@ class ItemVehiculo {
   }
 }
 
-final CatalogoVehiculosService _catalogoVehiculosService =
-    CatalogoVehiculosService();
-
 /// ============================================================================
 /// VIEWMODEL PRINCIPAL
 /// ============================================================================
@@ -345,6 +342,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String cil = '';
   String placa = '';
   String chasis = '';
+  int? consecutivoCroquis;
+
   double nivelGasolina = 50;
 
   List<TraFileUploadModel>? vehiculoImagen;
@@ -368,6 +367,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final TextEditingController direccionController = TextEditingController();
   final TextEditingController placaController = TextEditingController();
   final TextEditingController chasisController = TextEditingController();
+  final TextEditingController consecutivoCroquisController =
+      TextEditingController();
 
   final List<SellerModel> cuentasCorrentistasRef = []; //cuenta correntisat ref
   final List<SerieModel> series = [];
@@ -914,6 +915,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
   }
 
+  final CatalogoVehiculosService _catalogoVehiculosService =
+      CatalogoVehiculosService();
+
   //enviar datos del vehiculo al catalogo
   Future<bool> guardarVehiculoEnCatalogo(BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
@@ -922,10 +926,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       context,
       listen: false,
     ).selectedEmpresa!.empresa;
-    final estacionTrabajo = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEstacion!.estacionTrabajo;
 
     if (marcaSeleccionada == null ||
         modeloSeleccionado == null ||
@@ -946,7 +946,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       guardar(); // guardamos la recepción local
       final placa = placaController.text.trim();
 
-      // 🔹 Verificamos si la placa ya existe
+      //  Verificamos si la placa ya existe
       final existe = await placaExiste(placa, context);
 
       if (existe) {
@@ -956,7 +956,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return true; // no hacemos POST
       }
 
-      // 🔹 Si no existe, construimos el modelo y hacemos POST
+      // Si no existe, construimos el modelo y hacemos POST
       final model = CatalogoVehiculosModel(
         descripcion: descripcionVehiculo,
         elementoId: placa,
@@ -972,6 +972,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         cilindros: cilController.text.trim(),
         userName: user,
         cuentaCorrentista: clienteSelect!.cuentaCorrentista,
+        consecutivoCroquis: croquisSeleccionadoManual?.consecutivoInterno,
       );
 
       await _catalogoVehiculosService.crearVehiculo(
@@ -1105,6 +1106,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     chasisController.text = elemento.chasis ?? '';
     ccController.text = elemento.centimetrosCubicos ?? '';
     cilController.text = elemento.cilindros ?? '';
+    consecutivoCroquisController.text =
+        elemento.consecutivoCroquis?.toString() ?? '';
 
     // ---------------------------
     // VARIABLES
@@ -1113,6 +1116,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     chasis = chasisController.text;
     cc = ccController.text;
     cil = cilController.text;
+    consecutivoCroquis = consecutivoCroquisController.text.isNotEmpty
+        ? int.tryParse(consecutivoCroquisController.text)
+        : null;
 
     if (elemento.cuentaCorrentista != null || elemento.cuentaCorrentista == 0) {
       final CuentaService cuentaService = CuentaService();
@@ -1218,6 +1224,22 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     if (color.color != 0) {
       seleccionarColor(color);
+    }
+
+    if (elemento.consecutivoCroquis != null) {
+      try {
+        final croquisSeleccionado = croquis.firstWhere(
+          (c) => c.consecutivoInterno == elemento.consecutivoCroquis,
+        );
+
+        seleccionarCroquis(croquisSeleccionado);
+      } catch (e) {
+        croquisSeleccionadoManual = null;
+
+        NotificationService.showSnackbar(
+          'El tipo de croquis asociado a este vehículo ya no existe.',
+        );
+      }
     }
 
     notifyListeners();

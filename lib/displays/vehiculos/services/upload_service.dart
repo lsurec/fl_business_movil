@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:fl_business/shared_preferences/preferences.dart';
 import '../models/upload_file_model.dart';
@@ -12,9 +11,7 @@ class UploadService {
     required String urlCarpeta,
     required String user,
   }) async {
-    // final String url = "${Preferences.urlApi}v2/Shared/files";
-    final String url =
-        "https://po.proyect1.com/cl/lubritec/GD01/Apis/Api/v2/Shared/files";
+    final String url = "${Preferences.urlApi}v2/Shared/files";
 
     var uri = Uri.parse(url);
 
@@ -24,12 +21,9 @@ class UploadService {
     request.headers.addAll({
       "Authorization": "bearer $token",
       "UserName": user,
-      "urlCarpeta": "E:/LUBRITEC/PO/UploadFile", //  AQUÍ VA
-      // "urlCarpeta": urlCarpeta, //  AQUÍ VA
-    });
 
-    //  ELIMINAR ESTO
-    // request.fields['urlCarpeta'] = urlCarpeta;
+      "urlCarpeta": urlCarpeta, //
+    });
 
     // ARCHIVOS
     print(" ARCHIVOS:");
@@ -43,16 +37,8 @@ class UploadService {
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
-      print(" STATUS CODE: ${response.statusCode}");
-      print(" RESPONSE BODY:");
-      print(responseBody);
-      print(" CARPETA: $urlCarpeta");
-
       if (response.statusCode == 200) {
         final decoded = json.decode(responseBody);
-
-        print(" JSON DECODIFICADO:");
-        print(decoded);
 
         final uploadResponse = UploadResponseModel.fromJson(decoded);
 

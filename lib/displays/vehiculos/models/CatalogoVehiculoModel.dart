@@ -13,6 +13,9 @@ class CatalogoVehiculosModel {
   final String cilindros;
   final String userName;
   final int cuentaCorrentista;
+  final int? consecutivoCroquis;
+
+  /// guardar el croquis en la tabla de vehiculos
 
   CatalogoVehiculosModel({
     required this.descripcion,
@@ -29,6 +32,7 @@ class CatalogoVehiculosModel {
     required this.cilindros,
     required this.userName,
     required this.cuentaCorrentista,
+    this.consecutivoCroquis,
   });
 
   Map<String, dynamic> toJson() {
@@ -45,6 +49,7 @@ class CatalogoVehiculosModel {
       'empresa': empresa,
       'userName': userName,
       'cuentaCorrentista': cuentaCorrentista,
+      'IdCroquis': consecutivoCroquis,
     };
 
     if (modeloFecha != null) {
