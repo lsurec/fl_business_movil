@@ -59,154 +59,160 @@ class PrinterView extends StatelessWidget {
           ),
           body: Padding(
             padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(
-                    context,
-                  )!.translate(BlockTranslate.impresora, "conectado"),
-                  style: StyleApp.title,
-                ),
-                const SizedBox(height: 10),
-                ListTile(
-                  title: Text(
-                    Preferences.printer == null
-                        ? "Sin impresora"
-                        : Preferences.printer!.name ?? "Desconocido",
-                    style: StyleApp.normal,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.translate(BlockTranslate.impresora, "conectado"),
+                    style: StyleApp.title,
                   ),
-                  subtitle: Text(
-                    "${Preferences.printer == null ? "Sin impresora" : Preferences.printer!.address ?? "Desconocido"} | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} ${Preferences.paperSize} mm",
-                    style: StyleApp.subTitle,
+                  const SizedBox(height: 10),
+                  ListTile(
+                    title: Text(
+                      Preferences.printer == null
+                          ? "Sin impresora"
+                          : Preferences.printer!.name ?? "Desconocido",
+                      style: StyleApp.normal,
+                    ),
+                    subtitle: Text(
+                      "${Preferences.printer == null ? "Sin impresora" : Preferences.printer!.address ?? "Desconocido"} | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} ${Preferences.paperSize} mm",
+                      style: StyleApp.subTitle,
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: Preferences.printer == null
+                              ? () => NotificationService.showSnackbar(
+                                  "No hay impresora",
+                                )
+                              : () => vm.savePrinter(
+                                  context,
+                                  Preferences.printer!,
+                                ),
+                          icon: const Icon(Icons.edit),
+                        ),
+                        IconButton(
+                          onPressed: () => vm.deletePrinter(),
+                          icon: const Icon(Icons.delete),
+                        ),
+                      ],
+                    ),
+                    leading: Icon(
+                      Icons.bluetooth,
+                      color: AppTheme.primary, //cambia color segun la conexion
+                    ),
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      "Cortar despues de imprimir",
+                      style: StyleApp.normal,
+                    ),
+                    value: Preferences.paperCut,
+                    onChanged: (value) => vm.cutPaper(context, value),
+                  ),
+                  const Divider(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Text("Desconectar en:", style: StyleApp.normal),
                       IconButton(
-                        onPressed: Preferences.printer == null
-                            ? () => NotificationService.showSnackbar(
-                                "No hay impresora",
-                              )
-                            : () =>
-                                  vm.savePrinter(context, Preferences.printer!),
-                        icon: const Icon(Icons.edit),
+                        icon: Icon(
+                          Icons.remove,
+                          color: Preferences.secondsPrint == 10
+                              ? AppTheme.grey
+                              : AppTheme.primary,
+                        ),
+                        onPressed: Preferences.secondsPrint == 10
+                            ? null
+                            : () => vm.removeSeconds(),
+                      ),
+                      Text(
+                        '${Preferences.secondsPrint} s',
+                        style: StyleApp.normalBold,
                       ),
                       IconButton(
-                        onPressed: () => vm.deletePrinter(),
-                        icon: const Icon(Icons.delete),
+                        icon: const Icon(Icons.add, color: AppTheme.primary),
+                        onPressed: () => vm.addSeconds(),
                       ),
                     ],
                   ),
-                  leading: Icon(
-                    Icons.bluetooth,
-                    color: AppTheme.primary, //cambia color segun la conexion
-                  ),
-                ),
-                const Divider(),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    "Cortar despues de imprimir",
-                    style: StyleApp.normal,
-                  ),
-                  value: Preferences.paperCut,
-                  onChanged: (value) => vm.cutPaper(context, value),
-                ),
-                const Divider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Desconectar en:", style: StyleApp.normal),
-                    IconButton(
-                      icon: Icon(
-                        Icons.remove,
-                        color: Preferences.secondsPrint == 10
-                            ? AppTheme.grey
-                            : AppTheme.primary,
+                  const Divider(),
+
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "disponibles")} (${vm.devices.length})",
+                        style: StyleApp.title,
                       ),
-                      onPressed: Preferences.secondsPrint == 10
-                          ? null
-                          : () => vm.removeSeconds(),
-                    ),
-                    Text(
-                      '${Preferences.secondsPrint} s',
-                      style: StyleApp.normalBold,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add, color: AppTheme.primary),
-                      onPressed: () => vm.addSeconds(),
-                    ),
-                  ],
-                ),
-                const Divider(),
-
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "disponibles")} (${vm.devices.length})",
-                      style: StyleApp.title,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      tooltip: 'Volver a buscar',
-                      onPressed: () => vm.getDevices(),
-                      color: AppTheme.primary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: vm.devices.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.bluetooth_disabled,
-                                size: 80,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                "No hay dispositivos vinculados",
-                                style: StyleApp.normal,
-                              ),
-                              TextButton(
-                                child: Text(
-                                  "Ir a configuracion",
-                                  style: StyleApp.enlace,
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: 'Volver a buscar',
+                        onPressed: () => vm.getDevices(),
+                        color: AppTheme.primary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: vm.devices.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.bluetooth_disabled,
+                                  size: 80,
+                                  color: Colors.grey,
                                 ),
-                                onPressed: () => vm.goSettings(),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: vm.devices.length,
-                          itemBuilder: (context, index) {
-                            BluetoothDevice device = vm.devices[index];
+                                const SizedBox(height: 16),
+                                Text(
+                                  "No hay dispositivos vinculados",
+                                  style: StyleApp.normal,
+                                ),
+                                TextButton(
+                                  child: Text(
+                                    "Ir a configuracion",
+                                    style: StyleApp.enlace,
+                                  ),
+                                  onPressed: () => vm.goSettings(),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            scrollDirection: Axis.vertical,
+                            shrinkWrap: true,
+                            itemCount: vm.devices.length,
+                            itemBuilder: (context, index) {
+                              BluetoothDevice device = vm.devices[index];
 
-                            return ListTile(
-                              title: Text(
-                                device.name ?? "Desconocido", //TODO:Translate
-                                style: StyleApp.normal,
-                              ),
-                              subtitle: Text(
-                                device.address ??
-                                    "Desconocido", //TODO:Translate
-                                style: StyleApp.subTitle,
-                              ),
-                              onTap: () => vm.savePrinter(context, device),
-                            );
-                          },
-                        ),
-                ),
-              ],
+                              return ListTile(
+                                title: Text(
+                                  device.name ?? "Desconocido", //TODO:Translate
+                                  style: StyleApp.normal,
+                                ),
+                                subtitle: Text(
+                                  device.address ??
+                                      "Desconocido", //TODO:Translate
+                                  style: StyleApp.subTitle,
+                                ),
+                                onTap: () => vm.savePrinter(context, device),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
