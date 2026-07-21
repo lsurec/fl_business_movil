@@ -79,90 +79,90 @@ class TestTMU {
 
   final List<int> report = [];
 
+  PdfPageFormat formatoTicket(double anchoMM, {double margenMM = 3}) {
+    return PdfPageFormat(
+      anchoMM * PdfPageFormat.mm,
+      double.infinity, // altura dinámica según el contenido
+      marginAll: margenMM * PdfPageFormat.mm,
+    );
+  }
+
+  pw.Widget _filaProducto(
+    String nombre,
+    String precio, {
+    bool negrita = false,
+  }) {
+    final estilo = pw.TextStyle(
+      fontSize: 8,
+      fontWeight: negrita ? pw.FontWeight.bold : pw.FontWeight.normal,
+    );
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+      children: [
+        pw.Text(nombre, style: estilo),
+        pw.Text(precio, style: estilo),
+      ],
+    );
+  }
+
   Future<bool> getReportBluetooth(BuildContext context) async {
+    final formato58 = formatoTicket(58);
+    final formato72 = formatoTicket(72);
+    final formato80 = formatoTicket(80);
+
     final pdf = pw.Document();
 
     pdf.addPage(
       pw.Page(
-        pageFormat: PdfPageFormat(
-          200 * PdfPageFormat.mm,
-          1000 * PdfPageFormat.mm,
-        ),
+        pageFormat: formato80,
         build: (context) {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(
-                'PDF DE PRUEBA',
-                style: pw.TextStyle(
-                  fontSize: 24,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-
-              pw.SizedBox(height: 20),
-
-              pw.Text('Texto normal'),
-              pw.Text('Texto con acentos: á é í ó ú ñ Ñ'),
-              pw.Text('Símbolos: @ # % & * + - ='),
-              pw.Text('Números: 1234567890'),
-
-              pw.SizedBox(height: 20),
-
-              pw.Container(
-                width: 200,
-                height: 50,
-                color: PdfColors.grey300,
-                alignment: pw.Alignment.center,
-                child: pw.Text('Caja de prueba'),
-              ),
-
-              pw.SizedBox(height: 20),
-
-              pw.Table(
-                border: pw.TableBorder.all(),
-                children: [
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Producto'),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Cantidad'),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Precio'),
-                      ),
-                    ],
-                  ),
-                  pw.TableRow(
-                    children: [
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Café'),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('2'),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.all(5),
-                        child: pw.Text('Q20.00'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              pw.Spacer(),
-
               pw.Center(
                 child: pw.Text(
-                  'Fin de la prueba',
-                  style: pw.TextStyle(fontSize: 16),
+                  'MI NEGOCIO',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 0.5),
+              pw.Text('Fecha: 16/07/2026', style: pw.TextStyle(fontSize: 8)),
+              pw.SizedBox(height: 4),
+              _filaProducto('Producto A x2', 'Q20.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              _filaProducto('Producto B x1', 'Q35.00'),
+              pw.Divider(thickness: 0.5),
+              _filaProducto('TOTAL', 'Q55.00', negrita: true),
+              pw.SizedBox(height: 10),
+              pw.Center(
+                child: pw.Text(
+                  '¡Gracias por su compra!',
+                  style: pw.TextStyle(fontSize: 8),
                 ),
               ),
             ],
