@@ -6,6 +6,7 @@ import 'package:fl_business/displays/prc_documento_3/view_models/confirm_doc_vie
 import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/vehiculos/FormatoMiles/ThousandsFormatter.dart';
+import 'package:fl_business/displays/vehiculos/models/TipoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/elemento_asignado_croquis_model.dart';
 import 'package:fl_business/displays/vehiculos/view_models/inicio_model_view.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
@@ -991,13 +992,11 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
 
         const SizedBox(height: 10),
 
-        if (vm.croquis.isEmpty)
-          const Text('No hay croquis disponibles')
-        else
+        if (vm.usaCroquis)
           DropdownButtonFormField<CroquisModel>(
             value: vm.croquisSeleccionadoManual,
             decoration: const InputDecoration(
-              labelText: 'Tipo de vehículo',
+              labelText: 'Croquis',
               border: OutlineInputBorder(),
             ),
             items: vm.croquis.map((croquis) {
@@ -1007,66 +1006,23 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
               );
             }).toList(),
             onChanged: vm.seleccionarCroquis,
+          )
+        else
+          DropdownButtonFormField<TipoVehiculoModel>(
+            value: vm.tipoVehiculoSeleccionado,
+            decoration: const InputDecoration(
+              labelText: 'Tipo de vehículo',
+              border: OutlineInputBorder(),
+            ),
+            items: vm.tiposVehiculo.map((tipo) {
+              return DropdownMenuItem<TipoVehiculoModel>(
+                value: tipo,
+                child: Text(tipo.descripcion ?? ''),
+              );
+            }).toList(),
+            onChanged: vm.seleccionarTipoVehiculo,
           ),
       ],
-    );
-  }
-
-  Widget _buildTipoVehiculoDropdown(BuildContext context) {
-    final vm = Provider.of<InicioVehiculosViewModel>(context);
-
-    final t = AppLocalizations.of(context)!;
-
-    if (vm.cargandoTiposVehiculo) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (vm.tiposVehiculo.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(vertical: 12),
-        child: Text(
-          t.translate(BlockTranslate.vehiculos, 'sinTiposVehiculo'),
-
-          style: TextStyle(color: Colors.grey),
-        ),
-      );
-    }
-
-    // Colores según modo oscuro
-    final bgColor = AppTheme.isDark()
-        ? AppTheme.backroundDarkSecondary
-        : const Color(0xFFFEF5E7);
-    final txtColor = AppTheme.isDark() ? Colors.white : Colors.black87;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 16),
-      child: DropdownButtonFormField(
-        isExpanded: true,
-        value: vm.tipoVehiculoSeleccionado,
-        decoration: InputDecoration(
-          labelText:
-              '${t.translate(BlockTranslate.vehiculos, 'tipoVehiculo')} ${(vm.getTextParam(136) ?? 'Vehículo').toLowerCase()}',
-          labelStyle: TextStyle(color: txtColor),
-          filled: true,
-          fillColor: bgColor,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        dropdownColor: bgColor, // para el menú desplegable
-        style: TextStyle(color: txtColor),
-        items: vm.tiposVehiculo.map((tipo) {
-          return DropdownMenuItem(
-            value: tipo,
-            child: Text(
-              tipo.descripcion ?? '',
-              style: TextStyle(color: txtColor),
-            ),
-          );
-        }).toList(),
-        onChanged: vm.seleccionarTipoVehiculo,
-      ),
     );
   }
 

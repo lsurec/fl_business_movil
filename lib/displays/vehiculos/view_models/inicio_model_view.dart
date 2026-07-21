@@ -963,7 +963,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         empresa: empresa,
         marca: marcaSeleccionada!.id,
         model: modeloSeleccionado!.id,
-        modeloFecha: _fechaRecibidoParaCatalogoApi(),
+        modeloFecha: anioSeleccionado != null
+            ? '${anioSeleccionado!.anio}-01-01T00:00:00'
+            : null,
         motor: ccController.text.trim(),
         chasis: chasisController.text.trim(),
         color: colorSeleccionado!.color,
@@ -1257,12 +1259,30 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     return null;
   }
 
+  /// getter para determinar si se debe usar la imagen del croquis o la imagen por tipo de vehículo
+  bool get imagenVehiculoEsUrl => usaCroquis;
+
+  String? get imagenVehiculo {
+    if (usaCroquis) {
+      return croquisSeleccionadoManual?.imagenUrl;
+    }
+
+    if (tipoVehiculoSeleccionado == null) {
+      return null;
+    }
+
+    final imagen = imagenPorTipoVehiculo[tipoVehiculoSeleccionado!.id];
+
+    return imagen;
+  }
+
   ////// Integración de elemento asignado croquis
   final CroquisService _croquisService = CroquisService();
 
   List<CroquisModel> croquis = [];
 
   bool cargandoCroquis = false;
+  bool get usaCroquis => croquis.isNotEmpty;
 
   Future<void> cargarCroquis(BuildContext context) async {
     final token = Provider.of<LoginViewModel>(context, listen: false).token;
@@ -1279,6 +1299,12 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     if (response.status) {
       croquis = List<CroquisModel>.from(response.data);
+    }
+
+    // Si no existen croquis, cargar automáticamente
+    // los tipos de vehículo.
+    if (!usaCroquis) {
+      await cargarTiposVehiculo(context);
     }
 
     cargandoCroquis = false;
@@ -1347,6 +1373,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   void seleccionarTipoVehiculo(TipoVehiculoModel? value) {
     tipoVehiculoSeleccionado = value;
+
     notifyListeners();
   }
 
@@ -1361,13 +1388,13 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
   // String o int, usa el tipo real de tu modelo
   final Map<String, String> imagenPorTipoVehiculo = {
-    '1': 'assets/TiposdeVehiculos/Sedan.jpg',
-    '2': 'assets/TiposdeVehiculos/HATCHBACK1.png',
-    '3': 'assets/TiposdeVehiculos/Convertible.jpg',
-    '4': 'assets/TiposdeVehiculos/SUV1.png',
-    '5': 'assets/TiposdeVehiculos/PICKUP1.png',
-    '6': 'assets/TiposdeVehiculos/CAMIONETA1.png',
-    '7': 'assets/TiposdeVehiculos/PANEL1.png',
+    'SEDAN': 'assets/TiposdeVehiculos/Sedan.jpg',
+    'HATCHBACK': 'assets/TiposdeVehiculos/HATCHBACK1.png',
+    'CONVERTIBLE': 'assets/TiposdeVehiculos/Convertible.jpg',
+    'SUV': 'assets/TiposdeVehiculos/SUV1.png',
+    'PICKUP': 'assets/TiposdeVehiculos/PICKUP1.png',
+    'CAMIONETA': 'assets/TiposdeVehiculos/CAMIONETA1.png',
+    'PANEL': 'assets/TiposdeVehiculos/PANEL1.png',
   };
 
   // marcar areas del vehiculo

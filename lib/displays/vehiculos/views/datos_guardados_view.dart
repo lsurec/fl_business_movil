@@ -190,16 +190,26 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   const SizedBox(height: 20),
 
                   // ================= VEHÍCULO MARCADO =================
-                  if (vm.imagenCroquisSeleccionado != null) ...[
-                    RepaintBoundary(
-                      key: _vehiculoKey,
-                      child: VehiculoMarcadoWidget(
-                        imagePath: vm.imagenCroquisSeleccionado!,
-                        marcas: vm.marcasVehiculo,
-                        esUrl: true,
-                        onTap: vm.agregarMarca,
-                        readOnly: _documentoEnviado,
-                      ),
+                  if (vm.imagenVehiculo != null) ...[
+                    Builder(
+                      builder: (_) {
+                        print("Imagen vehículo: ${vm.imagenVehiculo}");
+
+                        if (vm.imagenVehiculo == null) {
+                          return const Text("NO HAY IMAGEN");
+                        }
+
+                        return RepaintBoundary(
+                          key: _vehiculoKey,
+                          child: VehiculoMarcadoWidget(
+                            imagePath: vm.imagenVehiculo!,
+                            marcas: vm.marcasVehiculo,
+                            esUrl: vm.imagenVehiculoEsUrl,
+                            onTap: vm.agregarMarca,
+                            readOnly: _documentoEnviado,
+                          ),
+                        );
+                      },
                     ),
                     // VehiculoMarcadoWidget(
                     //   imagePath: vm.imagenTipoVehiculo!,
