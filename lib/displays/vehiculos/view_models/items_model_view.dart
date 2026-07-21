@@ -28,6 +28,8 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
 
   List<api.ItemVehiculoApi> items = [];
   String? error;
+  SerieModel? serieSelect;
+  final List<ParametroModel> parametros = [];
 
   final Map<String, TextEditingController> controllers = {};
   final Map<String, bool> isChecked = {};
@@ -157,21 +159,61 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
     }
   }
 
+  ////// Evaluar parametro de calidad de imagen
+  int? valueParametroCampo1(int param) {
+    // Si no existe serie, retornar null
+    if (serieSelect == null) return null;
+
+    // Buscar el parámetro
+    for (final parametro in parametros) {
+      if (parametro.parametro == param) {
+        if (parametro.campo1 == null) return null;
+
+        return int.tryParse(parametro.campo1.toString());
+      }
+    }
+
+    return null;
+  }
+
   // ================================
   //   TOMAR FOTO (OPTIMIZADO PARA EVITAR PANTALLA NEGRA)
   // ================================
   Future<void> tomarFoto(BuildContext context, String idProducto) async {
     try {
-      // 1. Bajamos sutilmente las dimensiones para un alivio drástico de RAM gráfica
+      // Obtener el parámetro de calidad
+      final int? calidad = valueParametroCampo1(395);
+
+      int imageQuality;
+      double maxWidth;
+      double maxHeight;
+
+      switch (calidad) {
+        case 1: // Alta
+          imageQuality = 90;
+          maxWidth = 2000;
+          maxHeight = 2000;
+          break;
+
+        case 2: // Media
+          imageQuality = 70;
+          maxWidth = 1400;
+          maxHeight = 1400;
+          break;
+
+        case 3: // Baja
+        default:
+          imageQuality = 50;
+          maxWidth = 800;
+          maxHeight = 800;
+          break;
+      }
+
       final XFile? foto = await _picker.pickImage(
         source: ImageSource.camera,
-
-        // calidad alta
-        imageQuality: 90,
-
-        // tamaño razonable
-        maxWidth: 2000,
-        maxHeight: 2000,
+        imageQuality: imageQuality,
+        maxWidth: maxWidth,
+        maxHeight: maxHeight,
       );
 
       if (foto == null) return;
@@ -186,15 +228,14 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         return;
       }
 
-      // 2. Ruta persistente local
+      // Ruta persistente local
       final appDir = await getApplicationDocumentsDirectory();
       final String fileName = "${DateTime.now().millisecondsSinceEpoch}.jpg";
       final String savedPath = "${appDir.path}/$fileName";
 
-      //  OPTIMIZACIÓN CLAVE: Mover el archivo en vez de copiarlo evita duplicar la RAM de la foto actual
       final File savedImage = await File(foto.path).copy(savedPath);
 
-      // 4. Actualizar colecciones de inmediato
+      // Actualizar colecciones
       fotosPorItem[idProducto] ??= [];
       fotosPorItem[idProducto]!.add(savedImage.path);
       estadoFotos[savedImage.path] = "waiting";
@@ -202,22 +243,22 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
       final index = transaciciones.indexWhere(
         (t) => t.producto.productoId == idProducto,
       );
+
       if (index != -1) {
         transaciciones[index].files ??= [];
         transaciciones[index].files!.add(savedImage.path);
 
-        // Auto-marcar el ítem al tomarle una foto si no está checkeado
+        // Auto-marcar el ítem al tomarle una foto
         if (!(isChecked[idProducto] ?? false)) {
           isChecked[idProducto] = true;
           transaciciones[index].isChecked = true;
         }
       }
 
-      // 5.  LIMPIEZA INMEDIATA DE CACHÉ GRÁFICA NATIVA
-
       Future.microtask(() {
         notifyListeners();
       });
+
       _subirFotoIndividual(
         context: context,
         idProducto: idProducto,
@@ -312,7 +353,7 @@ class ItemsVehiculoViewModel extends ChangeNotifier {
         context,
         listen: false,
       ).selectedEmpresa!.uploadLocal;
-
+      print("urlCarpeta: $destinoImagenes");
       final uploadedFiles = await _uploadService.uploadImages(
         imagePaths: [imagePath],
         token: token,

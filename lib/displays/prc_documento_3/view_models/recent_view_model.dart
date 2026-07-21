@@ -1,8 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
+
+import 'package:fl_business/demos/printer/utils/pdf_utils.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/document_view_model.dart';
 import 'package:fl_business/displays/prc_documento_3/view_models/documento_view_model.dart';
 import 'package:fl_business/displays/report/reports/factura/tmu.dart';
+import 'package:fl_business/displays/report/reports/orden_servicio_vehiculo/pdf.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_business/displays/listado_Documento_Pendiente_Convertir/models/documento_resumen_model.dart';
 import 'package:fl_business/displays/prc_documento_3/models/models.dart';
@@ -20,7 +24,11 @@ import 'package:fl_business/services/services.dart';
 import 'package:fl_business/utilities/translate_block_utilities.dart';
 import 'package:fl_business/view_models/view_models.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'dart:typed_data';
 
 class RecentViewModel extends ChangeNotifier {
   //cinsecutivo para obtener plantilla (impresion)
@@ -127,7 +135,54 @@ class RecentViewModel extends ChangeNotifier {
   }
 
   //Navgar a pantalla de impresion
+
+  //Navgar a pantalla de impresion
   share(BuildContext context) async {
+    if (docGlobal != null && docGlobal!.docReporte == "rpt_OrdenTrabajo") {
+      isLoading = true;
+
+      final String token = Provider.of<LoginViewModel>(
+        context,
+        listen: false,
+      ).token;
+
+      final user = Provider.of<LoginViewModel>(context, listen: false).user;
+      final DocumentService documentService = DocumentService();
+
+      final encabezadoRes = await documentService.getEncabezados(
+        consecutivo,
+        user,
+        token,
+      );
+
+      if (!encabezadoRes.succes) {
+        isLoading = false;
+        return;
+      }
+
+      final detalleRes = await documentService.getDetalles(
+        consecutivo,
+        user,
+        token,
+      );
+
+      if (!detalleRes.succes) {
+        isLoading = false;
+        return;
+      }
+      final DocumentoConversionPDF pdf = DocumentoConversionPDF();
+
+      final EncabezadoModel encabezado =
+          (encabezadoRes.response as List<EncabezadoModel>).first;
+
+      final List<DetalleModel> detalles =
+          detalleRes.response as List<DetalleModel>;
+
+      await pdf.generarPdfPrueba(context, docGlobal, encabezado, detalles);
+      isLoading = false;
+
+      return;
+    }
     final FacturaProvider facturaProvider = FacturaProvider();
 
     isLoading = true;
@@ -146,6 +201,27 @@ class RecentViewModel extends ChangeNotifier {
 
     isLoading = false;
   }
+
+  // share(BuildContext context) async {
+
+  //   final FacturaProvider facturaProvider = FacturaProvider();
+
+  //   isLoading = true;
+
+  //   final bool loadData = await facturaProvider.loaData(context, consecutivo);
+
+  //   if (!loadData) {
+  //     isLoading = false;
+
+  //     return;
+  //   }
+
+  //   final FacturaPDF facturaPDF = FacturaPDF();
+
+  //   await facturaPDF.getReport(context);
+
+  //   isLoading = false;
+  // }
 
   //Navegar a vista detalles
   Future<void> navigateView(

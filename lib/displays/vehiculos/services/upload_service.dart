@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:fl_business/shared_preferences/preferences.dart';
 import '../models/upload_file_model.dart';
@@ -22,11 +21,9 @@ class UploadService {
     request.headers.addAll({
       "Authorization": "bearer $token",
       "UserName": user,
-      "urlCarpeta": urlCarpeta, //  AQUÍ VA
-    });
 
-    //  ELIMINAR ESTO
-    // request.fields['urlCarpeta'] = urlCarpeta;
+      "urlCarpeta": urlCarpeta, //
+    });
 
     // ARCHIVOS
     print(" ARCHIVOS:");
@@ -40,15 +37,8 @@ class UploadService {
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
-      print(" STATUS CODE: ${response.statusCode}");
-      print(" RESPONSE BODY:");
-      print(responseBody);
-
       if (response.statusCode == 200) {
         final decoded = json.decode(responseBody);
-
-        print(" JSON DECODIFICADO:");
-        print(decoded);
 
         final uploadResponse = UploadResponseModel.fromJson(decoded);
 

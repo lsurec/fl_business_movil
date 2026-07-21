@@ -98,12 +98,14 @@ class ActualizarCroquisModel {
   String? descripcion;
   String? imagenUrl;
   String mUserName;
+  int estado;
 
   ActualizarCroquisModel({
     required this.consecutivoInterno,
     this.descripcion,
     this.imagenUrl,
     required this.mUserName,
+    required this.estado,
   });
 
   factory ActualizarCroquisModel.fromJson(String str) =>
@@ -117,6 +119,7 @@ class ActualizarCroquisModel {
       descripcion: json["descripcion"],
       imagenUrl: json["imagenUrl"],
       mUserName: json["mUserName"],
+      estado: json["estado"],
     );
   }
 
@@ -126,6 +129,7 @@ class ActualizarCroquisModel {
       "descripcion": descripcion,
       "imagenUrl": imagenUrl,
       "mUserName": mUserName,
+      "estado": estado,
     };
   }
 }

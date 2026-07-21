@@ -11,6 +11,7 @@ import 'package:fl_business/displays/shr_local_config/views/views.dart';
 import 'package:fl_business/displays/tablero_kanban/views/tablero_view.dart';
 import 'package:fl_business/displays/tareas/views/ea_tareas_view.dart';
 import 'package:fl_business/displays/tareas/views/views.dart';
+import 'package:fl_business/displays/vehiculos/views/crear_croquis_view.dart';
 import 'package:fl_business/displays/vehiculos/views/inicioRecepci%C3%B3n.view.dart';
 import 'package:fl_business/views/error_infor_view.dart';
 import 'package:fl_business/views/views.dart';
@@ -81,6 +82,8 @@ class AppRoutes {
   static const tablero = "PrcTareaTableroCanva";
   static const printerView = "printView";
   static const vehiculos = "prcRecepcionVehiculo";
+  static const crearCroquis = "crearCroquis";
+  static const mantenimientoCroquis = "mntElementoAsignadoCroquis";
 
   //static const vehiculos = "prcRecepcionVehiculo";
 
@@ -152,6 +155,9 @@ class AppRoutes {
 
     printerView: (BuildContext context) => const PrinterView(),
     vehiculos: (BuildContext context) => const InicioVehiculosView(),
+    crearCroquis: (BuildContext context) => const CrearCroquisView(),
+    mantenimientoCroquis: (BuildContext context) =>
+        const CrearCroquisView(modoActualizar: true),
     PaymentConvertView.routeName: (BuildContext context) =>
         const PaymentConvertView(),
   };

@@ -29,6 +29,7 @@ class ElementoAsignadoModel {
   int? modelo;
   String? centimetrosCubicos;
   String? cilindros;
+  int? consecutivoCroquis;
 
   ElementoAsignadoModel({
     required this.elementoAsignado,
@@ -59,6 +60,7 @@ class ElementoAsignadoModel {
     this.modelo,
     this.centimetrosCubicos,
     this.cilindros,
+    this.consecutivoCroquis,
   });
 
   factory ElementoAsignadoModel.fromJson(String str) =>
@@ -100,6 +102,9 @@ class ElementoAsignadoModel {
         modelo: json["modelo"],
         centimetrosCubicos: json["centimetros_Cubicos"]?.toString(),
         cilindros: json["cilindros"]?.toString(),
+        consecutivoCroquis: json["id_Croquis"] == null
+            ? null
+            : int.tryParse(json["id_Croquis"].toString()),
       );
 
   Map<String, dynamic> toMap() => {
@@ -125,5 +130,6 @@ class ElementoAsignadoModel {
     "modelo_Fecha": modeloFecha?.toIso8601String(),
     "seccion": seccion,
     "cuenta_Correntista": cuentaCorrentista,
+    "id_Croquis": consecutivoCroquis,
   };
 }

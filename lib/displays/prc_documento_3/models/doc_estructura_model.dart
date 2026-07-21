@@ -43,6 +43,7 @@ class DocEstructuraModel {
   String? docComanda;
   int? docReferencia;
   String docVersionApp;
+  String? docReporte;
 
   // --------------------
   // Datos del cliente
@@ -84,6 +85,9 @@ class DocEstructuraModel {
   String? docCc;
   String? docCil;
   List<TraFileUploadModel>? docVehiculoImagen;
+  List<TraFileUploadModel>? docFirmaCliente;
+  List<TraFileUploadModel>? docFirmaMecanico;
+
   double? docNivelGasolina;
 
   /// Aqui va la imagen con puntos seleccionados
@@ -129,6 +133,7 @@ class DocEstructuraModel {
     required this.docRefObservacion3,
     required this.docRefObservacion,
     required this.docReferencia,
+    this.docReporte,
 
     this.docNit,
     this.docNombreCliente,
@@ -154,6 +159,8 @@ class DocEstructuraModel {
     this.docCc,
     this.docCil,
     this.docVehiculoImagen,
+    this.docFirmaCliente,
+    this.docFirmaMecanico,
     this.docNivelGasolina,
   });
 
@@ -216,6 +223,8 @@ class DocEstructuraModel {
         docRefObservacion3: json["Doc_Ref_Observacion_3"],
         docRefObservacion: json["Doc_Ref_Observacion"],
         docReferencia: json["Doc_Referencia"],
+        docReporte: json["Doc_Reporte"],
+
         docNit: json["Doc_Nit"],
         docNombreCliente: json["Doc_Nombre_Cliente"],
         docDireccionCliente: json["Doc_Direccion_Cliente"],
@@ -255,6 +264,20 @@ class DocEstructuraModel {
         docVehiculoImagen: json["Doc_Vehiculo_Imagen"] != null
             ? List<TraFileUploadModel>.from(
                 json["Doc_Vehiculo_Imagen"].map(
+                  (x) => TraFileUploadModel.fromMap(x),
+                ),
+              )
+            : null,
+        docFirmaCliente: json["Doc_Firma_Cliente"] != null
+            ? List<TraFileUploadModel>.from(
+                json["Doc_Firma_Cliente"].map(
+                  (x) => TraFileUploadModel.fromMap(x),
+                ),
+              )
+            : null,
+        docFirmaMecanico: json["Doc_Firma_Mecanico"] != null
+            ? List<TraFileUploadModel>.from(
+                json["Doc_Firma_Mecanico"].map(
                   (x) => TraFileUploadModel.fromMap(x),
                 ),
               )
@@ -303,6 +326,7 @@ class DocEstructuraModel {
     "Doc_Ref_Observacion_3": docRefObservacion3,
     "Doc_Ref_Observacion": docRefObservacion,
     "Doc_Referencia": docReferencia,
+    "Doc_Reporte": docReporte,
 
     "Doc_Nit": docNit,
     "Doc_Nombre_Cliente": docNombreCliente,
@@ -332,6 +356,12 @@ class DocEstructuraModel {
     "Doc_Cil": docCil,
     "Doc_Vehiculo_Imagen": docVehiculoImagen != null
         ? List<dynamic>.from(docVehiculoImagen!.map((x) => x.toMap()))
+        : null,
+    "Doc_Firma_Cliente": docFirmaCliente != null
+        ? List<dynamic>.from(docFirmaCliente!.map((x) => x.toMap()))
+        : null,
+    "Doc_Firma_Mecanico": docFirmaMecanico != null
+        ? List<dynamic>.from(docFirmaMecanico!.map((x) => x.toMap()))
         : null,
     "Doc_Nivel_Gasolina": docNivelGasolina,
   };

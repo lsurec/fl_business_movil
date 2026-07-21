@@ -72,6 +72,7 @@ class CroquisService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        print("url de la petición: $url");
         res.data = (res.data as List)
             .map((e) => CroquisModel.fromMap(e))
             .toList();
@@ -150,6 +151,48 @@ class CroquisService {
       );
 
       return ApiResponseModel.fromMap(jsonDecode(response.body));
+    } catch (e) {
+      return ApiResponseModel(
+        status: false,
+        message: "Error no controlado",
+        error: e.toString(),
+        storedProcedure: "",
+        parameters: null,
+        data: [],
+        timestamp: DateTime.now(),
+        version: "",
+        url: url,
+      );
+    }
+  }
+
+  Future<ApiResponseModel> obtenerCroquisTodos(
+    int empresa,
+    String token,
+  ) async {
+    String url = "${_baseUrl}v2/Croquis/croquis/todos";
+
+    try {
+      final uri = Uri.parse(
+        url,
+      ).replace(queryParameters: {"empresa": empresa.toString()});
+
+      final response = await http.get(
+        uri,
+        headers: {"Authorization": "Bearer $token"},
+      );
+
+      ApiResponseModel res = ApiResponseModel.fromMap(
+        jsonDecode(response.body),
+      );
+
+      if (response.statusCode == 200) {
+        res.data = (res.data as List)
+            .map((e) => CroquisModel.fromMap(e))
+            .toList();
+      }
+
+      return res;
     } catch (e) {
       return ApiResponseModel(
         status: false,

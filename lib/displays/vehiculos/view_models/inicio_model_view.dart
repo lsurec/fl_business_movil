@@ -27,6 +27,8 @@ import 'package:fl_business/displays/prc_documento_3/view_models/payment_view_mo
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
 import 'package:fl_business/displays/vehiculos/models/VehiculoColorModel.dart';
+import 'package:fl_business/displays/vehiculos/models/elemento_asignado_croquis_model.dart';
+import 'package:fl_business/displays/vehiculos/services/elemento_asignado_croquis_service.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/CatalogoVehiculoModel.dart';
 import 'package:fl_business/displays/vehiculos/models/TipoVehiculoModel.dart';
@@ -58,6 +60,7 @@ import 'package:fl_business/view_models/splash_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:signature/signature.dart';
 
 /// Representa un ítem a revisar en el vehículo.
 /// Cada ítem puede tener:
@@ -102,9 +105,6 @@ class ItemVehiculo {
     );
   }
 }
-
-final CatalogoVehiculosService _catalogoVehiculosService =
-    CatalogoVehiculosService();
 
 /// ============================================================================
 /// VIEWMODEL PRINCIPAL
@@ -288,7 +288,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       return;
     }
 
-    // 🔥 AQUÍ ESTÁ LA CLAVE
+    // AQUÍ ESTÁ LA CLAVE
     final client = clients.firstWhere(
       (c) => c.facturaNit == cuenta.nit,
       orElse: () => clients.first,
@@ -342,9 +342,13 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   String cil = '';
   String placa = '';
   String chasis = '';
+  int? consecutivoCroquis;
+
   double nivelGasolina = 50;
 
   List<TraFileUploadModel>? vehiculoImagen;
+  List<TraFileUploadModel>? firmaCliente;
+  List<TraFileUploadModel>? firmaMecanico;
 
   // ============================================================================
   // CONTROLADORES DE INPUT
@@ -363,6 +367,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   final TextEditingController direccionController = TextEditingController();
   final TextEditingController placaController = TextEditingController();
   final TextEditingController chasisController = TextEditingController();
+  final TextEditingController consecutivoCroquisController =
+      TextEditingController();
 
   final List<SellerModel> cuentasCorrentistasRef = []; //cuenta correntisat ref
   final List<SerieModel> series = [];
@@ -396,6 +402,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   /// tipo de Vehiculo
   final TipoVehiculoService _tipoVehiculoService = TipoVehiculoService();
   List<TipoVehiculoModel> tiposVehiculo = [];
+  List<CroquisModel> croquisVehiculos = [];
   TipoVehiculoModel? tipoVehiculoSeleccionado;
   bool cargandoTiposVehiculo = false;
 
@@ -464,6 +471,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
       //  PRIMERO tipos de vehículo
       await cargarTiposVehiculo(context);
+      await cargarCroquis(context);
       setIdDocumentoRef();
 
       final MenuViewModel vmMenu = Provider.of<MenuViewModel>(
@@ -805,6 +813,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     cilController.clear();
     placaController.clear();
     chasisController.clear();
+    croquisSeleccionadoManual = null;
 
     notifyListeners();
   }
@@ -906,6 +915,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     }
   }
 
+  final CatalogoVehiculosService _catalogoVehiculosService =
+      CatalogoVehiculosService();
+
   //enviar datos del vehiculo al catalogo
   Future<bool> guardarVehiculoEnCatalogo(BuildContext context) async {
     final user = Provider.of<LoginViewModel>(context, listen: false).user;
@@ -914,10 +926,6 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       context,
       listen: false,
     ).selectedEmpresa!.empresa;
-    final estacionTrabajo = Provider.of<LocalSettingsViewModel>(
-      context,
-      listen: false,
-    ).selectedEstacion!.estacionTrabajo;
 
     if (marcaSeleccionada == null ||
         modeloSeleccionado == null ||
@@ -938,7 +946,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       guardar(); // guardamos la recepción local
       final placa = placaController.text.trim();
 
-      // 🔹 Verificamos si la placa ya existe
+      //  Verificamos si la placa ya existe
       final existe = await placaExiste(placa, context);
 
       if (existe) {
@@ -948,7 +956,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         return true; // no hacemos POST
       }
 
-      // 🔹 Si no existe, construimos el modelo y hacemos POST
+      // Si no existe, construimos el modelo y hacemos POST
       final model = CatalogoVehiculosModel(
         descripcion: descripcionVehiculo,
         elementoId: placa,
@@ -964,6 +972,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
         cilindros: cilController.text.trim(),
         userName: user,
         cuentaCorrentista: clienteSelect!.cuentaCorrentista,
+        consecutivoCroquis: croquisSeleccionadoManual?.consecutivoInterno,
       );
 
       await _catalogoVehiculosService.crearVehiculo(
@@ -1097,6 +1106,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     chasisController.text = elemento.chasis ?? '';
     ccController.text = elemento.centimetrosCubicos ?? '';
     cilController.text = elemento.cilindros ?? '';
+    consecutivoCroquisController.text =
+        elemento.consecutivoCroquis?.toString() ?? '';
 
     // ---------------------------
     // VARIABLES
@@ -1105,6 +1116,9 @@ class InicioVehiculosViewModel extends ChangeNotifier {
     chasis = chasisController.text;
     cc = ccController.text;
     cil = cilController.text;
+    consecutivoCroquis = consecutivoCroquisController.text.isNotEmpty
+        ? int.tryParse(consecutivoCroquisController.text)
+        : null;
 
     if (elemento.cuentaCorrentista != null || elemento.cuentaCorrentista == 0) {
       final CuentaService cuentaService = CuentaService();
@@ -1212,6 +1226,22 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       seleccionarColor(color);
     }
 
+    if (elemento.consecutivoCroquis != null) {
+      try {
+        final croquisSeleccionado = croquis.firstWhere(
+          (c) => c.consecutivoInterno == elemento.consecutivoCroquis,
+        );
+
+        seleccionarCroquis(croquisSeleccionado);
+      } catch (e) {
+        croquisSeleccionadoManual = null;
+
+        NotificationService.showSnackbar(
+          'El tipo de croquis asociado a este vehículo ya no existe.',
+        );
+      }
+    }
+
     notifyListeners();
   }
 
@@ -1226,26 +1256,66 @@ class InicioVehiculosViewModel extends ChangeNotifier {
 
     return null;
   }
-  // String? getColor(int color) {
-  //   // Texto por defecto
-  //   String? name;
 
-  //   //sino existe serie, retornar false
-  //   if (serieSelect == null) return name;
+  ////// Integración de elemento asignado croquis
+  final CroquisService _croquisService = CroquisService();
 
-  //   // Recorrer lista de parámetros
-  //   for (var item in colores) {
-  //     // Buscar el nombre en el parámetro 57
-  //     if (item.color == color) {
-  //       // Si nombre es nulo, agregar el texto por defecto
-  //       name = item.descripcion;
-  //       break;
-  //     }
-  //   }
+  List<CroquisModel> croquis = [];
 
-  //   // Retornar texto
-  //   return name;
-  // }
+  bool cargandoCroquis = false;
+
+  Future<void> cargarCroquis(BuildContext context) async {
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+    final empresa = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.empresa;
+
+    cargandoCroquis = true;
+    notifyListeners();
+
+    final response = await _croquisService.obtenerCroquis(empresa, token);
+
+    if (response.status) {
+      croquis = List<CroquisModel>.from(response.data);
+    }
+
+    cargandoCroquis = false;
+    notifyListeners();
+  }
+
+  /// Getter para obtener el croquis seleccionado basado en el tipo de vehículo seleccionado
+  CroquisModel? get croquisSeleccionado {
+    if (tipoVehiculoSeleccionado == null) {
+      return null;
+    }
+
+    try {
+      return croquis.firstWhere(
+        (e) =>
+            e.descripcion.toLowerCase() ==
+            tipoVehiculoSeleccionado!.descripcion?.toLowerCase(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Creación de getter para obtener la URL de la imagen del croquis seleccionado
+  String? get imagenCroquisSeleccionado {
+    return croquisSeleccionadoManual?.imagenUrl;
+  }
+
+  CroquisModel? croquisSeleccionadoManual;
+
+  void seleccionarCroquis(CroquisModel? value) {
+    croquisSeleccionadoManual = value;
+
+    print(croquisSeleccionadoManual?.imagenUrl);
+
+    notifyListeners();
+  }
 
   //Funcion para obtener tipo de Vehiculo
   Future<void> cargarTiposVehiculo(BuildContext context) async {
@@ -1281,9 +1351,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
   }
 
   String? get imagenTipoVehiculo {
-    final key = tipoVehiculoSeleccionado?.consecutivoInterno?.toString();
-    if (key == null) return null;
-    return imagenPorTipoVehiculo[key];
+    return croquisSeleccionado?.imagenUrl;
   }
 
   /// Cambiar input de km y mill
@@ -2030,6 +2098,16 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       listen: false,
     );
 
+    final SignatureController firmaClienteController = SignatureController(
+      penStrokeWidth: 3,
+      penColor: Colors.black,
+    );
+
+    final SignatureController firmaMecanicoController = SignatureController(
+      penStrokeWidth: 3,
+      penColor: Colors.black,
+    );
+
     //usuario token y cadena de conexion
     String user = loginVM.user;
     String tokenUser = loginVM.token;
@@ -2285,6 +2363,7 @@ class InicioVehiculosViewModel extends ChangeNotifier {
           ? refVM.referencia!.referencia
           : null,
 
+      docReporte: "rpt_OrdenTrabajo",
       // --------------------
       // Datos del cliente
       // --------------------
@@ -2326,6 +2405,8 @@ class InicioVehiculosViewModel extends ChangeNotifier {
       docVehiculoImagen: context
           .read<InicioVehiculosViewModel>()
           .vehiculoImagen,
+      docFirmaCliente: context.read<InicioVehiculosViewModel>().firmaCliente,
+      docFirmaMecanico: context.read<InicioVehiculosViewModel>().firmaMecanico,
     );
 
     final estructuraJson = docGlobal!.toJson();

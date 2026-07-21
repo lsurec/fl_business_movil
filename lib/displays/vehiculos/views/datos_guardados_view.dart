@@ -4,8 +4,8 @@ import 'dart:ui';
 import 'package:fl_business/displays/prc_documento_3/services/location_service.dart';
 import 'package:fl_business/displays/report/reports/pdf/utilities_pdf.dart';
 import 'package:fl_business/displays/shr_local_config/view_models/local_settings_view_model.dart';
-import 'package:fl_business/displays/tablero_kanban/models/usuario_model.dart';
 import 'package:fl_business/displays/vehiculos/models/FotosporItemModel.dart';
+import 'package:fl_business/displays/vehiculos/services/elemento_asignado_croquis_service.dart';
 import 'package:fl_business/displays/vehiculos/services/upload_service.dart';
 import 'package:fl_business/displays/vehiculos/view_models/items_model_view.dart';
 import 'package:fl_business/displays/vehiculos/models/marcar_vehiculo_model.dart';
@@ -24,6 +24,7 @@ import 'package:fl_business/widgets/load_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
@@ -72,6 +73,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     final items = vm.itemsAsignados;
     final bool bloqueado = _documentoEnviado || vm.isLoading;
     final fechas = (vm.getTextParam(44) ?? '').split(',');
+    final CroquisService _croquisService = CroquisService();
 
     return Stack(
       children: [
@@ -188,12 +190,13 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                   const SizedBox(height: 20),
 
                   // ================= VEHÍCULO MARCADO =================
-                  if (vm.imagenTipoVehiculo != null) ...[
+                  if (vm.imagenCroquisSeleccionado != null) ...[
                     RepaintBoundary(
                       key: _vehiculoKey,
                       child: VehiculoMarcadoWidget(
-                        imagePath: vm.imagenTipoVehiculo!,
+                        imagePath: vm.imagenCroquisSeleccionado!,
                         marcas: vm.marcasVehiculo,
+                        esUrl: true,
                         onTap: vm.agregarMarca,
                         readOnly: _documentoEnviado,
                       ),
@@ -267,7 +270,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     ),
                   ),
 
-                  // 🔹 Observación 1
+                  // Observación 1
                   if (vm.valueParametro(59))
                     _dato(
                       vm.getTextParam(59) ?? 'Observación 1',
@@ -276,7 +279,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           : '—',
                     ),
 
-                  // 🔹 Observación 2
+                  //  Observación 2
                   if (vm.valueParametro(60))
                     _dato(
                       vm.getTextParam(60) ?? 'Observación 2',
@@ -285,7 +288,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                           : '—',
                     ),
 
-                  // 🔹 Observación 3
+                  //  Observación 3
                   if (vm.valueParametro(322))
                     _dato(
                       vm.getTextParam(322) ?? 'Observación 3',
@@ -352,17 +355,42 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     t.translate(BlockTranslate.vehiculos, 'vehiculos_firmas'),
                   ),
 
-                  Text(
-                    'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'VENDEDOR')}',
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text:
+                              'FIRMA DE ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'VENDEDOR')}: ',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        TextSpan(
+                          text: vm.vendedorSelect?.nomCuentaCorrentista ?? '',
+                        ),
+                      ],
+                    ),
                   ),
+
                   _firmaBox(_firmaMecanico, enabled: !_documentoEnviado),
 
                   const SizedBox(height: 20),
 
                   Row(
                     children: [
-                      Text(
-                        'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text:
+                                  'FIRMA DE ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}: ',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextSpan(
+                              text: vm.clienteSelect?.facturaNombre ?? '',
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -610,6 +638,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       user: user,
       urlCarpeta: destinoImagenes,
     );
+    print("UrlCarpeta usada para subir imagen: $destinoImagenes");
 
     // 5. VALIDAR respuesta
     if (uploaded.isEmpty) {
@@ -626,6 +655,96 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     print(" Imagen vehículo guardada en VM:");
     print(vm.vehiculoImagen?.map((e) => e.system).toList());
   }
+
+  Future<void> _capturarFirmas(BuildContext context) async {
+    final user = Provider.of<LoginViewModel>(context, listen: false).user;
+
+    final token = Provider.of<LoginViewModel>(context, listen: false).token;
+
+    final destinoImagenes = Provider.of<LocalSettingsViewModel>(
+      context,
+      listen: false,
+    ).selectedEmpresa!.uploadLocal;
+
+    final vm = context.read<InicioVehiculosViewModel>();
+
+    if (destinoImagenes == null || destinoImagenes.isEmpty) {
+      NotificationService.showSnackbar(
+        "Error: No se ha configurado la ruta de destino para las imágenes.",
+      );
+
+      return;
+    }
+
+    final uploadService = UploadService();
+
+    // ==========================
+    // FIRMA MECANICO
+    // ==========================
+
+    final firmaMecanicoBytes = await _firmaMecanico.toPngBytes();
+
+    if (firmaMecanicoBytes != null) {
+      final path = await _guardarFirmaTemp(
+        firmaMecanicoBytes,
+        "firma_mecanico",
+      );
+
+      if (path != null) {
+        final uploaded = await uploadService.uploadImages(
+          imagePaths: [path],
+          token: token,
+          user: user,
+          urlCarpeta: destinoImagenes,
+        );
+
+        if (uploaded.isNotEmpty) {
+          vm.firmaMecanico = uploaded.map((e) {
+            return TraFileUploadModel(original: e.original, system: e.system);
+          }).toList();
+
+          print("Firma mecánico guardada: ${vm.firmaMecanico}");
+        }
+      }
+    }
+
+    // ==========================
+    // FIRMA CLIENTE
+    // ==========================
+
+    final firmaClienteBytes = await _firmaCliente.toPngBytes();
+
+    if (firmaClienteBytes != null) {
+      final path = await _guardarFirmaTemp(firmaClienteBytes, "firma_cliente");
+
+      if (path != null) {
+        final uploaded = await uploadService.uploadImages(
+          imagePaths: [path],
+          token: token,
+          user: user,
+          urlCarpeta: destinoImagenes,
+        );
+
+        if (uploaded.isNotEmpty) {
+          vm.firmaCliente = uploaded.map((e) {
+            return TraFileUploadModel(original: e.original, system: e.system);
+          }).toList();
+
+          print("Firma cliente guardada: ${vm.firmaCliente}");
+        }
+      }
+    }
+  }
+
+  Future<String?> _guardarFirmaTemp(Uint8List bytes, String nombre) async {
+    final dir = await getTemporaryDirectory();
+
+    final file = File('${dir.path}/$nombre.png');
+
+    await file.writeAsBytes(bytes);
+
+    return file.path;
+  }
   ///// Imagen Logo
   // Future<Uint8List> cargarImagenDesdeAssets(String path) async {
   //   final data = await rootBundle.load(path);
@@ -635,10 +754,34 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
   /// Carga la imagen del vehículo (asset) y la convierte en ImageProvider para PDF
   Future<pw.ImageProvider?> _cargarImagenPdf(BuildContext context) async {
     final vm = context.read<InicioVehiculosViewModel>();
-    final path = vm.imagenTipoVehiculo;
-    if (path == null) return null;
-    final bytes = await DefaultAssetBundle.of(context).load(path);
-    return pw.MemoryImage(bytes.buffer.asUint8List());
+
+    final path = vm.imagenCroquisSeleccionado;
+
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+
+    try {
+      Uint8List bytes;
+
+      if (path.startsWith('http')) {
+        final response = await http.get(Uri.parse(path));
+
+        if (response.statusCode != 200) {
+          return null;
+        }
+
+        bytes = response.bodyBytes;
+      } else {
+        final data = await DefaultAssetBundle.of(context).load(path);
+        bytes = data.buffer.asUint8List();
+      }
+
+      return pw.MemoryImage(bytes);
+    } catch (e) {
+      debugPrint('Error cargando imagen PDF: $e');
+      return null;
+    }
   }
 
   pw.Widget _vehiculoConMarcasPdf(
@@ -649,12 +792,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     const double containerWidth = 300;
     const double containerHeight = 200;
 
-    // 🔹 Ratio REAL de la imagen
     final double imageRatio = imagen.width! / imagen.height!;
     double imageWidth;
     double imageHeight;
 
-    // 🔹 Replicar BoxFit.contain (igual que en Flutter)
+    //  Replicar BoxFit.contain (igual que en Flutter)
     if (containerWidth / containerHeight > imageRatio) {
       imageHeight = containerHeight;
       imageWidth = imageHeight * imageRatio;
@@ -663,7 +805,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       imageHeight = imageWidth / imageRatio;
     }
 
-    // 🔹 Offsets para centrar la imagen
+    //  Offsets para centrar la imagen
     final double offsetX = (containerWidth - imageWidth) / 2;
     final double offsetY = (containerHeight - imageHeight) / 2;
 
@@ -722,6 +864,8 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
     );
   }
 
+  /////
+
   // ================= PDF =================
   final DateTime fechaActual = DateTime.now();
 
@@ -739,37 +883,42 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
       child: pw.Column(
         children: [
           pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Container(
-                width: PdfPageFormat.letter.width * 0.20,
-                margin: const pw.EdgeInsets.symmetric(horizontal: 15),
+              pw.Expanded(
+                flex: 4,
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    ...headersStart.map(
-                      (text) =>
-                          pw.Text(text, style: const pw.TextStyle(fontSize: 9)),
-                    ),
-                  ],
+                  children: headersStart
+                      .map(
+                        (text) => pw.Text(
+                          text,
+                          style: const pw.TextStyle(fontSize: 9),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
 
-              //  FIX AQUÍ
+              pw.SizedBox(width: 15),
+
               pw.Image(image, width: 120, height: 65, fit: pw.BoxFit.contain),
 
-              pw.Container(
-                width: PdfPageFormat.letter.width * 0.20,
+              pw.SizedBox(width: 15),
+
+              pw.Expanded(
+                flex: 4,
                 child: pw.Column(
-                  children: [
-                    ...headersEnd.map(
-                      (text) => pw.Text(
-                        text,
-                        style: const pw.TextStyle(fontSize: 9),
-                        textAlign: pw.TextAlign.center,
-                      ),
-                    ),
-                  ],
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: headersEnd
+                      .map(
+                        (text) => pw.Text(
+                          text,
+                          style: const pw.TextStyle(fontSize: 9),
+                          textAlign: pw.TextAlign.right,
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ],
@@ -1179,7 +1328,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
             // _pdfDato('Kilometraje', vm.recepcionGuardada?.kilometraje ?? '—'),
             // _pdfDato('CC', vm.recepcionGuardada?.cc ?? '—'),
             // _pdfDato('CIL', vm.recepcionGuardada?.cil ?? '—'),
-            // 🔹 Observación 1
+            //  Observación 1
             if (vm.valueParametro(59))
               _pdfDato(
                 vm.getTextParam(59) ?? 'Observación 1',
@@ -1188,7 +1337,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     : '—',
               ),
 
-            // 🔹 Observación 2
+            //  Observación 2
             if (vm.valueParametro(60))
               _pdfDato(
                 vm.getTextParam(60) ?? 'Observación 2',
@@ -1197,7 +1346,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     : '—',
               ),
 
-            // 🔹 Observación 3
+            //  Observación 3
             if (vm.valueParametro(322))
               _pdfDato(
                 vm.getTextParam(322) ?? 'Observación 3',
@@ -1260,7 +1409,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     ),
                     pw.SizedBox(height: 5),
                     pw.Text(
-                      'FIRMA DEL ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')}',
+                      'FIRMA DE ${vm.getTextParam(43) ?? AppLocalizations.of(context)!.translate(BlockTranslate.factura, 'vendedor')} ',
                     ),
                     pw.Text(vm.vendedorSelect?.nomCuentaCorrentista ?? ''),
                   ],
@@ -1277,7 +1426,7 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                     ),
                     pw.SizedBox(height: 5),
                     pw.Text(
-                      'FIRMA DEL ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
+                      'FIRMA DE ${(vm.getTextCuenta(context) ?? '-').toUpperCase()}',
                     ),
                     pw.Text(vm.clienteSelect?.facturaNombre ?? ''),
                   ],
@@ -1285,48 +1434,48 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
               ],
             ),
             //  AGREGA ESTO DEBAJO
-            pw.SizedBox(height: 25),
-            if (vm.valueParametro(318))
-              pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  pw.Text(
-                    'Ubicación de recepción',
-                    style: pw.TextStyle(
-                      fontSize: 12,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
+            // pw.SizedBox(height: 25),
+            // if (vm.valueParametro(318))
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Ubicación de recepción',
+                  style: pw.TextStyle(
+                    fontSize: 12,
+                    fontWeight: pw.FontWeight.bold,
                   ),
-                  pw.SizedBox(height: 5),
+                ),
+                pw.SizedBox(height: 5),
 
-                  pw.Text('Latitud: ${locationService.latitutd}'),
+                pw.Text('Latitud: ${locationService.latitutd}'),
 
-                  pw.Text('Longitud: ${locationService.longitud}'),
+                pw.Text('Longitud: ${locationService.longitud}'),
 
-                  pw.SizedBox(height: 5),
+                pw.SizedBox(height: 5),
 
-                  pw.UrlLink(
-                    destination:
-                        'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                    child: pw.Row(
-                      mainAxisSize: pw.MainAxisSize.min,
-                      children: [
-                        pw.Image(ubicacionImage, width: 16, height: 16),
+                pw.UrlLink(
+                  destination:
+                      'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                  child: pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      pw.Image(ubicacionImage, width: 16, height: 16),
 
-                        pw.SizedBox(width: 5),
+                      pw.SizedBox(width: 5),
 
-                        pw.Text(
-                          'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                          style: pw.TextStyle(
-                            color: PdfColors.blue,
-                            decoration: pw.TextDecoration.underline,
-                          ),
+                      pw.Text(
+                        'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                        style: pw.TextStyle(
+                          color: PdfColors.blue,
+                          decoration: pw.TextDecoration.underline,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
           ],
         ),
       );
@@ -1428,7 +1577,11 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
 
       // await itemsVM.subirTodasLasFotos(context);
 
+      await _capturarFirmas(context);
+      print("=== ANTES DE _subirImagenVehiculo ===");
+
       await _subirImagenVehiculo(context);
+
       print("=== ANTES DE sendDocument ===");
 
       // ================= PASO 3: ENVIAR DOCUMENTO =================
