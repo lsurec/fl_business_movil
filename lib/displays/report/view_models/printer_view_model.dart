@@ -6,6 +6,7 @@ import 'package:android_intent_plus/flag.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:fl_business/demos/printer/service/impresion_ticket.dart';
 import 'package:fl_business/displays/report/reports/test/tmu.dart';
+import 'package:fl_business/displays/report/reports/test/tmu_pdf.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/themes/app_theme.dart';
@@ -215,10 +216,23 @@ class PrinterViewModel extends ChangeNotifier {
       return;
     }
 
+    if (Preferences.printPicture) {
+      final TestTmuPdf testTmuPdf = TestTmuPdf();
+      isLoading = true;
+      final bool resReport = await testTmuPdf.getReport(context);
+
+      isLoading = false;
+      if (!resReport) return;
+
+      await printTMU(context, testTmuPdf.report, true);
+
+      return;
+    }
+
     final TestTMU testTMU = TestTMU();
 
     isLoading = true;
-    final bool resReport = await testTMU.getReportBluetooth(context);
+    final bool resReport = await testTMU.getReport(context);
 
     isLoading = false;
     if (!resReport) return;
