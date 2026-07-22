@@ -57,9 +57,9 @@ class PrinterView extends StatelessWidget {
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(20),
-            child: SingleChildScrollView(
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,6 +106,13 @@ class PrinterView extends StatelessWidget {
                       Icons.bluetooth,
                       color: AppTheme.primary, //cambia color segun la conexion
                     ),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text("Modo grafico", style: StyleApp.normal),
+                    value: Preferences.printPicture,
+                    onChanged: (value) => vm.modoGrafico(context, value),
                   ),
                   const Divider(),
                   SwitchListTile(
@@ -162,55 +169,53 @@ class PrinterView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  Expanded(
-                    child: vm.devices.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.bluetooth_disabled,
-                                  size: 80,
-                                  color: Colors.grey,
+                  vm.devices.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.bluetooth_disabled,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                "No hay dispositivos vinculados",
+                                style: StyleApp.normal,
+                              ),
+                              TextButton(
+                                child: Text(
+                                  "Ir a configuracion",
+                                  style: StyleApp.enlace,
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "No hay dispositivos vinculados",
-                                  style: StyleApp.normal,
-                                ),
-                                TextButton(
-                                  child: Text(
-                                    "Ir a configuracion",
-                                    style: StyleApp.enlace,
-                                  ),
-                                  onPressed: () => vm.goSettings(),
-                                ),
-                              ],
-                            ),
-                          )
-                        : ListView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
-                            scrollDirection: Axis.vertical,
-                            shrinkWrap: true,
-                            itemCount: vm.devices.length,
-                            itemBuilder: (context, index) {
-                              BluetoothDevice device = vm.devices[index];
-
-                              return ListTile(
-                                title: Text(
-                                  device.name ?? "Desconocido", //TODO:Translate
-                                  style: StyleApp.normal,
-                                ),
-                                subtitle: Text(
-                                  device.address ??
-                                      "Desconocido", //TODO:Translate
-                                  style: StyleApp.subTitle,
-                                ),
-                                onTap: () => vm.savePrinter(context, device),
-                              );
-                            },
+                                onPressed: () => vm.goSettings(),
+                              ),
+                            ],
                           ),
-                  ),
+                        )
+                      : ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          itemCount: vm.devices.length,
+                          itemBuilder: (context, index) {
+                            BluetoothDevice device = vm.devices[index];
+
+                            return ListTile(
+                              title: Text(
+                                device.name ?? "Desconocido", //TODO:Translate
+                                style: StyleApp.normal,
+                              ),
+                              subtitle: Text(
+                                device.address ??
+                                    "Desconocido", //TODO:Translate
+                                style: StyleApp.subTitle,
+                              ),
+                              onTap: () => vm.savePrinter(context, device),
+                            );
+                          },
+                        ),
                 ],
               ),
             ),

@@ -52,6 +52,49 @@ class PrinterViewModel extends ChangeNotifier {
 
   final List<BluetoothDevice> devices = [];
 
+  modoGrafico(BuildContext context, bool value) {
+    Preferences.printPicture = value;
+    notifyListeners();
+
+    if (!Preferences.printPicture) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Imprimir con modo grafico"),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Este modo de impresión convierte el documento en una imagen antes de enviarlo a la impresora. Actívelo únicamente si la impresión normal presenta problemas, como texto incompleto, caracteres incorrectos o documentos en blanco.",
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.botones, "cerrar"),
+              ),
+            ),
+            // TextButton(
+            //   onPressed: () {
+            //     // Aquí puedes agregar lógica adicional, como redirigir a la sección de soporte.
+            //     Navigator.of(context).pop();
+            //   },
+            //   child: Text('Contactar Soporte'),
+            // ),
+          ],
+        );
+      },
+    );
+  }
+
   cutPaper(BuildContext context, bool value) {
     Preferences.paperCut = value;
     notifyListeners();
