@@ -1,6 +1,6 @@
 // This is a generated file; do not edit or check into version control.
-FLUTTER_ROOT=C:\Users\Byron Jutzutz\Documents\Flutter\flutter
-FLUTTER_APPLICATION_PATH=C:\Users\Byron Jutzutz\Desktop\Bussines_AppMovilV2\fl_business_movil\packages\blue_thermal_printer\example
+FLUTTER_ROOT=C:\flutter
+FLUTTER_APPLICATION_PATH=C:\Users\dsdev\OneDrive\Escritorio\DEMOSOFT\BUSINESSAPP\fl_business\packages\blue_thermal_printer\example
 COCOAPODS_PARALLEL_CODE_SIGN=true
 FLUTTER_TARGET=lib\main.dart
 FLUTTER_BUILD_DIR=build

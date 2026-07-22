@@ -57,110 +57,119 @@ class PrinterView extends StatelessWidget {
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppLocalizations.of(
-                    context,
-                  )!.translate(BlockTranslate.impresora, "conectado"),
-                  style: StyleApp.title,
-                ),
-                const SizedBox(height: 10),
-                ListTile(
-                  title: Text(
-                    Preferences.printer == null
-                        ? "Sin impresora"
-                        : Preferences.printer!.name ?? "Desconocido",
-                    style: StyleApp.normal,
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(
+                      context,
+                    )!.translate(BlockTranslate.impresora, "conectado"),
+                    style: StyleApp.title,
                   ),
-                  subtitle: Text(
-                    "${Preferences.printer == null ? "Sin impresora" : Preferences.printer!.address ?? "Desconocido"} | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} ${Preferences.paperSize} mm",
-                    style: StyleApp.subTitle,
+                  const SizedBox(height: 10),
+                  ListTile(
+                    title: Text(
+                      Preferences.printer == null
+                          ? "Sin impresora"
+                          : Preferences.printer!.name ?? "Desconocido",
+                      style: StyleApp.normal,
+                    ),
+                    subtitle: Text(
+                      "${Preferences.printer == null ? "Sin impresora" : Preferences.printer!.address ?? "Desconocido"} | ${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "papelT")} ${Preferences.paperSize} mm",
+                      style: StyleApp.subTitle,
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: Preferences.printer == null
+                              ? () => NotificationService.showSnackbar(
+                                  "No hay impresora",
+                                )
+                              : () => vm.savePrinter(
+                                  context,
+                                  Preferences.printer!,
+                                ),
+                          icon: const Icon(Icons.edit),
+                        ),
+                        IconButton(
+                          onPressed: () => vm.deletePrinter(),
+                          icon: const Icon(Icons.delete),
+                        ),
+                      ],
+                    ),
+                    leading: Icon(
+                      Icons.bluetooth,
+                      color: AppTheme.primary, //cambia color segun la conexion
+                    ),
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text("Modo grafico", style: StyleApp.normal),
+                    value: Preferences.printPicture,
+                    onChanged: (value) => vm.modoGrafico(context, value),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      "Cortar despues de imprimir",
+                      style: StyleApp.normal,
+                    ),
+                    value: Preferences.paperCut,
+                    onChanged: (value) => vm.cutPaper(context, value),
+                  ),
+                  const Divider(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Text("Desconectar en:", style: StyleApp.normal),
                       IconButton(
-                        onPressed: Preferences.printer == null
-                            ? () => NotificationService.showSnackbar(
-                                "No hay impresora",
-                              )
-                            : () =>
-                                  vm.savePrinter(context, Preferences.printer!),
-                        icon: const Icon(Icons.edit),
+                        icon: Icon(
+                          Icons.remove,
+                          color: Preferences.secondsPrint == 10
+                              ? AppTheme.grey
+                              : AppTheme.primary,
+                        ),
+                        onPressed: Preferences.secondsPrint == 10
+                            ? null
+                            : () => vm.removeSeconds(),
+                      ),
+                      Text(
+                        '${Preferences.secondsPrint} s',
+                        style: StyleApp.normalBold,
                       ),
                       IconButton(
-                        onPressed: () => vm.deletePrinter(),
-                        icon: const Icon(Icons.delete),
+                        icon: const Icon(Icons.add, color: AppTheme.primary),
+                        onPressed: () => vm.addSeconds(),
                       ),
                     ],
                   ),
-                  leading: Icon(
-                    Icons.bluetooth,
-                    color: AppTheme.primary, //cambia color segun la conexion
-                  ),
-                ),
-                const Divider(),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    "Cortar despues de imprimir",
-                    style: StyleApp.normal,
-                  ),
-                  value: Preferences.paperCut,
-                  onChanged: (value) => vm.cutPaper(context, value),
-                ),
-                const Divider(),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Desconectar en:", style: StyleApp.normal),
-                    IconButton(
-                      icon: Icon(
-                        Icons.remove,
-                        color: Preferences.secondsPrint == 10
-                            ? AppTheme.grey
-                            : AppTheme.primary,
-                      ),
-                      onPressed: Preferences.secondsPrint == 10
-                          ? null
-                          : () => vm.removeSeconds(),
-                    ),
-                    Text(
-                      '${Preferences.secondsPrint} s',
-                      style: StyleApp.normalBold,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.add, color: AppTheme.primary),
-                      onPressed: () => vm.addSeconds(),
-                    ),
-                  ],
-                ),
-                const Divider(),
+                  const Divider(),
 
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "disponibles")} (${vm.devices.length})",
-                      style: StyleApp.title,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.refresh),
-                      tooltip: 'Volver a buscar',
-                      onPressed: () => vm.getDevices(),
-                      color: AppTheme.primary,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: vm.devices.isEmpty
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "${AppLocalizations.of(context)!.translate(BlockTranslate.impresora, "disponibles")} (${vm.devices.length})",
+                        style: StyleApp.title,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh),
+                        tooltip: 'Volver a buscar',
+                        onPressed: () => vm.getDevices(),
+                        color: AppTheme.primary,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  vm.devices.isEmpty
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -186,6 +195,8 @@ class PrinterView extends StatelessWidget {
                           ),
                         )
                       : ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          scrollDirection: Axis.vertical,
                           shrinkWrap: true,
                           itemCount: vm.devices.length,
                           itemBuilder: (context, index) {
@@ -205,8 +216,8 @@ class PrinterView extends StatelessWidget {
                             );
                           },
                         ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

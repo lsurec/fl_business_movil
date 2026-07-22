@@ -24,10 +24,21 @@ class Preferences {
   static const String _order = "orderRest";
   static const String _secondsPrint = "secondsPrint";
   static const String _paperCut = "paperCut";
+  static const String _printPicture = "printPicture";
 
   //iniciar shared preferences
   static Future init() async {
     _prefs = await SharedPreferences.getInstance();
+  }
+
+  //Cortar papel despues de imprimir
+  static set printPicture(bool value) {
+    _prefs.setBool(_printPicture, value);
+  }
+
+  //Cortar papel despues de imprimir
+  static bool get printPicture {
+    return _prefs.getBool(_printPicture) ?? false;
   }
 
   //Cortar papel despues de imprimir

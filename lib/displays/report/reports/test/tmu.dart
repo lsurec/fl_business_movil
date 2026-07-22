@@ -16,7 +16,7 @@ import 'package:diacritic/diacritic.dart';
 class TestTMU {
   final List<int> report = [];
 
-  Future<bool> getReportBluetooth(BuildContext context) async {
+  Future<bool> getReport(BuildContext context) async {
     try {
       final LoginViewModel vmLogin = Provider.of<LoginViewModel>(
         context,
@@ -46,6 +46,7 @@ class TestTMU {
 
         report.addAll(generator.image(enterpriseLogo, align: PosAlign.center));
       }
+
       final myLogo = await utils.getMyCompanyLogo();
 
       report.addAll(generator.hr());

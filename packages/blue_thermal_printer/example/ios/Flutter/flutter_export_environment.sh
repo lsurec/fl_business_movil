@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\Users\Byron Jutzutz\Documents\Flutter\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\Byron Jutzutz\Desktop\Bussines_AppMovilV2\fl_business_movil\packages\blue_thermal_printer\example"
+export "FLUTTER_ROOT=C:\flutter"
+export "FLUTTER_APPLICATION_PATH=C:\Users\dsdev\OneDrive\Escritorio\DEMOSOFT\BUSINESSAPP\fl_business\packages\blue_thermal_printer\example"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_TARGET=lib\main.dart"
 export "FLUTTER_BUILD_DIR=build"

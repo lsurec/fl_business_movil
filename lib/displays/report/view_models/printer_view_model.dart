@@ -6,6 +6,7 @@ import 'package:android_intent_plus/flag.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:fl_business/demos/printer/service/impresion_ticket.dart';
 import 'package:fl_business/displays/report/reports/test/tmu.dart';
+import 'package:fl_business/displays/report/reports/test/tmu_pdf.dart';
 import 'package:fl_business/services/services.dart';
 import 'package:fl_business/shared_preferences/preferences.dart';
 import 'package:fl_business/themes/app_theme.dart';
@@ -51,6 +52,49 @@ class PrinterViewModel extends ChangeNotifier {
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
 
   final List<BluetoothDevice> devices = [];
+
+  modoGrafico(BuildContext context, bool value) {
+    Preferences.printPicture = value;
+    notifyListeners();
+
+    if (!Preferences.printPicture) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Imprimir con modo grafico"),
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Este modo de impresión convierte el documento en una imagen antes de enviarlo a la impresora. Actívelo únicamente si la impresión normal presenta problemas, como texto incompleto, caracteres incorrectos o documentos en blanco.",
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                AppLocalizations.of(
+                  context,
+                )!.translate(BlockTranslate.botones, "cerrar"),
+              ),
+            ),
+            // TextButton(
+            //   onPressed: () {
+            //     // Aquí puedes agregar lógica adicional, como redirigir a la sección de soporte.
+            //     Navigator.of(context).pop();
+            //   },
+            //   child: Text('Contactar Soporte'),
+            // ),
+          ],
+        );
+      },
+    );
+  }
 
   cutPaper(BuildContext context, bool value) {
     Preferences.paperCut = value;
@@ -172,10 +216,23 @@ class PrinterViewModel extends ChangeNotifier {
       return;
     }
 
+    if (Preferences.printPicture) {
+      final TestTmuPdf testTmuPdf = TestTmuPdf();
+      isLoading = true;
+      final bool resReport = await testTmuPdf.getReport(context);
+
+      isLoading = false;
+      if (!resReport) return;
+
+      await printTMU(context, testTmuPdf.report, true);
+
+      return;
+    }
+
     final TestTMU testTMU = TestTMU();
 
     isLoading = true;
-    final bool resReport = await testTMU.getReportBluetooth(context);
+    final bool resReport = await testTMU.getReport(context);
 
     isLoading = false;
     if (!resReport) return;
