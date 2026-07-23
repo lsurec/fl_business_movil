@@ -1066,12 +1066,11 @@ class ConfirmDocViewModel extends ChangeNotifier {
       ApiResModel resDisponibiladProducto = await productService
           .getValidaProducto(
             user,
-            docVM.serieSelect!.serieDocumento!,
-            menuVM.documento!,
-            localVM.selectedEstacion!.estacionTrabajo,
-            localVM.selectedEmpresa!.empresa,
+            serieDocumento,
+            tipoDocumento,
+            estacion,
+            empresa,
             item.bodega!.bodega,
-
             item.tipoTransaccion!,
             item.producto.unidadMedida,
             item.producto.producto,
@@ -1080,12 +1079,14 @@ class ConfirmDocViewModel extends ChangeNotifier {
             item.precio!.moneda,
             item.precio!.id,
             token,
-            docVM.clienteSelect!.cuentaCorrentista,
-            docVM.clienteSelect!.cuentaCta,
+            cuentaCorrentisata,
+            cuentaCta,
             docVM.fechaInicial,
             docVM.fechaFinal,
-            item.cantidad * item.precio!.precioU,
-            item.total,
+            double.parse(
+              (item.cantidad * item.precio!.precioU).toStringAsFixed(2),
+            ),
+            detailsVM.total,
           );
 
       if (!resDisponibiladProducto.succes) {
