@@ -1443,49 +1443,49 @@ class _DatosGuardadosScreenState extends State<DatosGuardadosScreen> {
                 ),
               ],
             ),
-            //  AGREGA ESTO DEBAJO
+
             // pw.SizedBox(height: 25),
-            // if (vm.valueParametro(318))
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  'Ubicación de recepción',
-                  style: pw.TextStyle(
-                    fontSize: 12,
-                    fontWeight: pw.FontWeight.bold,
+            if (vm.valueParametro(318))
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    'Ubicación de recepción',
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
-                ),
-                pw.SizedBox(height: 5),
+                  pw.SizedBox(height: 5),
 
-                pw.Text('Latitud: ${locationService.latitutd}'),
+                  pw.Text('Latitud: ${locationService.latitutd}'),
 
-                pw.Text('Longitud: ${locationService.longitud}'),
+                  pw.Text('Longitud: ${locationService.longitud}'),
 
-                pw.SizedBox(height: 5),
+                  pw.SizedBox(height: 5),
 
-                pw.UrlLink(
-                  destination:
-                      'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                  child: pw.Row(
-                    mainAxisSize: pw.MainAxisSize.min,
-                    children: [
-                      pw.Image(ubicacionImage, width: 16, height: 16),
+                  pw.UrlLink(
+                    destination:
+                        'https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                    child: pw.Row(
+                      mainAxisSize: pw.MainAxisSize.min,
+                      children: [
+                        pw.Image(ubicacionImage, width: 16, height: 16),
 
-                      pw.SizedBox(width: 5),
+                        pw.SizedBox(width: 5),
 
-                      pw.Text(
-                        'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
-                        style: pw.TextStyle(
-                          color: PdfColors.blue,
-                          decoration: pw.TextDecoration.underline,
+                        pw.Text(
+                          'Abrir ubicación en Google Maps https://www.google.com/maps?q=${locationService.latitutd},${locationService.longitud}',
+                          style: pw.TextStyle(
+                            color: PdfColors.blue,
+                            decoration: pw.TextDecoration.underline,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
           ],
         ),
       );

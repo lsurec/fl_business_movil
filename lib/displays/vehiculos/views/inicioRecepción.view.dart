@@ -296,48 +296,49 @@ class _InicioVehiculosViewState extends State<InicioVehiculosView> {
                           );
                         }).toList(),
                       ),
-                    // if (vm.valueParametro(318))
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 10),
-                        RichText(
-                          text: TextSpan(
-                            style: StyleApp.normal.copyWith(color: textColor),
-                            children: [
-                              TextSpan(
-                                text: AppLocalizations.of(
-                                  context,
-                                )!.translate(BlockTranslate.tiket, 'latitud'),
-                                style: StyleApp.normalBold,
-                              ),
-                              TextSpan(
-                                text: vmLocation.latitutd,
-                                style: StyleApp.normal,
-                              ),
-                            ],
+                    if (vm.valueParametro(318))
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 10),
+                          RichText(
+                            text: TextSpan(
+                              style: StyleApp.normal.copyWith(color: textColor),
+                              children: [
+                                TextSpan(
+                                  text: AppLocalizations.of(
+                                    context,
+                                  )!.translate(BlockTranslate.tiket, 'latitud'),
+                                  style: StyleApp.normalBold,
+                                ),
+                                TextSpan(
+                                  text: vmLocation.latitutd,
+                                  style: StyleApp.normal,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 5),
-                        RichText(
-                          text: TextSpan(
-                            style: StyleApp.normal.copyWith(color: textColor),
-                            children: [
-                              TextSpan(
-                                text: AppLocalizations.of(
-                                  context,
-                                )!.translate(BlockTranslate.tiket, 'longitud'),
-                                style: StyleApp.normalBold,
-                              ),
-                              TextSpan(
-                                text: vmLocation.longitud,
-                                style: StyleApp.normal,
-                              ),
-                            ],
+                          const SizedBox(height: 5),
+                          RichText(
+                            text: TextSpan(
+                              style: StyleApp.normal.copyWith(color: textColor),
+                              children: [
+                                TextSpan(
+                                  text: AppLocalizations.of(context)!.translate(
+                                    BlockTranslate.tiket,
+                                    'longitud',
+                                  ),
+                                  style: StyleApp.normalBold,
+                                ),
+                                TextSpan(
+                                  text: vmLocation.longitud,
+                                  style: StyleApp.normal,
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
 
                     // if (vm.valueParametro(58))
                     //   Column(
